@@ -1,0 +1,4 @@
+node_modules/
+cartographer.db
+cartographer.db-shm
+cartographer.db-wal

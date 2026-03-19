@@ -1,0 +1,16 @@
+{
+  "name": "cartographer",
+  "version": "1.0.0",
+  "description": "Éditeur de cartes de mondes fictifs — Fictional world map editor",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": ["worldbuilding", "map-editor", "fantasy", "cartography"],
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.0",
+    "better-sqlite3": "^11.6.0"
+  }
+}
