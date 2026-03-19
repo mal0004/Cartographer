@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cartographer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ══ HOME SCREEN ════════════════════════════════════════════════════════ -->
+<div id="home-screen" class="screen active">
+  <header class="home-header">
+    <h1 class="app-title">⚑ Cartographer</h1>
+    <p class="app-subtitle">Forge your worlds, map your legends</p>
+    <div class="home-actions">
+      <button id="btn-new-world" class="btn btn-primary">＋ New World</button>
+      <label class="btn btn-secondary" title="Import world JSON">
+        ⬆ Import
+        <input type="file" id="import-file" accept=".json" hidden/>
+      </label>
+      <button id="btn-toggle-night" class="btn btn-ghost" title="Toggle night mode">☽</button>
+    </div>
+  </header>
+
+  <main class="worlds-grid" id="worlds-grid">
+    <!-- World cards injected by app.js -->
+    <div class="empty-state" id="empty-state" hidden>
+      <div class="empty-icon">🗺</div>
+      <p>No worlds yet. Create your first world to begin mapping.</p>
+    </div>
+  </main>
+</div>
+
+<!-- ══ EDITOR SCREEN ══════════════════════════════════════════════════════ -->
+<div id="editor-screen" class="screen">
+
+  <!-- Top bar -->
+  <nav class="editor-nav">
+    <button id="btn-back" class="btn btn-ghost" title="Back to worlds">← Worlds</button>
+    <span id="world-title" class="world-title-nav">World Name</span>
+    <div class="nav-actions">
+      <button id="btn-export-svg" class="btn btn-secondary" title="Export as printable SVG">🖨 Export SVG</button>
+      <button id="btn-export-json" class="btn btn-ghost" title="Export world as JSON backup">⬇ Backup</button>
+      <button id="btn-toggle-night-editor" class="btn btn-ghost" title="Toggle night mode">☽</button>
+    </div>
+  </nav>
+
+  <!-- Canvas toolbar -->
+  <div class="canvas-toolbar" id="canvas-toolbar">
+    <button class="tool-btn active" data-tool="select"    title="Select / Move (V)">↖</button>
+    <div class="tool-separator"></div>
+    <button class="tool-btn" data-tool="territory" title="Draw Territory (T)">⬡</button>
+    <button class="tool-btn" data-tool="city"      title="Place City (C)">⬤</button>
+    <button class="tool-btn" data-tool="route"     title="Draw Route (R)">↝</button>
+    <button class="tool-btn" data-tool="region"    title="Natural Region (N)">⊕</button>
+    <button class="tool-btn" data-tool="text"      title="Place Text (X)">𝐓</button>
+    <div class="tool-separator"></div>
+
+    <!-- Tool options (context-sensitive) -->
+    <div class="tool-options" id="tool-options">
+      <!-- Injected dynamically -->
+    </div>
+
+    <div class="tool-separator"></div>
+    <button class="tool-btn" id="btn-undo" title="Undo (Ctrl+Z)">↩</button>
+    <button class="tool-btn" id="btn-zoom-reset" title="Reset zoom (0)">⊙</button>
+    <span class="zoom-level" id="zoom-level">100%</span>
+  </div>
+
+  <!-- Main canvas area -->
+  <canvas id="map-canvas"></canvas>
+
+  <!-- Sidebar panel -->
+  <aside id="sidebar" class="sidebar sidebar-closed">
+    <div class="sidebar-header">
+      <span id="sidebar-title" class="sidebar-title">Element</span>
+      <button id="sidebar-close" class="btn btn-ghost btn-sm">✕</button>
+    </div>
+    <div class="sidebar-tabs">
+      <button class="tab-btn active" data-tab="info">Info</button>
+      <button class="tab-btn" data-tab="relations">Relations</button>
+      <button class="tab-btn" data-tab="events">Events</button>
+    </div>
+    <div id="sidebar-content" class="sidebar-content">
+      <!-- Info tab -->
+      <div class="tab-panel active" id="tab-info">
+        <div id="info-form"><!-- Injected by sidebar.js --></div>
+        <div class="markdown-editor" id="md-editor">
+          <div class="md-toolbar">
+            <button data-md="bold"   title="Bold">𝐁</button>
+            <button data-md="italic" title="Italic">𝐼</button>
+            <button data-md="h2"     title="Heading">H</button>
+            <button data-md="ul"     title="List">≡</button>
+          </div>
+          <textarea id="md-input" placeholder="Description (markdown)…"></textarea>
+          <div id="md-preview" class="md-preview"></div>
+        </div>
+      </div>
+      <!-- Relations tab -->
+      <div class="tab-panel" id="tab-relations">
+        <p class="tab-hint">Entities mentioned in the description:</p>
+        <ul id="relations-list" class="relations-list"></ul>
+      </div>
+      <!-- Events tab -->
+      <div class="tab-panel" id="tab-events">
+        <p class="tab-hint">Timeline events linked to this entity:</p>
+        <ul id="entity-events-list" class="relations-list"></ul>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <button id="btn-save-element" class="btn btn-primary btn-full">Save</button>
+      <button id="btn-delete-element" class="btn btn-danger btn-full">Delete</button>
+    </div>
+  </aside>
+
+  <!-- Timeline -->
+  <div id="timeline-container" class="timeline-container">
+    <div class="timeline-header">
+      <button id="btn-timeline-toggle" class="btn btn-ghost btn-sm">▲ Timeline</button>
+      <button id="btn-add-event" class="btn btn-ghost btn-sm">＋ Event</button>
+      <div class="timeline-range">
+        <label>From <input type="number" id="timeline-start" value="0" min="-9999" max="9999"/></label>
+        <label>To   <input type="number" id="timeline-end"   value="1000" min="-9999" max="9999"/></label>
+      </div>
+    </div>
+    <div id="timeline-track" class="timeline-track"></div>
+  </div>
+
+</div>
+
+<!-- ══ MODALS ═════════════════════════════════════════════════════════════ -->
+<div id="modal-overlay" class="modal-overlay hidden">
+  <div class="modal" id="modal-box">
+    <div class="modal-header">
+      <h2 id="modal-title">Dialog</h2>
+      <button id="modal-close" class="btn btn-ghost btn-sm">✕</button>
+    </div>
+    <div id="modal-body" class="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<script src="canvas.js"></script>
+<script src="sidebar.js"></script>
+<script src="timeline.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
