@@ -121,6 +121,12 @@ class Sidebar {
         ], d.fontStyle || 'normal');
         html += this._colorField('color', 'Color', d.color || '#2C1810');
         break;
+
+      case 'symbol':
+        html += this._field('size', 'Size', 'number', d.size || 32);
+        html += this._field('rotation', 'Rotation (°)', 'number', d.rotation || 0);
+        html += this._colorField('color', 'Color', d.color || '#2C1810');
+        break;
     }
 
     // Delete button

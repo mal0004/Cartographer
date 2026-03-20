@@ -106,6 +106,7 @@ class CanvasEngine {
     this.tool = 'select';
     this.toolColor = '#8B2635';
     this.toolOptions = {};
+    this.symbolLibrary = null; // set by App
 
     // Selection
     this.selectedEntity = null;
@@ -141,6 +142,11 @@ class CanvasEngine {
     this.onEntityCreated = null;
     this.onEntityUpdated = null;
     this.onEntityDeleted = null;
+    this.onEntityMoved = null;
+
+    // Layers panel reference (set by App)
+    this.layersPanel = null;
+    this.snapGuides = null; // set by App
 
     this._textureCache = {};
   }
@@ -197,12 +203,20 @@ class CanvasEngine {
     ctx.scale(this.zoom, this.zoom);
 
     // Render entities in order: regions → territories → routes → cities → text
-    const order = ['region', 'territory', 'route', 'city', 'text'];
+    const order = ['region', 'territory', 'route', 'city', 'symbol', 'text'];
     const sorted = [...this.entities].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type));
 
     for (const entity of sorted) {
+      // Layer filtering
+      if (this.layersPanel && !this.layersPanel.isEntityVisible(entity)) continue;
+      const layerOpacity = this.layersPanel ? this.layersPanel.getEntityOpacity(entity) : 1;
+      if (layerOpacity < 1) ctx.globalAlpha = layerOpacity;
       this._renderEntity(ctx, entity);
+      if (layerOpacity < 1) ctx.globalAlpha = 1;
     }
+
+    // Snap guides
+    if (this.snapGuides) this.snapGuides.drawSnaps(ctx);
 
     // Drawing preview
     this._drawPreview(ctx);
@@ -357,6 +371,33 @@ class CanvasEngine {
         }
         break;
       }
+      case 'symbol': {
+        const symSize = d.size || 32;
+        const rotation = d.rotation || 0;
+        const color = d.color || '#2C1810';
+        ctx.save();
+        ctx.translate(d.x, d.y);
+        if (rotation) ctx.rotate(rotation * Math.PI / 180);
+        // Render SVG symbol via cached image
+        this._drawSymbol(ctx, d.symbolId, -symSize/2, -symSize/2, symSize, color);
+        if (selected) {
+          ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+          ctx.lineWidth = 2;
+          ctx.setLineDash([4, 3]);
+          ctx.strokeRect(-symSize/2 - 4, -symSize/2 - 4, symSize + 8, symSize + 8);
+          ctx.setLineDash([]);
+        }
+        ctx.restore();
+        // Name label
+        if (entity.name) {
+          ctx.font = '11px Cinzel, serif';
+          ctx.fillStyle = color;
+          ctx.textAlign = 'center';
+          ctx.fillText(entity.name, d.x, d.y + symSize/2 + 14);
+          ctx.textAlign = 'start';
+        }
+        break;
+      }
     }
   }
 
@@ -417,6 +458,10 @@ class CanvasEngine {
       case 'route': {
         if (d.x1 === undefined) return false;
         return this._distToSegment(wx, wy, d.x1, d.y1, d.x2, d.y2) < 10;
+      }
+      case 'symbol': {
+        const s = (d.size || 32) / 2 + 4;
+        return Math.abs(wx - d.x) < s && Math.abs(wy - d.y) < s;
       }
     }
     return false;
@@ -494,6 +539,8 @@ class CanvasEngine {
       }
     } else if (this.tool === 'text') {
       this._createText(wx, wy);
+    } else if (this.tool === 'symbol') {
+      this._createSymbol(wx, wy);
     }
   }
 
@@ -509,9 +556,21 @@ class CanvasEngine {
       const sx = e.clientX - rect.left;
       const sy = e.clientY - rect.top;
       const { x: wx, y: wy } = this.screenToWorld(sx, sy);
-      const dx = wx - this.dragStartX;
-      const dy = wy - this.dragStartY;
+      let dx = wx - this.dragStartX;
+      let dy = wy - this.dragStartY;
       this._moveEntity(this.selectedEntity, this.dragEntityOrigData, dx, dy);
+      // Apply snap after move
+      if (this.snapGuides) {
+        const center = this._getEntityCenter(this.selectedEntity);
+        if (center) {
+          const snapped = this.snapGuides.snap(center.x, center.y, this.selectedEntity.id, e.altKey);
+          const snapDx = snapped.x - center.x;
+          const snapDy = snapped.y - center.y;
+          if (snapDx !== 0 || snapDy !== 0) {
+            this._moveEntity(this.selectedEntity, this.dragEntityOrigData, dx + snapDx, dy + snapDy);
+          }
+        }
+      }
       this.render();
     }
   }
@@ -524,8 +583,13 @@ class CanvasEngine {
     }
     if (this.isDragging && this.selectedEntity) {
       this.isDragging = false;
-      // Persist position
-      if (this.onEntityUpdated) this.onEntityUpdated(this.selectedEntity);
+      if (this.snapGuides) this.snapGuides.clearActiveSnaps();
+      // Persist position with undo support
+      if (this.onEntityMoved) {
+        this.onEntityMoved(this.selectedEntity, this.dragEntityOrigData);
+      } else if (this.onEntityUpdated) {
+        this.onEntityUpdated(this.selectedEntity);
+      }
     }
   }
 
@@ -577,7 +641,7 @@ class CanvasEngine {
 
     // Tool shortcuts
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    const shortcuts = { v: 'select', t: 'territory', c: 'city', r: 'route', n: 'region', x: 'text' };
+    const shortcuts = { v: 'select', t: 'territory', c: 'city', r: 'route', n: 'region', x: 'text', s: 'symbol' };
     if (shortcuts[e.key]) {
       this.setTool(shortcuts[e.key]);
     }
@@ -585,12 +649,17 @@ class CanvasEngine {
 
   // ─── Entity creation ───────────────────────────────────────
 
+  _stampLayer(data) {
+    if (this.layersPanel) data._layer = this.layersPanel.getActiveLayerId();
+    return data;
+  }
+
   _createCity(x, y) {
     const importance = this.toolOptions.importance || 'village';
     const entity = {
       type: 'city',
       name: '',
-      data: {
+      data: this._stampLayer({
         x, y,
         importance,
         color: this.toolColor,
@@ -599,7 +668,7 @@ class CanvasEngine {
         population: 0,
         founded: '',
         description: '',
-      },
+      }),
     };
     if (this.onEntityCreated) this.onEntityCreated(entity);
   }
@@ -614,7 +683,7 @@ class CanvasEngine {
     const entity = {
       type: 'route',
       name: '',
-      data: {
+      data: this._stampLayer({
         x1, y1, x2, y2,
         cx1: mx - dy * 0.2,
         cy1: my + dx * 0.2,
@@ -623,7 +692,7 @@ class CanvasEngine {
         style,
         length: '',
         description: '',
-      },
+      }),
     };
     if (this.onEntityCreated) this.onEntityCreated(entity);
   }
@@ -632,10 +701,10 @@ class CanvasEngine {
     const entityData = {
       type,
       name: '',
-      data: {
+      data: this._stampLayer({
         points: points.map(p => ({ x: p.x, y: p.y })),
         color: this.toolColor,
-      },
+      }),
     };
     if (type === 'territory') {
       entityData.data.ruler = '';
@@ -654,13 +723,66 @@ class CanvasEngine {
     const entity = {
       type: 'text',
       name: text,
-      data: {
+      data: this._stampLayer({
         x, y,
         text,
         fontSize: Number(this.toolOptions.fontSize) || 16,
         fontStyle: this.toolOptions.fontStyle || 'normal',
         color: this.toolColor,
-      },
+      }),
+    };
+    if (this.onEntityCreated) this.onEntityCreated(entity);
+  }
+
+  _getEntityCenter(entity) {
+    const d = entity.data;
+    switch (entity.type) {
+      case 'city': case 'text': case 'symbol':
+        return { x: d.x, y: d.y };
+      case 'territory': case 'region':
+        if (d.points && d.points.length > 0) {
+          return { x: d.points.reduce((s, p) => s + p.x, 0) / d.points.length, y: d.points.reduce((s, p) => s + p.y, 0) / d.points.length };
+        }
+        return null;
+      case 'route':
+        return d.x1 !== undefined ? { x: (d.x1 + d.x2) / 2, y: (d.y1 + d.y2) / 2 } : null;
+    }
+    return null;
+  }
+
+  _drawSymbol(ctx, symbolId, x, y, size, color) {
+    const cacheKey = `${symbolId}_${size}_${color}`;
+    if (!this._symbolCache) this._symbolCache = {};
+    if (!this._symbolCache[cacheKey]) {
+      const sym = window.ALL_SYMBOLS ? window.ALL_SYMBOLS.find(s => s.id === symbolId) : null;
+      if (!sym) return;
+      const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="${size}" height="${size}"><g color="${color}" fill="${color}" stroke="${color}">${sym.svg.replace(/currentColor/g, color)}</g></svg>`;
+      const blob = new Blob([svgStr], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        this._symbolCache[cacheKey] = img;
+        URL.revokeObjectURL(url);
+        this.render();
+      };
+      img.src = url;
+      return;
+    }
+    ctx.drawImage(this._symbolCache[cacheKey], x, y, size, size);
+  }
+
+  _createSymbol(x, y) {
+    if (!this.symbolLibrary || !this.symbolLibrary.selectedSymbol) return;
+    const entity = {
+      type: 'symbol',
+      name: '',
+      data: this._stampLayer({
+        x, y,
+        symbolId: this.symbolLibrary.selectedSymbol,
+        size: 32,
+        rotation: 0,
+        color: this.toolColor,
+      }),
     };
     if (this.onEntityCreated) this.onEntityCreated(entity);
   }
@@ -670,6 +792,7 @@ class CanvasEngine {
     switch (entity.type) {
       case 'city':
       case 'text':
+      case 'symbol':
         d.x = origData.x + dx;
         d.y = origData.y + dy;
         break;
@@ -705,6 +828,11 @@ class CanvasEngine {
     container.className = 'canvas-container cursor-' + tool;
     // Show/hide tool options
     this._updateToolOptions();
+    // Toggle symbol palette
+    if (this.symbolLibrary) {
+      if (tool === 'symbol') this.symbolLibrary.show();
+      else this.symbolLibrary.hide();
+    }
     this.render();
   }
 

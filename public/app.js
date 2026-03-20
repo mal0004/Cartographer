@@ -5,7 +5,7 @@
  * and wiring all modules together.
  */
 
-/* global CanvasEngine, Sidebar, Timeline */
+/* global CanvasEngine, Sidebar, Timeline, UndoManager, AddEntityCommand, DeleteEntityCommand, MoveEntityCommand, ModifyEntityCommand, LayersPanel, SymbolLibrary, ThemeManager, MAP_THEMES, Minimap */
 
 const App = {
   currentWorld: null,
@@ -14,12 +14,37 @@ const App = {
   canvasEngine: null,
   sidebar: null,
   timeline: null,
+  undoManager: null,
+  layersPanel: null,
+  symbolLibrary: null,
+  themeManager: null,
+  minimap: null,
 
   // ─── Initialization ─────────────────────────────────────────
 
   init() {
     this.sidebar = new Sidebar();
     this.timeline = new Timeline();
+    this.undoManager = new UndoManager();
+
+    // Undo/Redo buttons
+    this._btnUndo = document.getElementById('btn-undo');
+    this._btnRedo = document.getElementById('btn-redo');
+    this._btnUndo.addEventListener('click', () => this.undoManager.undo());
+    this._btnRedo.addEventListener('click', () => this.undoManager.redo());
+    this.undoManager.onChange = () => this._updateUndoButtons();
+
+    // Ctrl+Z / Ctrl+Shift+Z
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        this.undoManager.undo();
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'Z' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        this.undoManager.redo();
+      }
+    });
 
     // Home screen
     document.getElementById('btn-new-world').addEventListener('click', () => this._showNewWorldModal());
@@ -29,9 +54,24 @@ const App = {
 
     // Editor
     document.getElementById('btn-back').addEventListener('click', () => this._goHome());
+    document.getElementById('btn-share').addEventListener('click', () => this._showShareModal());
     document.getElementById('btn-export-svg').addEventListener('click', () => this._exportSVG());
     document.getElementById('btn-export-json').addEventListener('click', () => this._exportJSON());
-    document.getElementById('btn-toggle-theme').addEventListener('click', () => this._toggleTheme());
+    // Mode toggle (simple/advanced)
+    this._modeToggle = new ModeToggle();
+
+    // Help button (relaunch onboarding)
+    document.getElementById('btn-help').addEventListener('click', () => {
+      if (this.currentWorld) {
+        if (!this._onboarding) this._onboarding = new Onboarding();
+        this._onboarding.start(this.currentWorld.id);
+      }
+    });
+
+    // Theme switcher
+    this.themeManager = new ThemeManager();
+    document.getElementById('btn-toggle-theme').addEventListener('click', () => this._toggleThemeDropdown());
+    this._buildThemeDropdown();
 
     // Toolbar
     document.querySelectorAll('.tool-btn').forEach(btn => {
@@ -43,6 +83,12 @@ const App = {
       if (this.canvasEngine) this.canvasEngine.toolColor = e.target.value;
     });
 
+    // Layers panel
+    this.layersPanel = new LayersPanel();
+    this.layersPanel.onChange = () => {
+      if (this.canvasEngine) this.canvasEngine.render();
+    };
+
     // Sidebar callbacks
     this.sidebar.onEntityUpdated = (entity) => this._updateEntity(entity);
     this.sidebar.onEntityDeleted = (entity) => this._deleteEntity(entity);
@@ -52,12 +98,18 @@ const App = {
     this.timeline.onEventClick = (event) => this._onEventClick(event);
     this.timeline.onAddEvent = () => this._showAddEventModal();
 
+    // Render templates
+    this._renderTemplates();
+
     // Load worlds
     this._loadWorlds();
 
     // Theme from localStorage
-    if (localStorage.getItem('cartographer-theme') === 'night') {
-      document.documentElement.setAttribute('data-theme', 'night');
+    const savedTheme = localStorage.getItem('cartographer-theme');
+    if (savedTheme && MAP_THEMES[savedTheme]) {
+      this.themeManager.applyTheme(savedTheme);
+    } else if (savedTheme === 'night') {
+      this.themeManager.applyTheme('nightgold');
     }
   },
 
@@ -141,6 +193,99 @@ const App = {
     this._loadWorlds();
   },
 
+  // ─── Templates ─────────────────────────────────────────────
+
+  _renderTemplates() {
+    const grid = document.getElementById('templates-grid');
+    if (!grid || !window.WORLD_TEMPLATES) return;
+    grid.innerHTML = '';
+    for (const tpl of WORLD_TEMPLATES) {
+      const card = document.createElement('div');
+      card.className = 'template-card';
+      // Generate a tiny preview canvas
+      card.innerHTML = `
+        <canvas class="template-preview" width="280" height="160"></canvas>
+        <div class="template-info">
+          <h4>${this._escapeHtml(tpl.name)}</h4>
+          <p>${this._escapeHtml(tpl.description)}</p>
+        </div>
+      `;
+      card.addEventListener('click', () => this._loadTemplate(tpl));
+      grid.appendChild(card);
+
+      // Draw preview
+      const canvas = card.querySelector('.template-preview');
+      this._drawTemplatePreview(canvas, tpl);
+    }
+  },
+
+  _drawTemplatePreview(canvas, tpl) {
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    ctx.fillStyle = '#F5F0E8';
+    ctx.fillRect(0, 0, w, h);
+
+    // Compute bounds
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const e of tpl.entities) {
+      const d = e.data;
+      if (d.x !== undefined) { minX = Math.min(minX, d.x); maxX = Math.max(maxX, d.x); minY = Math.min(minY, d.y); maxY = Math.max(maxY, d.y); }
+      if (d.points) for (const p of d.points) { minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y); }
+      if (d.x1 !== undefined) { minX = Math.min(minX, d.x1, d.x2); maxX = Math.max(maxX, d.x1, d.x2); minY = Math.min(minY, d.y1, d.y2); maxY = Math.max(maxY, d.y1, d.y2); }
+    }
+    const pad = 30;
+    minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+    const bw = maxX - minX, bh = maxY - minY;
+    const scale = Math.min(w / bw, h / bh);
+    const ox = (w - bw * scale) / 2, oy = (h - bh * scale) / 2;
+
+    ctx.save();
+    ctx.translate(ox, oy);
+    ctx.scale(scale, scale);
+    ctx.translate(-minX, -minY);
+
+    for (const e of tpl.entities) {
+      const d = e.data;
+      if ((e.type === 'territory' || e.type === 'region') && d.points && d.points.length >= 3) {
+        ctx.beginPath();
+        ctx.moveTo(d.points[0].x, d.points[0].y);
+        for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
+        ctx.closePath();
+        ctx.fillStyle = (d.color || '#8B2635') + '30';
+        ctx.fill();
+        ctx.strokeStyle = d.color || '#8B2635';
+        ctx.lineWidth = 1.5 / scale;
+        ctx.stroke();
+      } else if (e.type === 'city') {
+        ctx.fillStyle = d.color || '#2C1810';
+        const r = d.importance === 'capital' ? 4 / scale : 2.5 / scale;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (e.type === 'route' && d.x1 !== undefined) {
+        ctx.strokeStyle = '#888';
+        ctx.lineWidth = 1 / scale;
+        ctx.beginPath();
+        ctx.moveTo(d.x1, d.y1);
+        ctx.lineTo(d.x2, d.y2);
+        ctx.stroke();
+      }
+    }
+
+    ctx.restore();
+  },
+
+  async _loadTemplate(tpl) {
+    // Create world from template data (as a copy)
+    const importData = {
+      world: { ...tpl.world },
+      entities: tpl.entities.map(e => ({ ...e, data: { ...e.data } })),
+      events: (tpl.events || []).map(ev => ({ ...ev })),
+    };
+    const world = await this._api('POST', '/api/worlds/import', importData);
+    this._openWorld(world.id);
+  },
+
   // ─── Editor ─────────────────────────────────────────────────
 
   async _openWorld(worldId) {
@@ -156,11 +301,48 @@ const App = {
       this.canvasEngine.onEntityCreated = (entity) => this._createEntity(entity);
       this.canvasEngine.onEntityUpdated = (entity) => this._updateEntity(entity);
       this.canvasEngine.onEntityDeleted = (entity) => this._deleteEntity(entity);
+      this.canvasEngine.onEntityMoved = (entity, oldData) => this._moveEntityWithUndo(entity, oldData);
+      this.canvasEngine.layersPanel = this.layersPanel;
+      // Symbol library
+      this.symbolLibrary = new SymbolLibrary();
+      this.canvasEngine.symbolLibrary = this.symbolLibrary;
+
+      // Snap & guides
+      const snapGuides = new SnapGuides(this.canvasEngine);
+      this.canvasEngine.snapGuides = snapGuides;
+      document.getElementById('btn-snap').addEventListener('click', () => {
+        const on = snapGuides.toggleSnap();
+        document.getElementById('btn-snap').classList.toggle('active', on);
+        document.getElementById('btn-snap').title = `Snap to elements (${on ? 'on' : 'off'})`;
+      });
+      document.getElementById('btn-grid-snap').addEventListener('click', () => {
+        const on = snapGuides.toggleGridSnap();
+        document.getElementById('btn-grid-snap').classList.toggle('active', on);
+        document.getElementById('btn-grid-snap').title = `Snap to grid (${on ? 'on' : 'off'})`;
+      });
+
+      // Minimap
+      this.minimap = new Minimap(this.canvasEngine);
+      // Hook minimap render to canvas render
+      const origRender = this.canvasEngine.render.bind(this.canvasEngine);
+      this.canvasEngine.render = () => {
+        origRender();
+        if (this.minimap) this.minimap.render();
+      };
     }
 
     // Load entities and events
     await this._loadEntities();
     await this._loadEvents();
+
+    // Clear undo stack for new world
+    this.undoManager.clear();
+
+    // Onboarding check
+    if (!this._onboarding) this._onboarding = new Onboarding();
+    if (this._onboarding.shouldShow(this.currentWorld.id)) {
+      setTimeout(() => this._onboarding.start(this.currentWorld.id), 500);
+    }
 
     // Reset view
     this.canvasEngine.offsetX = this.canvasEngine.width / 2;
@@ -191,11 +373,9 @@ const App = {
   },
 
   async _createEntity(entityData) {
-    const created = await this._api('POST', `/api/worlds/${this.currentWorld.id}/entities`, entityData);
-    this.entities.push(created);
-    this.canvasEngine.setEntities(this.entities);
-    this.canvasEngine.selectEntity(created);
-    this.sidebar.open(created, this.entities, this.events);
+    const cmd = new AddEntityCommand(this, entityData);
+    await cmd.execute();
+    this.undoManager.push(cmd);
   },
 
   async _updateEntity(entity) {
@@ -206,12 +386,24 @@ const App = {
     this.canvasEngine.render();
   },
 
+  /** Called by sidebar when a field changes — records undo snapshot */
+  _updateEntityWithUndo(entity, oldName, oldData) {
+    const cmd = new ModifyEntityCommand(this, entity.id, oldName, oldData, entity.name, entity.data);
+    this.undoManager.push(cmd);
+    this._updateEntity(entity);
+  },
+
   async _deleteEntity(entity) {
-    await this._api('DELETE', `/api/entities/${entity.id}`);
-    this.entities = this.entities.filter(e => e.id !== entity.id);
-    this.canvasEngine.setEntities(this.entities);
-    this.canvasEngine.selectEntity(null);
-    this.sidebar.close();
+    const cmd = new DeleteEntityCommand(this, entity);
+    await cmd.execute();
+    this.undoManager.push(cmd);
+  },
+
+  /** Called by canvas after drag — records undo move */
+  _moveEntityWithUndo(entity, oldData) {
+    const cmd = new MoveEntityCommand(this, entity, oldData, entity.data);
+    this.undoManager.push(cmd);
+    this._updateEntity(entity);
   },
 
   _navigateToEntity(entityId) {
@@ -314,7 +506,15 @@ const App = {
 
   _exportSVG() {
     if (!this.currentWorld) return;
-    window.open(`/api/worlds/${this.currentWorld.id}/svg`, '_blank');
+    if (!this._svgExport) this._svgExport = new SvgExportPanel();
+    this._svgExport.showExportModal(this.currentWorld, this.entities, (opts) => {
+      const svg = this._svgExport.generateSVG(this.currentWorld, this.entities, opts);
+      const blob = new Blob([svg], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `${this.currentWorld.name}.svg`; a.click();
+      URL.revokeObjectURL(url);
+    });
   },
 
   async _exportJSON() {
@@ -329,22 +529,123 @@ const App = {
     URL.revokeObjectURL(url);
   },
 
+  // ─── Share ──────────────────────────────────────────────────
+
+  async _showShareModal() {
+    if (!this.currentWorld) return;
+    const existing = document.getElementById('share-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'share-modal';
+    modal.className = 'modal';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width:480px;">
+        <h2>Partager ce monde</h2>
+        <div class="share-options">
+          <label class="export-field">
+            <span>Expiration</span>
+            <select id="share-expires">
+              <option value="">Jamais</option>
+              <option value="24h">24 heures</option>
+              <option value="7d">7 jours</option>
+              <option value="30d">30 jours</option>
+            </select>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" id="share-cancel">Annuler</button>
+          <button class="btn btn-primary" id="share-generate">Générer le lien</button>
+        </div>
+        <div id="share-result" hidden>
+          <label class="export-field" style="margin-top:12px;">
+            <span>Lien de partage (lecture seule)</span>
+            <div style="display:flex;gap:6px;">
+              <input type="text" id="share-url" readonly style="flex:1;font-size:0.85rem;">
+              <button class="btn btn-sm" id="share-copy">Copier</button>
+            </div>
+          </label>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    document.getElementById('share-cancel').addEventListener('click', () => modal.remove());
+    document.getElementById('share-generate').addEventListener('click', async () => {
+      const expires = document.getElementById('share-expires').value;
+      const share = await this._api('POST', `/api/worlds/${this.currentWorld.id}/share`, { expires });
+      if (share && share.token) {
+        const url = `${location.origin}/share/${share.token}`;
+        document.getElementById('share-url').value = url;
+        document.getElementById('share-result').hidden = false;
+      }
+    });
+    document.getElementById('share-copy').addEventListener('click', () => {
+      const input = document.getElementById('share-url');
+      navigator.clipboard.writeText(input.value).then(() => {
+        document.getElementById('share-copy').textContent = 'Copié !';
+        setTimeout(() => document.getElementById('share-copy').textContent = 'Copier', 2000);
+      });
+    });
+  },
+
   // ─── Theme ──────────────────────────────────────────────────
 
-  _toggleTheme() {
-    const current = document.documentElement.getAttribute('data-theme');
-    const next = current === 'night' ? '' : 'night';
-    if (next) {
-      document.documentElement.setAttribute('data-theme', next);
-    } else {
-      document.documentElement.removeAttribute('data-theme');
+  _buildThemeDropdown() {
+    const dropdown = document.getElementById('theme-dropdown');
+    dropdown.innerHTML = '';
+    for (const theme of this.themeManager.getAllThemes()) {
+      const item = document.createElement('button');
+      item.className = 'theme-option';
+      item.dataset.themeId = theme.id;
+      // Color preview swatch
+      item.innerHTML = `
+        <span class="theme-swatch" style="background:${theme.vars['--bg']};border-color:${theme.vars['--accent']}">
+          <span style="background:${theme.vars['--accent']}"></span>
+        </span>
+        <span>${theme.name}</span>
+      `;
+      item.addEventListener('click', () => {
+        this._applyTheme(theme.id);
+        dropdown.hidden = true;
+      });
+      dropdown.appendChild(item);
     }
-    localStorage.setItem('cartographer-theme', next);
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.theme-switcher')) {
+        dropdown.hidden = true;
+      }
+    });
+  },
+
+  _toggleThemeDropdown() {
+    const dropdown = document.getElementById('theme-dropdown');
+    dropdown.hidden = !dropdown.hidden;
+  },
+
+  _applyTheme(themeId) {
+    this.themeManager.applyTheme(themeId);
+    localStorage.setItem('cartographer-theme', themeId);
     if (this.canvasEngine) {
       this.canvasEngine._textureCache = {};
+      this.canvasEngine._symbolCache = {};
       this.canvasEngine.render();
     }
     this.timeline.render();
+  },
+
+  // ─── Undo/Redo UI ──────────────────────────────────────────
+
+  _updateUndoButtons() {
+    this._btnUndo.disabled = !this.undoManager.canUndo();
+    this._btnRedo.disabled = !this.undoManager.canRedo();
+    this._btnUndo.title = this.undoManager.canUndo()
+      ? `Undo (Ctrl+Z) — ${this.undoManager.undoCount()} action${this.undoManager.undoCount() > 1 ? 's' : ''}`
+      : 'Nothing to undo';
+    this._btnRedo.title = this.undoManager.canRedo()
+      ? `Redo (Ctrl+Shift+Z) — ${this.undoManager.redoCount()} action${this.undoManager.redoCount() > 1 ? 's' : ''}`
+      : 'Nothing to redo';
   },
 
   // ─── API helpers ────────────────────────────────────────────

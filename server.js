@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
-const { Worlds, Entities, Events, importExport } = require('./db');
+const { Worlds, Entities, Events, Shares, importExport } = require('./db');
+const { nanoid } = require('nanoid');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -255,6 +256,46 @@ function regionPattern(terrain, id) {
       </pattern>\n`;
   }
 }
+
+// ─── Sharing ────────────────────────────────────────────────────
+
+app.post('/api/worlds/:id/share', (req, res) => {
+  const world = Worlds.get(Number(req.params.id));
+  if (!world) return res.status(404).json({ error: 'World not found' });
+  const token = nanoid(12);
+  const { expires } = req.body || {};
+  let expiresAt = null;
+  if (expires === '24h') expiresAt = new Date(Date.now() + 86400000).toISOString();
+  else if (expires === '7d') expiresAt = new Date(Date.now() + 604800000).toISOString();
+  else if (expires === '30d') expiresAt = new Date(Date.now() + 2592000000).toISOString();
+  const share = Shares.create(world.id, token, expiresAt);
+  res.status(201).json(share);
+});
+
+app.get('/api/worlds/:id/shares', (req, res) => {
+  res.json(Shares.allForWorld(Number(req.params.id)));
+});
+
+app.delete('/api/shares/:token', (req, res) => {
+  Shares.deleteByToken(req.params.token);
+  res.json({ ok: true });
+});
+
+app.get('/share/:token', (req, res) => {
+  const share = Shares.getByToken(req.params.token);
+  if (!share) return res.status(404).send('Share link expired or not found.');
+  res.sendFile(path.join(__dirname, 'public', 'viewer.html'));
+});
+
+app.get('/api/share/:token', (req, res) => {
+  const share = Shares.getByToken(req.params.token);
+  if (!share) return res.status(404).json({ error: 'Share not found or expired' });
+  const world = Worlds.get(share.world_id);
+  if (!world) return res.status(404).json({ error: 'World not found' });
+  const entities = Entities.allForWorld(share.world_id);
+  const events = Events.allForWorld(share.world_id);
+  res.json({ world, entities, events });
+});
 
 // ─── SPA fallback ────────────────────────────────────────────────
 

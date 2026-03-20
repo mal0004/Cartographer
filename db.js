@@ -22,7 +22,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS entities (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     world_id INTEGER NOT NULL,
-    type TEXT NOT NULL CHECK(type IN ('territory','city','route','region','text')),
+    type TEXT NOT NULL CHECK(type IN ('territory','city','route','region','text','symbol')),
     name TEXT DEFAULT '',
     data TEXT NOT NULL DEFAULT '{}',
     created_at TEXT DEFAULT (datetime('now')),
@@ -42,8 +42,18 @@ db.exec(`
     FOREIGN KEY (world_id) REFERENCES worlds(id) ON DELETE CASCADE
   );
 
+  CREATE TABLE IF NOT EXISTS shares (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    token TEXT NOT NULL UNIQUE,
+    world_id INTEGER NOT NULL,
+    expires_at TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (world_id) REFERENCES worlds(id) ON DELETE CASCADE
+  );
+
   CREATE INDEX IF NOT EXISTS idx_entities_world ON entities(world_id);
   CREATE INDEX IF NOT EXISTS idx_events_world ON events(world_id);
+  CREATE INDEX IF NOT EXISTS idx_shares_token ON shares(token);
 `);
 
 // ─── Worlds ──────────────────────────────────────────────────────
@@ -207,4 +217,32 @@ const importExport = {
   },
 };
 
-module.exports = { db, Worlds, Entities, Events, importExport };
+// ─── Shares ─────────────────────────────────────────────────────
+
+const shareStmts = {
+  getByToken: db.prepare('SELECT * FROM shares WHERE token = ?'),
+  insert: db.prepare('INSERT INTO shares (token, world_id, expires_at) VALUES (@token, @world_id, @expires_at)'),
+  deleteByWorld: db.prepare('DELETE FROM shares WHERE world_id = ?'),
+  deleteByToken: db.prepare('DELETE FROM shares WHERE token = ?'),
+  allForWorld: db.prepare('SELECT * FROM shares WHERE world_id = ? ORDER BY created_at DESC'),
+};
+
+const Shares = {
+  getByToken(token) {
+    const row = shareStmts.getByToken.get(token);
+    if (!row) return null;
+    if (row.expires_at && new Date(row.expires_at) < new Date()) {
+      shareStmts.deleteByToken.run(token);
+      return null;
+    }
+    return row;
+  },
+  create(worldId, token, expiresAt) {
+    shareStmts.insert.run({ token, world_id: worldId, expires_at: expiresAt || null });
+    return shareStmts.getByToken.get(token);
+  },
+  allForWorld(worldId) { return shareStmts.allForWorld.all(worldId); },
+  deleteByToken(token) { shareStmts.deleteByToken.run(token); },
+};
+
+module.exports = { db, Worlds, Entities, Events, Shares, importExport };
