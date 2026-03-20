@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cartographer — World Map Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ─── Home screen ─────────────────────────────────── -->
+  <div id="home-screen" class="screen active">
+    <header class="home-header">
+      <h1>Cartographer</h1>
+      <p class="subtitle">Fictional World Map Editor</p>
+      <div class="home-actions">
+        <button id="btn-new-world" class="btn btn-primary">+ New World</button>
+        <label class="btn btn-secondary">
+          Import JSON
+          <input type="file" id="import-file" accept=".json" hidden>
+        </label>
+      </div>
+    </header>
+    <div id="worlds-grid" class="worlds-grid"></div>
+
+    <!-- New world modal -->
+    <div id="modal-new-world" class="modal" hidden>
+      <div class="modal-content">
+        <h2>Create a New World</h2>
+        <label>Name<input type="text" id="new-world-name" placeholder="Middle-earth"></label>
+        <label>Description<textarea id="new-world-desc" rows="3" placeholder="A brief description..."></textarea></label>
+        <label>Timeline start<input type="number" id="new-world-tstart" value="0"></label>
+        <label>Timeline end<input type="number" id="new-world-tend" value="1000"></label>
+        <div class="modal-actions">
+          <button id="modal-cancel" class="btn btn-secondary">Cancel</button>
+          <button id="modal-create" class="btn btn-primary">Create</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Editor screen ──────────────────────────────── -->
+  <div id="editor-screen" class="screen">
+    <div id="editor-topbar" class="editor-topbar">
+      <button id="btn-back" class="btn-icon" title="Back to worlds">&larr;</button>
+      <span id="world-title" class="world-title">World</span>
+      <div class="topbar-right">
+        <button id="btn-export-svg" class="btn btn-sm">Export SVG</button>
+        <button id="btn-export-json" class="btn btn-sm">Export JSON</button>
+        <button id="btn-toggle-theme" class="btn-icon" title="Toggle night mode">&#9790;</button>
+      </div>
+    </div>
+
+    <div id="editor-body" class="editor-body">
+      <!-- Canvas area -->
+      <div id="canvas-container" class="canvas-container">
+        <canvas id="main-canvas"></canvas>
+
+        <!-- Floating toolbar -->
+        <div id="toolbar" class="toolbar">
+          <button class="tool-btn active" data-tool="select" title="Select (V)">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51z" fill="currentColor"/></svg>
+          </button>
+          <button class="tool-btn" data-tool="territory" title="Territory (T)">
+            <svg viewBox="0 0 24 24" width="20" height="20"><polygon points="12,2 22,20 2,20" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          </button>
+          <button class="tool-btn" data-tool="city" title="City (C)">
+            <svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="6" fill="currentColor"/></svg>
+          </button>
+          <button class="tool-btn" data-tool="route" title="Route (R)">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 17c4-6 14-6 18 0" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          </button>
+          <button class="tool-btn" data-tool="region" title="Natural Region (N)">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path d="M2 20 L7 8 L12 14 L17 6 L22 20Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          </button>
+          <button class="tool-btn" data-tool="text" title="Text Label (X)">
+            <svg viewBox="0 0 24 24" width="20" height="20"><text x="6" y="18" font-size="18" font-weight="bold" fill="currentColor">A</text></svg>
+          </button>
+          <div class="tool-separator"></div>
+          <input type="color" id="tool-color" value="#8B2635" title="Color">
+        </div>
+
+        <!-- Tool options bar (contextual) -->
+        <div id="tool-options" class="tool-options" hidden>
+          <!-- Populated dynamically per tool -->
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div id="sidebar" class="sidebar" hidden>
+        <div class="sidebar-header">
+          <h3 id="sidebar-title">Entity</h3>
+          <button id="sidebar-close" class="btn-icon">&times;</button>
+        </div>
+        <div id="sidebar-content" class="sidebar-body"></div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div id="timeline" class="timeline collapsed">
+      <button id="timeline-toggle" class="timeline-toggle" title="Toggle timeline">&#9650; Timeline</button>
+      <div id="timeline-body" class="timeline-body">
+        <canvas id="timeline-canvas"></canvas>
+        <button id="btn-add-event" class="btn btn-sm timeline-add">+ Event</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="local-db.js"></script>
+  <script src="canvas.js"></script>
+  <script src="sidebar.js"></script>
+  <script src="timeline.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
