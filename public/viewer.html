@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cartographer — Shared Map</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    body { margin: 0; overflow: hidden; background: var(--bg); }
+    .viewer-topbar {
+      display: flex; align-items: center; gap: 12px;
+      padding: 8px 16px; background: var(--bg-alt);
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-title);
+    }
+    .viewer-topbar h1 { font-size: 1.2rem; color: var(--ink); margin: 0; }
+    .viewer-topbar .badge {
+      font-size: 0.75rem; padding: 2px 8px;
+      background: var(--accent); color: #fff;
+      border-radius: 10px; font-family: var(--font-body);
+    }
+    .viewer-canvas { width: 100vw; height: calc(100vh - 44px); display: block; }
+  </style>
+</head>
+<body>
+  <div class="viewer-topbar">
+    <h1 id="viewer-title">Loading...</h1>
+    <span class="badge">Lecture seule</span>
+  </div>
+  <canvas id="viewer-canvas" class="viewer-canvas"></canvas>
+
+  <script src="/symbols.js"></script>
+  <script>
+    (async () => {
+      const token = location.pathname.split('/share/')[1];
+      if (!token) { document.getElementById('viewer-title').textContent = 'Invalid link'; return; }
+
+      const resp = await fetch(`/api/share/${token}`);
+      if (!resp.ok) { document.getElementById('viewer-title').textContent = 'Link expired or not found'; return; }
+      const { world, entities, events } = await resp.json();
+
+      document.title = `${world.name} — Cartographer`;
+      document.getElementById('viewer-title').textContent = world.name;
+
+      const canvas = document.getElementById('viewer-canvas');
+      const ctx = canvas.getContext('2d');
+      let offsetX = 0, offsetY = 0, scale = 1;
+
+      function resize() {
+        canvas.width = canvas.clientWidth * devicePixelRatio;
+        canvas.height = canvas.clientHeight * devicePixelRatio;
+        render();
+      }
+      window.addEventListener('resize', resize);
+
+      // Pan & zoom
+      let dragging = false, lastX, lastY;
+      canvas.addEventListener('mousedown', e => { dragging = true; lastX = e.clientX; lastY = e.clientY; });
+      canvas.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        offsetX += e.clientX - lastX; offsetY += e.clientY - lastY;
+        lastX = e.clientX; lastY = e.clientY; render();
+      });
+      canvas.addEventListener('mouseup', () => dragging = false);
+      canvas.addEventListener('mouseleave', () => dragging = false);
+      canvas.addEventListener('wheel', e => {
+        e.preventDefault();
+        const zf = e.deltaY < 0 ? 1.1 : 0.9;
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+        offsetX = mx - (mx - offsetX) * zf;
+        offsetY = my - (my - offsetY) * zf;
+        scale *= zf;
+        render();
+      }, { passive: false });
+
+      // Touch support
+      let lastTouchDist = 0;
+      canvas.addEventListener('touchstart', e => {
+        if (e.touches.length === 1) { dragging = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; }
+        if (e.touches.length === 2) { lastTouchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }
+      });
+      canvas.addEventListener('touchmove', e => {
+        e.preventDefault();
+        if (e.touches.length === 1 && dragging) {
+          offsetX += e.touches[0].clientX - lastX; offsetY += e.touches[0].clientY - lastY;
+          lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; render();
+        }
+        if (e.touches.length === 2) {
+          const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+          if (lastTouchDist) { scale *= dist / lastTouchDist; render(); }
+          lastTouchDist = dist;
+        }
+      }, { passive: false });
+      canvas.addEventListener('touchend', () => { dragging = false; lastTouchDist = 0; });
+
+      // Symbol image cache
+      const symCache = {};
+      function getSymbolImage(sym, color) {
+        const key = sym.id + '_' + color;
+        if (symCache[key]) return symCache[key];
+        const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48">${sym.svg.replace(/currentColor/g, color)}</svg>`;
+        const blob = new Blob([svgStr], { type: 'image/svg+xml' });
+        const img = new Image();
+        img.onload = () => render();
+        img.src = URL.createObjectURL(blob);
+        symCache[key] = img;
+        return img;
+      }
+
+      function render() {
+        const dpr = devicePixelRatio;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+        ctx.save();
+        ctx.translate(offsetX, offsetY);
+        ctx.scale(scale, scale);
+
+        // Render entities
+        const order = ['region', 'territory', 'route', 'city', 'text', 'symbol'];
+        const sorted = [...entities].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type));
+
+        for (const e of sorted) {
+          const d = e.data;
+          if (e.type === 'territory' && d.points && d.points.length >= 3) {
+            ctx.beginPath();
+            ctx.moveTo(d.points[0].x, d.points[0].y);
+            for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
+            ctx.closePath();
+            ctx.fillStyle = (d.color || '#8B2635') + '40';
+            ctx.fill();
+            ctx.strokeStyle = d.color || '#8B2635';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+            if (e.name) {
+              const cx = d.points.reduce((s,p)=>s+p.x,0)/d.points.length;
+              const cy = d.points.reduce((s,p)=>s+p.y,0)/d.points.length;
+              ctx.font = '16px Cinzel, serif';
+              ctx.fillStyle = '#2C1810';
+              ctx.textAlign = 'center';
+              ctx.fillText(e.name, cx, cy);
+            }
+          } else if (e.type === 'city') {
+            const r = d.importance==='capital'?8:d.importance==='city'?5:3;
+            ctx.beginPath(); ctx.arc(d.x, d.y, r, 0, Math.PI*2); ctx.fillStyle = '#2C1810'; ctx.fill();
+            if (e.name) {
+              ctx.font = `${d.importance==='capital'?14:11}px Cinzel, serif`;
+              ctx.fillStyle = '#2C1810'; ctx.textAlign = 'left';
+              ctx.fillText(e.name, d.x+(d.labelOffsetX||10), d.y+(d.labelOffsetY||-10));
+            }
+          } else if (e.type === 'route' && d.x1 !== undefined) {
+            ctx.beginPath();
+            const stroke = d.style==='royal'?'#8B2635':d.style==='road'?'#2C1810':'#888';
+            ctx.strokeStyle = stroke;
+            ctx.lineWidth = d.style==='royal'?3:d.style==='road'?2:1;
+            if (d.style === 'trail') ctx.setLineDash([6,4]); else ctx.setLineDash([]);
+            if (d.cx1 !== undefined) { ctx.moveTo(d.x1,d.y1); ctx.bezierCurveTo(d.cx1,d.cy1,d.cx2,d.cy2,d.x2,d.y2); }
+            else { ctx.moveTo(d.x1,d.y1); ctx.lineTo(d.x2,d.y2); }
+            ctx.stroke(); ctx.setLineDash([]);
+          } else if (e.type === 'region' && d.points && d.points.length >= 3) {
+            ctx.beginPath();
+            ctx.moveTo(d.points[0].x, d.points[0].y);
+            for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(150,150,150,0.15)'; ctx.fill();
+            ctx.strokeStyle = '#666'; ctx.lineWidth = 1; ctx.stroke();
+          } else if (e.type === 'text') {
+            ctx.font = `${d.fontSize||16}px Cinzel, serif`;
+            ctx.fillStyle = '#2C1810'; ctx.textAlign = 'left';
+            ctx.fillText(e.name||d.text||'', d.x, d.y);
+          } else if (e.type === 'symbol' && d.symbolId) {
+            const allSyms = window.ALL_SYMBOLS || [];
+            const sym = allSyms.find(s => s.id === d.symbolId);
+            if (sym) {
+              const sz = d.size || 32;
+              const img = getSymbolImage(sym, d.color || '#2C1810');
+              if (img.complete) ctx.drawImage(img, d.x - sz/2, d.y - sz/2, sz, sz);
+            }
+          }
+        }
+
+        ctx.restore();
+      }
+
+      // Center on content
+      let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+      for (const e of entities) {
+        const d = e.data;
+        if (d.x !== undefined) { minX=Math.min(minX,d.x); maxX=Math.max(maxX,d.x); minY=Math.min(minY,d.y); maxY=Math.max(maxY,d.y); }
+        if (d.points) for (const p of d.points) { minX=Math.min(minX,p.x); maxX=Math.max(maxX,p.x); minY=Math.min(minY,p.y); maxY=Math.max(maxY,p.y); }
+        if (d.x1!==undefined) { minX=Math.min(minX,d.x1,d.x2); maxX=Math.max(maxX,d.x1,d.x2); minY=Math.min(minY,d.y1,d.y2); maxY=Math.max(maxY,d.y1,d.y2); }
+      }
+      if (isFinite(minX)) {
+        const pad = 60, cw = canvas.clientWidth, ch = canvas.clientHeight;
+        const ww = maxX - minX + pad*2, wh = maxY - minY + pad*2;
+        scale = Math.min(cw / ww, ch / wh, 2);
+        offsetX = cw/2 - (minX + (maxX-minX)/2) * scale;
+        offsetY = ch/2 - (minY + (maxY-minY)/2) * scale;
+      }
+
+      resize();
+    })();
+  </script>
+</body>
+</html>
