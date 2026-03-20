@@ -42,7 +42,54 @@
 
 ---
 
-## Installation
+## Two versions
+
+Ce projet contient **deux versions** de l'application, chacune dans son propre dossier :
+
+### 1. Version complète (Node.js + SQLite) — `public/`
+
+C'est la **version principale**. Elle utilise un serveur Express avec une base de données SQLite pour persister toutes les données. Les mondes, entités et événements sont stockés côté serveur et survivent au rechargement du navigateur, au changement de navigateur, etc.
+
+**Fichiers concernés :**
+- `server.js` — Serveur Express : API REST, export SVG, sert les fichiers statiques de `public/`
+- `db.js` — Couche SQLite (better-sqlite3) : tables worlds, entities, events
+- `package.json` — Dépendances Node.js (express, better-sqlite3)
+- `public/` — Frontend (index.html, canvas.js, sidebar.js, timeline.js, app.js, style.css)
+
+`public/app.js` fait des appels `fetch()` vers l'API REST du serveur pour chaque opération CRUD.
+
+**Pour lancer :**
+
+```bash
+npm install
+npm start
+# → http://localhost:3000
+```
+
+### 2. Demo statique (GitHub Pages) — `docs/`
+
+C'est une **copie autonome du frontend** qui fonctionne **sans aucun serveur**. Au lieu d'appeler l'API REST, elle utilise `localStorage` pour stocker les données directement dans le navigateur.
+
+**Différences avec la version complète :**
+- `docs/local-db.js` — Remplace SQLite. Implémente la même interface (CRUD worlds/entities/events, import/export) mais stocke tout dans `localStorage`
+- `docs/app.js` — Version modifiée de `public/app.js`. La méthode `_api()` route vers `LocalDB` au lieu de faire des `fetch()`. L'export SVG est aussi généré côté client au lieu d'appeler le serveur
+- `docs/index.html` — Charge `local-db.js` en plus, utilise des chemins relatifs (pas de `/` en préfixe)
+- `docs/canvas.js`, `docs/sidebar.js`, `docs/timeline.js`, `docs/style.css` — Copies identiques de `public/`
+
+**Limitations de la version demo :**
+- Les données sont stockées dans le navigateur uniquement (pas de partage entre navigateurs/appareils)
+- Si l'utilisateur vide son localStorage, tout est perdu
+- Pas de persistence côté serveur
+
+**Pour activer sur GitHub Pages :**
+1. Aller dans **Settings > Pages** du repo
+2. Source : Deploy from a branch
+3. Branch : `main`, dossier : `/docs`
+4. Save
+
+---
+
+## Installation (version complète)
 
 ```bash
 # Clone the repo
@@ -70,18 +117,31 @@ npm run dev
 
 ```
 cartographer/
-├── server.js          Express server: REST API, SVG export, static serving
-├── db.js              SQLite layer (better-sqlite3): worlds, entities, events
-├── public/
-│   ├── index.html     App shell: home + editor screens, modals, toolbar
-│   ├── canvas.js      Infinite canvas engine: pan/zoom, drawing tools, rendering
-│   ├── sidebar.js     Side panel: entity forms, markdown editor, relations, events
-│   ├── timeline.js    Narrative timeline: axis, event markers, tooltips
-│   ├── app.js         Orchestration: routing, API calls, wiring modules together
-│   └── style.css      Full theme: CSS variables, parchment & night modes
-├── package.json
+├── server.js              Serveur Express : API REST + export SVG + fichiers statiques
+├── db.js                  Couche SQLite (better-sqlite3)
+├── package.json           Dépendances Node.js
+│
+├── public/                ── FRONTEND (version complète, servi par Express) ──
+│   ├── index.html         App shell
+│   ├── app.js             Orchestration (appels fetch → API REST du serveur)
+│   ├── canvas.js          Moteur de canvas infini
+│   ├── sidebar.js         Panneau latéral + éditeur markdown
+│   ├── timeline.js        Timeline narrative
+│   └── style.css          Thème CSS (parchemin + mode nuit)
+│
+├── docs/                  ── DEMO STATIQUE (GitHub Pages, pas de serveur) ──
+│   ├── index.html         App shell (chemins relatifs, charge local-db.js)
+│   ├── local-db.js        ★ Remplace SQLite par localStorage
+│   ├── app.js             ★ _api() route vers LocalDB, SVG export client-side
+│   ├── canvas.js          Copie identique de public/canvas.js
+│   ├── sidebar.js         Copie identique de public/sidebar.js
+│   ├── timeline.js        Copie identique de public/timeline.js
+│   └── style.css          Copie identique de public/style.css
+│
 └── README.md
 ```
+
+Les fichiers marqués ★ sont ceux qui diffèrent entre `public/` et `docs/`.
 
 ### File Details
 
@@ -89,15 +149,18 @@ cartographer/
 |------|-------------|
 | `server.js` | Express app with full REST API for worlds, entities, and events. Serves static files from `public/`. Includes SVG export endpoint that renders all map entities with parchment texture filter, compass rose, and Cinzel typography. |
 | `db.js` | SQLite database with `better-sqlite3`. Three tables: `worlds`, `entities` (with JSON `data` column), `events`. Prepared statements for all CRUD operations. Import/export with ID remapping. |
-| `canvas.js` | `CanvasEngine` class. Handles coordinate transforms (screen ↔ world), adaptive grid, entity rendering by type (polygons, icons, Bézier curves, texture patterns, text), hit testing (point-in-polygon, distance-to-segment), and all mouse/keyboard interaction for drawing and selection. |
+| `canvas.js` | `CanvasEngine` class. Handles coordinate transforms (screen-to-world), adaptive grid, entity rendering by type (polygons, icons, Bezier curves, texture patterns, text), hit testing (point-in-polygon, distance-to-segment), and all mouse/keyboard interaction for drawing and selection. |
 | `sidebar.js` | `Sidebar` class. Three tabs: Details (form fields per entity type), Relations (auto-detected from description text), Events (linked timeline events). Includes simple markdown renderer (bold, italic, headings). |
 | `timeline.js` | `Timeline` class. Canvas-rendered horizontal axis with adaptive ticks, diamond event markers color-coded by category, tooltips on hover, scroll by drag. |
 | `app.js` | `App` singleton. Manages screen transitions, world CRUD, entity/event lifecycle, toolbar binding, theme toggle. All API calls go through `_api()` helper. |
-| `style.css` | CSS custom properties for theming (`--bg`, `--ink`, `--accent`). Night mode via `[data-theme="night"]`. Cinzel for titles, Source Serif 4 for body. No framework — pure CSS. |
+| `style.css` | CSS custom properties for theming (`--bg`, `--ink`, `--accent`). Night mode via `[data-theme="night"]`. Cinzel for titles, Source Serif 4 for body. No framework, pure CSS. |
+| `local-db.js` | *(docs/ only)* `LocalDB` object. Same CRUD interface as the server API but backed by `localStorage`. Drop-in replacement for the fetch-based API. |
 
 ---
 
 ## API Endpoints
+
+*(Version complète uniquement — la demo statique n'a pas de serveur)*
 
 ### Worlds
 | Method | Endpoint | Description |
