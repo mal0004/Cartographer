@@ -78,6 +78,20 @@ The demo uses `localStorage` instead of SQLite — same features, data stays in 
 
 ## Two Versions
 
+## Installation 
+
+```bash
+# Clone the repo
+git clone <repo-url> cartographer
+cd cartographer
+
+# Install dependencies
+npm install
+
+# Start the server
+npm start
+```
+
 | | Full version (`public/`) | Static demo (`demo/`) |
 |---|---|---|
 | **Backend** | Express + SQLite | None (client-only) |
