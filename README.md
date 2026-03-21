@@ -70,7 +70,7 @@ npm run dev
 
 ### Static demo (no server needed)
 
-Open `demo/index.html` directly in your browser, or visit the **[live demo](https://mal0004.github.io/Cartographer/)**.
+Open `docs/index.html` directly in your browser, or visit the **[live demo](https://mal0004.github.io/Cartographer/)**.
 
 The demo uses `localStorage` instead of SQLite — same features, data stays in your browser.
 
@@ -78,6 +78,7 @@ The demo uses `localStorage` instead of SQLite — same features, data stays in 
 
 ## Two Versions
 
+| | Full version (`public/`) | Static demo (`docs/`) |
 ## Installation 
 
 ```bash
@@ -100,7 +101,7 @@ npm start
 | **Share** | Token-based server links | Base64-encoded URL hash |
 | **Setup** | `npm install && npm start` | Open `index.html` |
 
-### Key differences in `demo/`
+### Key differences in `docs/`
 
 - `local-db.js` replaces SQLite with a localStorage-backed CRUD interface
 - `app.js` routes API calls to `LocalDB` instead of `fetch()`
@@ -137,7 +138,7 @@ Cartographer/
 │   ├── svg-export.js     Premium SVG export panel
 │   └── viewer.html       Read-only shared map viewer
 │
-├── demo/                 Static demo (GitHub Pages)
+├── docs/                 Static demo (GitHub Pages)
 │   ├── local-db.js       ★ localStorage replacement for SQLite
 │   ├── app.js            ★ Routes to LocalDB instead of fetch
 │   ├── index.html        ★ Relative paths + local-db.js
@@ -146,7 +147,7 @@ Cartographer/
 └── README.md
 ```
 
-Files marked ★ differ between `public/` and `demo/`.
+Files marked ★ differ between `public/` and `docs/`.
 
 ---
 
