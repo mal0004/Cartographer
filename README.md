@@ -2,32 +2,6 @@
 
 **Fictional World Map Editor** — Create, annotate, and narrate the maps of your imaginary worlds.
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  ← World Name                          [Export SVG] [JSON] [🌙]   │
-├────┬────────────────────────────────────────────────────┬───────────┤
-│ 🔍 │                                                    │ Entity    │
-│ △  │          ·  ·  ·  ·  ·  ·  ·  ·  ·  ·            │ ─────────│
-│ ●  │          ·        ╔══════════╗     ·              │ Name: ... │
-│ ⌇  │          ·        ║ TERRITORY║  ★  ·              │ Type: ... │
-│ ▲  │          ·        ║          ║Capital              │ Pop: ...  │
-│ A  │          ·        ╚══════════╝     ·              │           │
-│────│          ·     ●──────────●        ·              │ [Details] │
-│ 🎨 │          ·   City    Route   City  ·              │ [Related] │
-│    │          ·  ·  ·  ·  ·  ·  ·  ·  ·  ·            │ [Events]  │
-│    │                                                    │           │
-│    │             INFINITE CANVAS                        │ Markdown  │
-│    │             pan · zoom · draw                      │ editor &  │
-│    │                                                    │ preview   │
-├────┴────────────────────────────────────────────────────┴───────────┤
-│  ▲ Timeline    ◆ War   ◆ Treaty     ◆ Flood      ◆ Festival       │
-│  ───────────●──────────●────────────●─────────────●──────────►     │
-│  An 0       An 200     An 450       An 680        An 900   An 1200 │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
----
-
 ## Features
 
 - **Infinite Canvas** — Pan (click-drag / Alt+click), zoom (scroll wheel, 0.2x–5x), adaptive background grid
@@ -40,56 +14,8 @@
 - **Night Mode** — Toggle between parchment (#F5F0E8) and dark (#1A1A2E) themes
 - **Persistence** — Every change saved to SQLite via REST API
 
----
 
-## Two versions
-
-Ce projet contient **deux versions** de l'application, chacune dans son propre dossier :
-
-### 1. Version complète (Node.js + SQLite) — `public/`
-
-C'est la **version principale**. Elle utilise un serveur Express avec une base de données SQLite pour persister toutes les données. Les mondes, entités et événements sont stockés côté serveur et survivent au rechargement du navigateur, au changement de navigateur, etc.
-
-**Fichiers concernés :**
-- `server.js` — Serveur Express : API REST, export SVG, sert les fichiers statiques de `public/`
-- `db.js` — Couche SQLite (better-sqlite3) : tables worlds, entities, events
-- `package.json` — Dépendances Node.js (express, better-sqlite3)
-- `public/` — Frontend (index.html, canvas.js, sidebar.js, timeline.js, app.js, style.css)
-
-`public/app.js` fait des appels `fetch()` vers l'API REST du serveur pour chaque opération CRUD.
-
-**Pour lancer :**
-
-```bash
-npm install
-npm start
-# → http://localhost:3000
-```
-
-### 2. Demo statique (GitHub Pages) — `docs/`
-
-C'est une **copie autonome du frontend** qui fonctionne **sans aucun serveur**. Au lieu d'appeler l'API REST, elle utilise `localStorage` pour stocker les données directement dans le navigateur.
-
-**Différences avec la version complète :**
-- `docs/local-db.js` — Remplace SQLite. Implémente la même interface (CRUD worlds/entities/events, import/export) mais stocke tout dans `localStorage`
-- `docs/app.js` — Version modifiée de `public/app.js`. La méthode `_api()` route vers `LocalDB` au lieu de faire des `fetch()`. L'export SVG est aussi généré côté client au lieu d'appeler le serveur
-- `docs/index.html` — Charge `local-db.js` en plus, utilise des chemins relatifs (pas de `/` en préfixe)
-- `docs/canvas.js`, `docs/sidebar.js`, `docs/timeline.js`, `docs/style.css` — Copies identiques de `public/`
-
-**Limitations de la version demo :**
-- Les données sont stockées dans le navigateur uniquement (pas de partage entre navigateurs/appareils)
-- Si l'utilisateur vide son localStorage, tout est perdu
-- Pas de persistence côté serveur
-
-**Pour activer sur GitHub Pages :**
-1. Aller dans **Settings > Pages** du repo
-2. Source : Deploy from a branch
-3. Branch : `main`, dossier : `/docs`
-4. Save
-
----
-
-## Installation (version complète)
+## Installation 
 
 ```bash
 # Clone the repo
@@ -160,7 +86,6 @@ Les fichiers marqués ★ sont ceux qui diffèrent entre `public/` et `docs/`.
 
 ## API Endpoints
 
-*(Version complète uniquement — la demo statique n'a pas de serveur)*
 
 ### Worlds
 | Method | Endpoint | Description |
