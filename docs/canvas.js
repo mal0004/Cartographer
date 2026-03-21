@@ -5,7 +5,7 @@
  * selection, and drag. Exposes a CanvasEngine class.
  */
 
-/* global app, TerrainRenderer, HillShading, Coastlines, RiverEngine, VegetationRenderer, Atmosphere */
+/* global app, TerrainRenderer, HillShading, Coastlines, RiverEngine, VegetationRenderer, Atmosphere, PerformanceManager */
 
 // ─── SVG texture patterns for regions (drawn onto offscreen canvases) ────
 
@@ -167,6 +167,10 @@ class CanvasEngine {
 
     // Atmospheric post-processing
     this.atmosphere = new Atmosphere();
+
+    // Performance manager
+    this.perf = new PerformanceManager();
+    this.perf.setRenderFunction(() => this._doRender());
   }
 
   // ─── Coordinate transforms ──────────────────────────────────
@@ -202,6 +206,15 @@ class CanvasEngine {
   // ─── Rendering ──────────────────────────────────────────────
 
   render() {
+    // Coalesce multiple render calls into one rAF
+    if (this.perf) {
+      this.perf.requestRender();
+    } else {
+      this._doRender();
+    }
+  }
+
+  _doRender() {
     const ctx = this.ctx;
     const w = this.width;
     const h = this.height;
@@ -216,6 +229,9 @@ class CanvasEngine {
     // Grid
     this._drawGrid(ctx, w, h);
 
+    // LOD settings
+    const lodSettings = this.perf ? this.perf.getLODSettings(this.zoom) : null;
+
     // Transform for world coords
     ctx.save();
     ctx.translate(this.offsetX, this.offsetY);
@@ -228,9 +244,16 @@ class CanvasEngine {
     for (const entity of sorted) {
       // Layer filtering
       if (this.layersPanel && !this.layersPanel.isEntityVisible(entity)) continue;
+
+      // Viewport culling: skip entities entirely off-screen
+      if (this.perf) {
+        const bbox = this.perf.getEntityBBox(entity);
+        if (bbox && !this.perf.isVisible(bbox, this)) continue;
+      }
+
       const layerOpacity = this.layersPanel ? this.layersPanel.getEntityOpacity(entity) : 1;
       if (layerOpacity < 1) ctx.globalAlpha = layerOpacity;
-      this._renderEntity(ctx, entity);
+      this._renderEntity(ctx, entity, lodSettings);
       if (layerOpacity < 1) ctx.globalAlpha = 1;
     }
 
@@ -251,6 +274,9 @@ class CanvasEngine {
     this._drawPreview(ctx);
 
     ctx.restore();
+
+    // Clear dirty flags
+    if (this.perf) this.perf.clearDirty();
   }
 
   _drawGrid(ctx, w, h) {
@@ -279,7 +305,7 @@ class CanvasEngine {
     ctx.globalAlpha = 1;
   }
 
-  _renderEntity(ctx, entity) {
+  _renderEntity(ctx, entity, lodSettings) {
     const d = entity.data;
     const selected = this.selectedEntity && this.selectedEntity.id === entity.id;
     // Pulse value for selection halo (0.3 → 0.8)
@@ -310,8 +336,9 @@ class CanvasEngine {
           ctx.fill();
         }
 
-        // Vegetation overlay
-        if (this.vegetationRenderer && d.terrainType && d.terrainType !== 'ocean') {
+        // Vegetation overlay (skip at low LOD)
+        if (this.vegetationRenderer && d.terrainType && d.terrainType !== 'ocean' &&
+            (!lodSettings || lodSettings.vegetation)) {
           const vegOverlay = this.vegetationRenderer.getVegetationOverlay(entity, this.terrainRenderer, this.zoom);
           if (vegOverlay) {
             ctx.drawImage(vegOverlay.canvas, vegOverlay.bbox.x, vegOverlay.bbox.y, vegOverlay.bbox.w, vegOverlay.bbox.h);
@@ -321,7 +348,9 @@ class CanvasEngine {
         // Coastal effects (shallow water, foam)
         if (this.coastlines && d.terrainType && d.terrainType !== 'ocean') {
           this.coastlines.drawCoastalEffects(ctx, coastPts, entity, this.zoom);
-          this.coastlines.drawWaveAnimation(ctx, coastPts, this.zoom, Date.now());
+          if (!lodSettings || lodSettings.waveAnimation) {
+            this.coastlines.drawWaveAnimation(ctx, coastPts, this.zoom, Date.now());
+          }
         }
 
         // Border stroke with deformed outline
@@ -476,8 +505,9 @@ class CanvasEngine {
           ctx.globalAlpha = 1;
         }
 
-        // Vegetation overlay for regions
-        if (this.vegetationRenderer && proceduralType && proceduralType !== 'ocean') {
+        // Vegetation overlay for regions (skip at low LOD)
+        if (this.vegetationRenderer && proceduralType && proceduralType !== 'ocean' &&
+            (!lodSettings || lodSettings.vegetation)) {
           const origVegType = d.terrainType;
           d.terrainType = proceduralType;
           const vegOverlay = this.vegetationRenderer.getVegetationOverlay(entity, this.terrainRenderer, this.zoom);
@@ -490,7 +520,9 @@ class CanvasEngine {
         // Coastal effects for regions (skip ocean regions)
         if (this.coastlines && d.terrain !== 'ocean') {
           this.coastlines.drawCoastalEffects(ctx, regionCoastPts, entity, this.zoom);
-          this.coastlines.drawWaveAnimation(ctx, regionCoastPts, this.zoom, Date.now());
+          if (!lodSettings || lodSettings.waveAnimation) {
+            this.coastlines.drawWaveAnimation(ctx, regionCoastPts, this.zoom, Date.now());
+          }
         }
 
         // Border with deformed outline
@@ -1181,6 +1213,7 @@ class CanvasEngine {
     if (this.coastlines) this.coastlines.invalidate();
     if (this.riverEngine) this.riverEngine.invalidate();
     if (this.vegetationRenderer) this.vegetationRenderer.invalidate();
+    if (this.perf) { this.perf.clearTileCache(); this.perf.markAllDirty(); }
     this.render();
   }
 
