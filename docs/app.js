@@ -62,6 +62,16 @@ const App = {
     // Mode toggle
     this._modeToggle = new ModeToggle();
 
+    // Golden Hour toggle
+    document.getElementById('btn-golden-hour').addEventListener('click', () => {
+      if (this.canvasEngine && this.canvasEngine.atmosphere) {
+        const atm = this.canvasEngine.atmosphere;
+        atm.goldenHour = !atm.goldenHour;
+        document.getElementById('btn-golden-hour').classList.toggle('active', atm.goldenHour);
+        this.canvasEngine.render();
+      }
+    });
+
     // Help button
     document.getElementById('btn-help').addEventListener('click', () => {
       if (this.currentWorld) {

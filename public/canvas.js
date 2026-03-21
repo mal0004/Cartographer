@@ -5,7 +5,7 @@
  * selection, and drag. Exposes a CanvasEngine class.
  */
 
-/* global app, TerrainRenderer, HillShading, Coastlines, RiverEngine, VegetationRenderer */
+/* global app, TerrainRenderer, HillShading, Coastlines, RiverEngine, VegetationRenderer, Atmosphere */
 
 // ─── SVG texture patterns for regions (drawn onto offscreen canvases) ────
 
@@ -164,6 +164,9 @@ class CanvasEngine {
 
     // Procedural vegetation
     this.vegetationRenderer = new VegetationRenderer();
+
+    // Atmospheric post-processing
+    this.atmosphere = new Atmosphere();
   }
 
   // ─── Coordinate transforms ──────────────────────────────────
@@ -192,6 +195,7 @@ class CanvasEngine {
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     this.width = parent.clientWidth;
     this.height = parent.clientHeight;
+    if (this.atmosphere) this.atmosphere.invalidate();
     this.render();
   }
 
@@ -233,6 +237,11 @@ class CanvasEngine {
     // Global hill shading overlay (after all terrain entities, before UI)
     if (this.hillShading) {
       this.hillShading.render(ctx, this);
+    }
+
+    // Atmospheric post-processing (AO, golden hour, haze, vignette)
+    if (this.atmosphere) {
+      this.atmosphere.render(ctx, this);
     }
 
     // Snap guides
