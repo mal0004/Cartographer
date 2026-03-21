@@ -5,7 +5,7 @@
  * selection, and drag. Exposes a CanvasEngine class.
  */
 
-/* global app, TerrainRenderer, HillShading, Coastlines */
+/* global app, TerrainRenderer, HillShading, Coastlines, RiverEngine */
 
 // ─── SVG texture patterns for regions (drawn onto offscreen canvases) ────
 
@@ -158,6 +158,9 @@ class CanvasEngine {
 
     // Natural coastlines / edge displacement
     this.coastlines = new Coastlines();
+
+    // River engine
+    this.riverEngine = new RiverEngine();
   }
 
   // ─── Coordinate transforms ──────────────────────────────────
@@ -212,7 +215,7 @@ class CanvasEngine {
     ctx.scale(this.zoom, this.zoom);
 
     // Render entities in order: regions → territories → routes → cities → text
-    const order = ['region', 'territory', 'route', 'city', 'symbol', 'text'];
+    const order = ['region', 'territory', 'river', 'route', 'city', 'symbol', 'text'];
     const sorted = [...this.entities].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type));
 
     for (const entity of sorted) {
@@ -539,6 +542,21 @@ class CanvasEngine {
         }
         break;
       }
+      case 'river': {
+        if (this.riverEngine && d.sourceX !== undefined) {
+          const riverData = this.riverEngine.getRiverPath(entity, this.terrainRenderer, this.entities);
+          if (riverData) {
+            this.riverEngine.drawRiver(ctx, riverData, entity, this.zoom, selected);
+          } else {
+            // Draw just the source point while path is not yet computed
+            ctx.beginPath();
+            ctx.arc(d.sourceX, d.sourceY, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#4A7A9A';
+            ctx.fill();
+          }
+        }
+        break;
+      }
     }
   }
 
@@ -603,6 +621,17 @@ class CanvasEngine {
       case 'symbol': {
         const s = (d.size || 32) / 2 + 4;
         return Math.abs(wx - d.x) < s && Math.abs(wy - d.y) < s;
+      }
+      case 'river': {
+        if (d.sourceX === undefined) return false;
+        // Check source point first
+        if (Math.hypot(wx - d.sourceX, wy - d.sourceY) < 10) return true;
+        // Check along the path
+        if (this.riverEngine) {
+          const hit = this.riverEngine.hitTest(wx, wy, [e], this.terrainRenderer, this.entities, 8);
+          return !!hit;
+        }
+        return false;
       }
     }
     return false;
@@ -682,6 +711,8 @@ class CanvasEngine {
       this._createText(wx, wy);
     } else if (this.tool === 'symbol') {
       this._createSymbol(wx, wy);
+    } else if (this.tool === 'river') {
+      this._createRiver(wx, wy);
     }
   }
 
@@ -782,7 +813,7 @@ class CanvasEngine {
 
     // Tool shortcuts
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    const shortcuts = { v: 'select', t: 'territory', c: 'city', r: 'route', n: 'region', x: 'text', s: 'symbol' };
+    const shortcuts = { v: 'select', t: 'territory', c: 'city', r: 'route', n: 'region', x: 'text', s: 'symbol', w: 'river' };
     if (shortcuts[e.key]) {
       this.setTool(shortcuts[e.key]);
     }
@@ -890,6 +921,8 @@ class CanvasEngine {
         return null;
       case 'route':
         return d.x1 !== undefined ? { x: (d.x1 + d.x2) / 2, y: (d.y1 + d.y2) / 2 } : null;
+      case 'river':
+        return d.sourceX !== undefined ? { x: d.sourceX, y: d.sourceY } : null;
     }
     return null;
   }
@@ -931,6 +964,20 @@ class CanvasEngine {
     if (this.onEntityCreated) this.onEntityCreated(entity);
   }
 
+  _createRiver(x, y) {
+    const entity = {
+      type: 'river',
+      name: '',
+      data: this._stampLayer({
+        sourceX: x,
+        sourceY: y,
+        color: '#6B8FA8',
+        widthScale: 1.0,
+      }),
+    };
+    if (this.onEntityCreated) this.onEntityCreated(entity);
+  }
+
   _moveEntity(entity, origData, dx, dy) {
     const d = entity.data;
     switch (entity.type) {
@@ -953,6 +1000,11 @@ class CanvasEngine {
           d.cx1 = origData.cx1 + dx; d.cy1 = origData.cy1 + dy;
           d.cx2 = origData.cx2 + dx; d.cy2 = origData.cy2 + dy;
         }
+        break;
+      case 'river':
+        d.sourceX = origData.sourceX + dx;
+        d.sourceY = origData.sourceY + dy;
+        if (this.riverEngine) this.riverEngine.invalidate(entity.id);
         break;
     }
   }
@@ -1096,6 +1148,7 @@ class CanvasEngine {
     if (this.terrainRenderer) this.terrainRenderer.clearCache();
     if (this.hillShading) this.hillShading.invalidate();
     if (this.coastlines) this.coastlines.invalidate();
+    if (this.riverEngine) this.riverEngine.invalidate();
     this.render();
   }
 
@@ -1104,6 +1157,7 @@ class CanvasEngine {
    */
   setWorldSeed(seed) {
     if (this.coastlines) this.coastlines.setSeed(seed);
+    if (this.riverEngine) this.riverEngine.setSeed(seed);
   }
 
   centerOn(x, y, targetZoom) {

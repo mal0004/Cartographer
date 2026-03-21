@@ -131,6 +131,12 @@ class Sidebar {
         html += this._markdownField('description', 'Description', d.description || '');
         break;
 
+      case 'river':
+        html += this._colorField('color', 'Color', d.color || '#6B8FA8');
+        html += this._field('widthScale', 'Width Scale', 'number', d.widthScale || 1.0);
+        html += this._markdownField('description', 'Description', d.description || '');
+        break;
+
       case 'text':
         html += this._field('fontSize', 'Font Size', 'number', d.fontSize || 16);
         html += this._selectField('fontStyle', 'Font Style', [
@@ -334,6 +340,12 @@ class Sidebar {
     if (key === 'coastStyle') {
       if (window.app && window.app.canvasEngine && window.app.canvasEngine.coastlines) {
         window.app.canvasEngine.coastlines.invalidate(this.entity.id);
+      }
+    }
+    // Invalidate river cache when river properties change
+    if (key === 'widthScale' || key === 'color') {
+      if (this.entity.type === 'river' && window.app && window.app.canvasEngine && window.app.canvasEngine.riverEngine) {
+        window.app.canvasEngine.riverEngine.invalidate(this.entity.id);
       }
     }
 
