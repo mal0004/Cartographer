@@ -5,7 +5,7 @@
  * selection, and drag. Exposes a CanvasEngine class.
  */
 
-/* global app, TerrainRenderer, HillShading */
+/* global app, TerrainRenderer, HillShading, Coastlines */
 
 // ─── SVG texture patterns for regions (drawn onto offscreen canvases) ────
 
@@ -155,6 +155,9 @@ class CanvasEngine {
 
     // Global hill shading overlay
     this.hillShading = new HillShading();
+
+    // Natural coastlines / edge displacement
+    this.coastlines = new Coastlines();
   }
 
   // ─── Coordinate transforms ──────────────────────────────────
@@ -271,33 +274,35 @@ class CanvasEngine {
       case 'territory': {
         if (!d.points || d.points.length < 2) break;
 
+        // Get deformed coastline points
+        const coastPts = this.coastlines
+          ? this.coastlines.getDeformedPoints(entity)
+          : d.points;
+
         // Procedural terrain rendering (if terrainType is set)
         if (d.terrainType && this.terrainRenderer) {
           const drawn = this.terrainRenderer.drawTerrain(ctx, entity, this.zoom, () => this.render());
           if (!drawn) {
             // Fallback while async generation is pending
-            ctx.beginPath();
-            ctx.moveTo(d.points[0].x, d.points[0].y);
-            for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
-            ctx.closePath();
+            this._tracePath(ctx, coastPts);
             ctx.fillStyle = (d.color || '#8B2635') + '20';
             ctx.fill();
           }
         } else {
-          // Legacy flat fill
-          ctx.beginPath();
-          ctx.moveTo(d.points[0].x, d.points[0].y);
-          for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
-          ctx.closePath();
+          // Legacy flat fill with deformed border
+          this._tracePath(ctx, coastPts);
           ctx.fillStyle = (d.color || '#8B2635') + '40';
           ctx.fill();
         }
 
-        // Border stroke
-        ctx.beginPath();
-        ctx.moveTo(d.points[0].x, d.points[0].y);
-        for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
-        ctx.closePath();
+        // Coastal effects (shallow water, foam)
+        if (this.coastlines && d.terrainType && d.terrainType !== 'ocean') {
+          this.coastlines.drawCoastalEffects(ctx, coastPts, entity, this.zoom);
+          this.coastlines.drawWaveAnimation(ctx, coastPts, this.zoom, Date.now());
+        }
+
+        // Border stroke with deformed outline
+        this._tracePath(ctx, coastPts);
         ctx.strokeStyle = d.color || '#8B2635';
         ctx.lineWidth = selected ? 4 : 2.5;
         ctx.stroke();
@@ -313,7 +318,7 @@ class CanvasEngine {
           ctx.globalAlpha = 1;
           ctx.restore();
         }
-        // Label
+        // Label (use original points centroid)
         if (entity.name && d.points.length >= 3) {
           const cx = d.points.reduce((s, p) => s + p.x, 0) / d.points.length;
           const cy = d.points.reduce((s, p) => s + p.y, 0) / d.points.length;
@@ -406,6 +411,11 @@ class CanvasEngine {
       case 'region': {
         if (!d.points || d.points.length < 2) break;
 
+        // Get deformed coastline points for region
+        const regionCoastPts = this.coastlines
+          ? this.coastlines.getDeformedPoints(entity)
+          : d.points;
+
         // Map region terrain types to procedural terrain types
         const regionTerrainMap = { forest: 'plain', mountain: 'mountain', desert: 'desert', ocean: 'ocean' };
         const proceduralType = regionTerrainMap[d.terrain] || d.terrain;
@@ -420,10 +430,7 @@ class CanvasEngine {
 
           if (!drawn) {
             // Fallback to old texture pattern while generating
-            ctx.beginPath();
-            ctx.moveTo(d.points[0].x, d.points[0].y);
-            for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
-            ctx.closePath();
+            this._tracePath(ctx, regionCoastPts);
             const terrain = d.terrain || 'forest';
             if (!this._textureCache[terrain]) {
               this._textureCache[terrain] = createTexturePattern(ctx, terrain);
@@ -435,10 +442,7 @@ class CanvasEngine {
           }
         } else {
           // Legacy texture pattern fill
-          ctx.beginPath();
-          ctx.moveTo(d.points[0].x, d.points[0].y);
-          for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
-          ctx.closePath();
+          this._tracePath(ctx, regionCoastPts);
           const terrain = d.terrain || 'forest';
           if (!this._textureCache[terrain]) {
             this._textureCache[terrain] = createTexturePattern(ctx, terrain);
@@ -449,11 +453,14 @@ class CanvasEngine {
           ctx.globalAlpha = 1;
         }
 
-        // Border
-        ctx.beginPath();
-        ctx.moveTo(d.points[0].x, d.points[0].y);
-        for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
-        ctx.closePath();
+        // Coastal effects for regions (skip ocean regions)
+        if (this.coastlines && d.terrain !== 'ocean') {
+          this.coastlines.drawCoastalEffects(ctx, regionCoastPts, entity, this.zoom);
+          this.coastlines.drawWaveAnimation(ctx, regionCoastPts, this.zoom, Date.now());
+        }
+
+        // Border with deformed outline
+        this._tracePath(ctx, regionCoastPts);
         ctx.strokeStyle = '#666';
         ctx.lineWidth = 1;
         ctx.stroke();
@@ -1070,12 +1077,33 @@ class CanvasEngine {
     this.render();
   }
 
+  /**
+   * Trace a closed polygon path from an array of {x,y} points.
+   */
+  _tracePath(ctx, points) {
+    if (!points || points.length < 2) return;
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+      ctx.lineTo(points[i].x, points[i].y);
+    }
+    ctx.closePath();
+  }
+
   setEntities(entities) {
     this.entities = entities;
     this._textureCache = {};
     if (this.terrainRenderer) this.terrainRenderer.clearCache();
     if (this.hillShading) this.hillShading.invalidate();
+    if (this.coastlines) this.coastlines.invalidate();
     this.render();
+  }
+
+  /**
+   * Set the world seed for coastline deformation.
+   */
+  setWorldSeed(seed) {
+    if (this.coastlines) this.coastlines.setSeed(seed);
   }
 
   centerOn(x, y, targetZoom) {

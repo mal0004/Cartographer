@@ -106,6 +106,9 @@ class Sidebar {
           ['', 'None (flat)'], ['plain', 'Plains'], ['hills', 'Hills'], ['mountain', 'Mountains'],
           ['desert', 'Desert'], ['marsh', 'Marsh'], ['ocean', 'Ocean / Lake']
         ], d.terrainType || '');
+        html += this._selectField('coastStyle', 'Coast Style', [
+          ['smooth', 'Smooth'], ['rugged', 'Rugged'], ['fjords', 'Fjords']
+        ], d.coastStyle || 'smooth');
         html += this._field('ruler', 'Ruler', 'text', d.ruler || '');
         html += this._field('capitalName', 'Capital', 'text', d.capitalName || '');
         html += this._field('resources', 'Resources (comma-separated)', 'text', (d.resources || []).join(', '));
@@ -325,6 +328,12 @@ class Sidebar {
       }
       if (window.app && window.app.canvasEngine && window.app.canvasEngine.hillShading) {
         window.app.canvasEngine.hillShading.invalidate();
+      }
+    }
+    // Invalidate coastline cache when coast style changes
+    if (key === 'coastStyle') {
+      if (window.app && window.app.canvasEngine && window.app.canvasEngine.coastlines) {
+        window.app.canvasEngine.coastlines.invalidate(this.entity.id);
       }
     }
 

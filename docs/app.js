@@ -422,6 +422,12 @@ const App = {
       };
     }
 
+    // Set world seed for coastline deformation
+    const worldSeed = typeof this.currentWorld.id === 'number'
+      ? this.currentWorld.id
+      : Array.from(String(this.currentWorld.id)).reduce((s, c) => s * 31 + c.charCodeAt(0), 0);
+    this.canvasEngine.setWorldSeed(worldSeed);
+
     // Load entities and events
     await this._loadEntities();
     await this._loadEvents();
