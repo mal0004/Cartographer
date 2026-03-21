@@ -5,7 +5,7 @@
  * selection, and drag. Exposes a CanvasEngine class.
  */
 
-/* global app */
+/* global app, TerrainRenderer */
 
 // ─── SVG texture patterns for regions (drawn onto offscreen canvases) ────
 
@@ -149,6 +149,9 @@ class CanvasEngine {
     this.snapGuides = null; // set by App
 
     this._textureCache = {};
+
+    // Procedural terrain renderer
+    this.terrainRenderer = new TerrainRenderer();
   }
 
   // ─── Coordinate transforms ──────────────────────────────────
@@ -259,12 +262,34 @@ class CanvasEngine {
     switch (entity.type) {
       case 'territory': {
         if (!d.points || d.points.length < 2) break;
+
+        // Procedural terrain rendering (if terrainType is set)
+        if (d.terrainType && this.terrainRenderer) {
+          const drawn = this.terrainRenderer.drawTerrain(ctx, entity, this.zoom, () => this.render());
+          if (!drawn) {
+            // Fallback while async generation is pending
+            ctx.beginPath();
+            ctx.moveTo(d.points[0].x, d.points[0].y);
+            for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
+            ctx.closePath();
+            ctx.fillStyle = (d.color || '#8B2635') + '20';
+            ctx.fill();
+          }
+        } else {
+          // Legacy flat fill
+          ctx.beginPath();
+          ctx.moveTo(d.points[0].x, d.points[0].y);
+          for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
+          ctx.closePath();
+          ctx.fillStyle = (d.color || '#8B2635') + '40';
+          ctx.fill();
+        }
+
+        // Border stroke
         ctx.beginPath();
         ctx.moveTo(d.points[0].x, d.points[0].y);
         for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
         ctx.closePath();
-        ctx.fillStyle = (d.color || '#8B2635') + '40';
-        ctx.fill();
         ctx.strokeStyle = d.color || '#8B2635';
         ctx.lineWidth = selected ? 4 : 2.5;
         ctx.stroke();
@@ -372,20 +397,55 @@ class CanvasEngine {
       }
       case 'region': {
         if (!d.points || d.points.length < 2) break;
+
+        // Map region terrain types to procedural terrain types
+        const regionTerrainMap = { forest: 'plain', mountain: 'mountain', desert: 'desert', ocean: 'ocean' };
+        const proceduralType = regionTerrainMap[d.terrain] || d.terrain;
+
+        // Use procedural terrain if available
+        if (this.terrainRenderer && proceduralType) {
+          // Temporarily set terrainType for the renderer
+          const origType = d.terrainType;
+          d.terrainType = proceduralType;
+          const drawn = this.terrainRenderer.drawTerrain(ctx, entity, this.zoom, () => this.render());
+          d.terrainType = origType;
+
+          if (!drawn) {
+            // Fallback to old texture pattern while generating
+            ctx.beginPath();
+            ctx.moveTo(d.points[0].x, d.points[0].y);
+            for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
+            ctx.closePath();
+            const terrain = d.terrain || 'forest';
+            if (!this._textureCache[terrain]) {
+              this._textureCache[terrain] = createTexturePattern(ctx, terrain);
+            }
+            ctx.fillStyle = this._textureCache[terrain];
+            ctx.globalAlpha = 0.5;
+            ctx.fill();
+            ctx.globalAlpha = 1;
+          }
+        } else {
+          // Legacy texture pattern fill
+          ctx.beginPath();
+          ctx.moveTo(d.points[0].x, d.points[0].y);
+          for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
+          ctx.closePath();
+          const terrain = d.terrain || 'forest';
+          if (!this._textureCache[terrain]) {
+            this._textureCache[terrain] = createTexturePattern(ctx, terrain);
+          }
+          ctx.fillStyle = this._textureCache[terrain];
+          ctx.globalAlpha = 0.5;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+
+        // Border
         ctx.beginPath();
         ctx.moveTo(d.points[0].x, d.points[0].y);
         for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
         ctx.closePath();
-        // Texture fill
-        const terrain = d.terrain || 'forest';
-        if (!this._textureCache[terrain]) {
-          this._textureCache[terrain] = createTexturePattern(ctx, terrain);
-        }
-        ctx.fillStyle = this._textureCache[terrain];
-        ctx.globalAlpha = 0.5;
-        ctx.fill();
-        ctx.globalAlpha = 1;
-        // Border
         ctx.strokeStyle = '#666';
         ctx.lineWidth = 1;
         ctx.stroke();
@@ -777,6 +837,9 @@ class CanvasEngine {
       entityData.data.capitalName = '';
       entityData.data.resources = [];
       entityData.data.description = '';
+      entityData.data.terrainType = this.toolOptions.terrainType || '';
+      entityData.data.terrainSeed = Math.floor(Math.random() * 100000);
+      entityData.data.terrainIntensity = 50;
     } else {
       entityData.data.terrain = this.toolOptions.terrain || 'forest';
     }
@@ -907,7 +970,25 @@ class CanvasEngine {
     optionsEl.innerHTML = '';
     optionsEl.hidden = true;
 
-    if (this.tool === 'city') {
+    if (this.tool === 'territory') {
+      optionsEl.hidden = false;
+      optionsEl.innerHTML = `
+        <label>Terrain:
+          <select id="opt-territory-terrain">
+            <option value="">None (flat)</option>
+            <option value="plain">Plains</option>
+            <option value="hills">Hills</option>
+            <option value="mountain">Mountains</option>
+            <option value="desert">Desert</option>
+            <option value="marsh">Marsh</option>
+            <option value="ocean">Ocean / Lake</option>
+          </select>
+        </label>`;
+      optionsEl.querySelector('#opt-territory-terrain').value = this.toolOptions.terrainType || '';
+      optionsEl.querySelector('#opt-territory-terrain').addEventListener('change', (e) => {
+        this.toolOptions.terrainType = e.target.value;
+      });
+    } else if (this.tool === 'city') {
       optionsEl.hidden = false;
       optionsEl.innerHTML = `
         <label>Type:
@@ -944,6 +1025,9 @@ class CanvasEngine {
             <option value="mountain">Mountain</option>
             <option value="desert">Desert</option>
             <option value="ocean">Ocean</option>
+            <option value="plain">Plains</option>
+            <option value="hills">Hills</option>
+            <option value="marsh">Marsh</option>
           </select>
         </label>`;
       optionsEl.querySelector('#opt-terrain').value = this.toolOptions.terrain || 'forest';
@@ -981,6 +1065,7 @@ class CanvasEngine {
   setEntities(entities) {
     this.entities = entities;
     this._textureCache = {};
+    if (this.terrainRenderer) this.terrainRenderer.clearCache();
     this.render();
   }
 
