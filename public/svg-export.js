@@ -107,7 +107,7 @@ class SvgExportPanel {
 
     // Seed for rotation randomness
     const seed = world.name.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    const pseudoRandom = (i) => (Math.sin(seed * 127 + i * 311) * 10000) % 1;
+    const pseudoRandom = (i) => Math.abs((Math.sin(seed * 127 + i * 311) * 10000) % 1);
 
     let defs = '';
     let content = '';

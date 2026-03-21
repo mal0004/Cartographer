@@ -187,7 +187,14 @@ const App = {
     const file = e.target.files[0];
     if (!file) return;
     const text = await file.text();
-    const data = JSON.parse(text);
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      alert('Invalid JSON file. Please select a valid Cartographer export.');
+      e.target.value = '';
+      return;
+    }
     await this._api('POST', '/api/worlds/import', data);
     e.target.value = '';
     this._loadWorlds();

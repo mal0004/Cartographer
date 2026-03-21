@@ -256,7 +256,7 @@ class CanvasEngine {
 
     switch (entity.type) {
       case 'territory': {
-        if (!d.points || d.points.length < 2) break;
+        if (!d.points || d.points.length < 3) break;
         ctx.beginPath();
         ctx.moveTo(d.points[0].x, d.points[0].y);
         for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
@@ -335,7 +335,7 @@ class CanvasEngine {
         break;
       }
       case 'region': {
-        if (!d.points || d.points.length < 2) break;
+        if (!d.points || d.points.length < 3) break;
         ctx.beginPath();
         ctx.moveTo(d.points[0].x, d.points[0].y);
         for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);

@@ -174,7 +174,7 @@ class Sidebar {
   }
 
   _escapeAttr(str) {
-    return str.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
   _escapeHtml(str) {

@@ -50,6 +50,8 @@ class Timeline {
     this.canvas.addEventListener('mouseleave', () => this._hideTooltip());
     this.canvas.addEventListener('wheel', (e) => this._onWheel(e), { passive: false });
     this.canvas.addEventListener('click', (e) => this._onClick(e));
+    // Release pan state when mouse is released anywhere outside the canvas
+    document.addEventListener('mouseup', () => this._onMouseUp());
 
     this._isPanning = false;
     this._panStartX = 0;
@@ -244,9 +246,18 @@ class Timeline {
     this._hideTooltip();
     const tip = document.createElement('div');
     tip.className = 'timeline-event-tooltip';
-    tip.innerHTML = `<strong>${ev.title}</strong><br>
-      <span style="color:var(--ink-light)">Year ${ev.date}</span><br>
-      ${ev.description || ''}`;
+    const strong = document.createElement('strong');
+    strong.textContent = ev.title;
+    const yearSpan = document.createElement('span');
+    yearSpan.style.color = 'var(--ink-light)';
+    yearSpan.textContent = `Year ${ev.date}`;
+    const desc = document.createElement('span');
+    desc.textContent = ev.description || '';
+    tip.appendChild(strong);
+    tip.appendChild(document.createElement('br'));
+    tip.appendChild(yearSpan);
+    tip.appendChild(document.createElement('br'));
+    tip.appendChild(desc);
     tip.style.left = (e.clientX + 12) + 'px';
     tip.style.top = (e.clientY - 60) + 'px';
     document.body.appendChild(tip);

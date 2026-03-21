@@ -103,9 +103,13 @@
         if (symCache[key]) return symCache[key];
         const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48">${sym.svg.replace(/currentColor/g, color)}</svg>`;
         const blob = new Blob([svgStr], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
         const img = new Image();
-        img.onload = () => render();
-        img.src = URL.createObjectURL(blob);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          render();
+        };
+        img.src = url;
         symCache[key] = img;
         return img;
       }

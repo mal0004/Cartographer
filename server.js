@@ -95,10 +95,15 @@ app.delete('/api/events/:id', (req, res) => {
 
 // ─── Import / Export ─────────────────────────────────────────────
 
+function safeFilename(name) {
+  // Strip characters that are problematic in Content-Disposition filenames
+  return name.replace(/[/\\?%*:|"<>\r\n]/g, '_');
+}
+
 app.get('/api/worlds/:id/export', (req, res) => {
   const dump = importExport.exportWorld(Number(req.params.id));
   if (!dump) return res.status(404).json({ error: 'World not found' });
-  res.setHeader('Content-Disposition', `attachment; filename="${dump.world.name}.json"`);
+  res.setHeader('Content-Disposition', `attachment; filename="${safeFilename(dump.world.name)}.json"`);
   res.json(dump);
 });
 
@@ -220,7 +225,7 @@ app.get('/api/worlds/:id/svg', (req, res) => {
 </svg>`;
 
   res.setHeader('Content-Type', 'image/svg+xml');
-  res.setHeader('Content-Disposition', `attachment; filename="${world.name}.svg"`);
+  res.setHeader('Content-Disposition', `attachment; filename="${safeFilename(world.name)}.svg"`);
   res.send(svg);
 });
 

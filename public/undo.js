@@ -28,18 +28,18 @@ class UndoManager {
     this._notify();
   }
 
-  undo() {
+  async undo() {
     if (this._undoStack.length === 0) return;
     const cmd = this._undoStack.pop();
-    cmd.undo();
+    await cmd.undo();
     this._redoStack.push(cmd);
     this._notify();
   }
 
-  redo() {
+  async redo() {
     if (this._redoStack.length === 0) return;
     const cmd = this._redoStack.pop();
-    cmd.execute();
+    await cmd.execute();
     this._undoStack.push(cmd);
     this._notify();
   }
@@ -100,8 +100,6 @@ class DeleteEntityCommand {
   }
   async undo() {
     const restored = await this.app._api('POST', `/api/worlds/${this.app.currentWorld.id}/entities`, this.entity);
-    // Update stored id to the new one
-    const oldId = this.entity.id;
     this.entity.id = restored.id;
     this.app.entities.push(restored);
     this.app.canvasEngine.setEntities(this.app.entities);
