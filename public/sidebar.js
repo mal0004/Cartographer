@@ -323,6 +323,9 @@ class Sidebar {
       if (window.app && window.app.canvasEngine && window.app.canvasEngine.terrainRenderer) {
         window.app.canvasEngine.terrainRenderer.invalidate(this.entity.id);
       }
+      if (window.app && window.app.canvasEngine && window.app.canvasEngine.hillShading) {
+        window.app.canvasEngine.hillShading.invalidate();
+      }
     }
 
     // Update markdown preview

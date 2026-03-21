@@ -5,7 +5,7 @@
  * selection, and drag. Exposes a CanvasEngine class.
  */
 
-/* global app, TerrainRenderer */
+/* global app, TerrainRenderer, HillShading */
 
 // ─── SVG texture patterns for regions (drawn onto offscreen canvases) ────
 
@@ -152,6 +152,9 @@ class CanvasEngine {
 
     // Procedural terrain renderer
     this.terrainRenderer = new TerrainRenderer();
+
+    // Global hill shading overlay
+    this.hillShading = new HillShading();
   }
 
   // ─── Coordinate transforms ──────────────────────────────────
@@ -216,6 +219,11 @@ class CanvasEngine {
       if (layerOpacity < 1) ctx.globalAlpha = layerOpacity;
       this._renderEntity(ctx, entity);
       if (layerOpacity < 1) ctx.globalAlpha = 1;
+    }
+
+    // Global hill shading overlay (after all terrain entities, before UI)
+    if (this.hillShading) {
+      this.hillShading.render(ctx, this);
     }
 
     // Snap guides
@@ -1066,6 +1074,7 @@ class CanvasEngine {
     this.entities = entities;
     this._textureCache = {};
     if (this.terrainRenderer) this.terrainRenderer.clearCache();
+    if (this.hillShading) this.hillShading.invalidate();
     this.render();
   }
 

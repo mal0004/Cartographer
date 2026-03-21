@@ -102,6 +102,10 @@ class Sidebar {
         break;
 
       case 'territory':
+        html += this._selectField('terrainType', 'Terrain', [
+          ['', 'None (flat)'], ['plain', 'Plains'], ['hills', 'Hills'], ['mountain', 'Mountains'],
+          ['desert', 'Desert'], ['marsh', 'Marsh'], ['ocean', 'Ocean / Lake']
+        ], d.terrainType || '');
         html += this._field('ruler', 'Ruler', 'text', d.ruler || '');
         html += this._field('capitalName', 'Capital', 'text', d.capitalName || '');
         html += this._field('resources', 'Resources (comma-separated)', 'text', (d.resources || []).join(', '));
@@ -312,6 +316,16 @@ class Sidebar {
       this.entity.data[key] = Number(value) || 16;
     } else {
       this.entity.data[key] = value;
+    }
+
+    // Invalidate terrain cache when terrain properties change
+    if (key === 'terrainType' || key === 'terrain') {
+      if (window.app && window.app.canvasEngine && window.app.canvasEngine.terrainRenderer) {
+        window.app.canvasEngine.terrainRenderer.invalidate(this.entity.id);
+      }
+      if (window.app && window.app.canvasEngine && window.app.canvasEngine.hillShading) {
+        window.app.canvasEngine.hillShading.invalidate();
+      }
     }
 
     // Update markdown preview
