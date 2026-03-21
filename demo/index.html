@@ -11,23 +11,47 @@
 <body>
   <!-- ─── Home screen ─────────────────────────────────── -->
   <div id="home-screen" class="screen active">
-    <header class="home-header">
-      <h1>Cartographer</h1>
-      <p class="subtitle">Fictional World Map Editor</p>
-      <div class="home-actions">
-        <button id="btn-new-world" class="btn btn-primary">+ New World</button>
-        <label class="btn btn-secondary">
-          Import JSON
-          <input type="file" id="import-file" accept=".json" hidden>
-        </label>
+    <section class="hero">
+      <svg class="hero-map-bg" id="hero-map-bg" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+      <div class="hero-content">
+        <h1 class="hero-title">Cartographer</h1>
+        <p class="hero-tagline">Fictional World Map Editor</p>
+        <div class="home-actions">
+          <button id="btn-new-world" class="btn btn-cta-primary">+ Nouveau monde</button>
+          <a href="#templates-section" class="btn btn-cta-outline">Voir les templates</a>
+          <label class="btn btn-cta-outline">
+            Importer JSON
+            <input type="file" id="import-file" accept=".json" hidden>
+          </label>
+        </div>
       </div>
-    </header>
-    <div id="worlds-grid" class="worlds-grid"></div>
+      <div class="scroll-indicator" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="28" height="28"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+    </section>
 
-    <div id="templates-section" class="templates-section">
-      <h2>Partir d'un template</h2>
+    <section class="home-section" id="worlds-section">
+      <h2 class="section-title">Mes mondes</h2>
+      <div id="worlds-grid" class="worlds-grid"></div>
+    </section>
+
+    <section class="home-section" id="templates-section">
+      <h2 class="section-title">Partir d'un template</h2>
       <div id="templates-grid" class="templates-grid"></div>
-    </div>
+    </section>
+
+    <footer class="home-footer">
+      <svg class="footer-compass" viewBox="0 0 60 60" width="40" height="40" aria-hidden="true">
+        <g transform="translate(30,30)">
+          <polygon points="0,-25 3,-8 -3,-8" fill="var(--accent)"/>
+          <polygon points="0,25 3,8 -3,8" fill="var(--border)"/>
+          <polygon points="-25,0 -8,3 -8,-3" fill="var(--border)"/>
+          <polygon points="25,0 8,3 8,-3" fill="var(--border)"/>
+          <circle r="3" fill="none" stroke="var(--accent)" stroke-width="1"/>
+        </g>
+      </svg>
+      <p>Cartographer &mdash; MIT License</p>
+    </footer>
 
     <!-- New world modal -->
     <div id="modal-new-world" class="modal" hidden>
@@ -69,25 +93,25 @@
 
         <!-- Floating toolbar -->
         <div id="toolbar" class="toolbar">
-          <button class="tool-btn active" data-tool="select" title="Select (V)">
+          <button class="tool-btn active" data-tool="select" data-tooltip="Sélection — V">
             <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51z" fill="currentColor"/></svg>
           </button>
-          <button class="tool-btn" data-tool="territory" title="Territory (T)">
+          <button class="tool-btn" data-tool="territory" data-tooltip="Territoire — T">
             <svg viewBox="0 0 24 24" width="20" height="20"><polygon points="12,2 22,20 2,20" fill="none" stroke="currentColor" stroke-width="2"/></svg>
           </button>
-          <button class="tool-btn" data-tool="city" title="City (C)">
+          <button class="tool-btn" data-tool="city" data-tooltip="Ville — C">
             <svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="6" fill="currentColor"/></svg>
           </button>
-          <button class="tool-btn" data-tool="route" title="Route (R)">
+          <button class="tool-btn" data-tool="route" data-tooltip="Route — R">
             <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 17c4-6 14-6 18 0" fill="none" stroke="currentColor" stroke-width="2"/></svg>
           </button>
-          <button class="tool-btn" data-tool="region" title="Natural Region (N)">
+          <button class="tool-btn" data-tool="region" data-tooltip="Région — N">
             <svg viewBox="0 0 24 24" width="20" height="20"><path d="M2 20 L7 8 L12 14 L17 6 L22 20Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
           </button>
-          <button class="tool-btn" data-tool="text" title="Text Label (X)">
+          <button class="tool-btn" data-tool="text" data-tooltip="Texte — X">
             <svg viewBox="0 0 24 24" width="20" height="20"><text x="6" y="18" font-size="18" font-weight="bold" fill="currentColor">A</text></svg>
           </button>
-          <button class="tool-btn" data-tool="symbol" title="Symbols (S)">
+          <button class="tool-btn" data-tool="symbol" data-tooltip="Symboles — S">
             <svg viewBox="0 0 24 24" width="20" height="20"><polygon points="12,2 15,9 23,9 17,14 19,22 12,18 5,22 7,14 1,9 9,9" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
           </button>
           <div class="tool-separator"></div>
@@ -116,6 +140,7 @@
 
       <!-- Sidebar -->
       <div id="sidebar" class="sidebar" hidden>
+        <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
         <div class="sidebar-header">
           <h3 id="sidebar-title">Entity</h3>
           <button id="sidebar-close" class="btn-icon">&times;</button>
@@ -126,6 +151,7 @@
 
     <!-- Timeline -->
     <div id="timeline" class="timeline collapsed">
+      <div class="timeline-resize-handle" id="timeline-resize-handle"></div>
       <button id="timeline-toggle" class="timeline-toggle" title="Toggle timeline">&#9650; Timeline</button>
       <div id="timeline-body" class="timeline-body">
         <canvas id="timeline-canvas"></canvas>
@@ -135,6 +161,7 @@
   </div>
 
   <script src="local-db.js"></script>
+  <script src="responsive.js"></script>
   <script src="svg-export.js"></script>
   <script src="mode-toggle.js"></script>
   <script src="templates.js"></script>
