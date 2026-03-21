@@ -5,7 +5,7 @@
  * selection, and drag. Exposes a CanvasEngine class.
  */
 
-/* global app, TerrainRenderer, HillShading, Coastlines, RiverEngine */
+/* global app, TerrainRenderer, HillShading, Coastlines, RiverEngine, VegetationRenderer */
 
 // ─── SVG texture patterns for regions (drawn onto offscreen canvases) ────
 
@@ -161,6 +161,9 @@ class CanvasEngine {
 
     // River engine
     this.riverEngine = new RiverEngine();
+
+    // Procedural vegetation
+    this.vegetationRenderer = new VegetationRenderer();
   }
 
   // ─── Coordinate transforms ──────────────────────────────────
@@ -296,6 +299,14 @@ class CanvasEngine {
           this._tracePath(ctx, coastPts);
           ctx.fillStyle = (d.color || '#8B2635') + '40';
           ctx.fill();
+        }
+
+        // Vegetation overlay
+        if (this.vegetationRenderer && d.terrainType && d.terrainType !== 'ocean') {
+          const vegOverlay = this.vegetationRenderer.getVegetationOverlay(entity, this.terrainRenderer, this.zoom);
+          if (vegOverlay) {
+            ctx.drawImage(vegOverlay.canvas, vegOverlay.bbox.x, vegOverlay.bbox.y, vegOverlay.bbox.w, vegOverlay.bbox.h);
+          }
         }
 
         // Coastal effects (shallow water, foam)
@@ -454,6 +465,17 @@ class CanvasEngine {
           ctx.globalAlpha = 0.5;
           ctx.fill();
           ctx.globalAlpha = 1;
+        }
+
+        // Vegetation overlay for regions
+        if (this.vegetationRenderer && proceduralType && proceduralType !== 'ocean') {
+          const origVegType = d.terrainType;
+          d.terrainType = proceduralType;
+          const vegOverlay = this.vegetationRenderer.getVegetationOverlay(entity, this.terrainRenderer, this.zoom);
+          d.terrainType = origVegType;
+          if (vegOverlay) {
+            ctx.drawImage(vegOverlay.canvas, vegOverlay.bbox.x, vegOverlay.bbox.y, vegOverlay.bbox.w, vegOverlay.bbox.h);
+          }
         }
 
         // Coastal effects for regions (skip ocean regions)
@@ -1149,6 +1171,7 @@ class CanvasEngine {
     if (this.hillShading) this.hillShading.invalidate();
     if (this.coastlines) this.coastlines.invalidate();
     if (this.riverEngine) this.riverEngine.invalidate();
+    if (this.vegetationRenderer) this.vegetationRenderer.invalidate();
     this.render();
   }
 
@@ -1158,6 +1181,7 @@ class CanvasEngine {
   setWorldSeed(seed) {
     if (this.coastlines) this.coastlines.setSeed(seed);
     if (this.riverEngine) this.riverEngine.setSeed(seed);
+    if (this.vegetationRenderer) this.vegetationRenderer.setSeed(seed);
   }
 
   centerOn(x, y, targetZoom) {

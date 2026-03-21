@@ -109,6 +109,7 @@ class Sidebar {
         html += this._selectField('coastStyle', 'Coast Style', [
           ['smooth', 'Smooth'], ['rugged', 'Rugged'], ['fjords', 'Fjords']
         ], d.coastStyle || 'smooth');
+        html += this._rangeField('vegetationDensity', 'Vegetation Density', d.vegetationDensity ?? 50, 0, 100);
         html += this._field('ruler', 'Ruler', 'text', d.ruler || '');
         html += this._field('capitalName', 'Capital', 'text', d.capitalName || '');
         html += this._field('resources', 'Resources (comma-separated)', 'text', (d.resources || []).join(', '));
@@ -172,6 +173,13 @@ class Sidebar {
     return `<div class="sidebar-field">
       <label>${label}</label>
       <select data-key="${key}">${opts}</select>
+    </div>`;
+  }
+
+  _rangeField(key, label, value, min, max) {
+    return `<div class="sidebar-field">
+      <label>${label} <span class="range-value">${value}</span></label>
+      <input type="range" data-key="${key}" value="${value}" min="${min}" max="${max}" />
     </div>`;
   }
 
@@ -260,6 +268,13 @@ class Sidebar {
       if (input.tagName === 'TEXTAREA' || input.type === 'text' || input.type === 'number') {
         input.addEventListener('input', handler);
       }
+      if (input.type === 'range') {
+        input.addEventListener('input', (e) => {
+          const valSpan = input.closest('.sidebar-field').querySelector('.range-value');
+          if (valSpan) valSpan.textContent = input.value;
+          handler(e);
+        });
+      }
     });
 
     // Markdown toolbar buttons
@@ -346,6 +361,12 @@ class Sidebar {
     if (key === 'widthScale' || key === 'color') {
       if (this.entity.type === 'river' && window.app && window.app.canvasEngine && window.app.canvasEngine.riverEngine) {
         window.app.canvasEngine.riverEngine.invalidate(this.entity.id);
+      }
+    }
+    // Invalidate vegetation cache when density changes
+    if (key === 'vegetationDensity') {
+      if (window.app && window.app.canvasEngine && window.app.canvasEngine.vegetationRenderer) {
+        window.app.canvasEngine.vegetationRenderer.invalidate(this.entity.id);
       }
     }
 
