@@ -98,6 +98,9 @@ const App = {
     this.timeline.onEventClick = (event) => this._onEventClick(event);
     this.timeline.onAddEvent = () => this._showAddEventModal();
 
+    // Render hero background
+    this._renderHeroMap();
+
     // Render templates
     this._renderTemplates();
 
@@ -111,6 +114,48 @@ const App = {
     } else if (savedTheme === 'night') {
       this.themeManager.applyTheme('nightgold');
     }
+  },
+
+  // ─── Hero procedural map ───────────────────────────────────
+
+  _renderHeroMap() {
+    const svg = document.getElementById('hero-map-bg');
+    if (!svg) return;
+    // Seeded pseudo-random for consistent landmasses
+    const seed = 42;
+    const rand = (i) => ((Math.sin(seed * 127.1 + i * 311.7) * 43758.5453) % 1 + 1) % 1;
+
+    let paths = '';
+    // Generate ~8 landmasses as closed bezier blobs
+    for (let k = 0; k < 8; k++) {
+      const cx = 100 + rand(k * 10) * 1000;
+      const cy = 50 + rand(k * 10 + 1) * 400;
+      const pts = [];
+      const n = 6 + Math.floor(rand(k * 10 + 2) * 4);
+      const r = 40 + rand(k * 10 + 3) * 120;
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2;
+        const rr = r * (0.7 + rand(k * 100 + i) * 0.6);
+        pts.push({ x: cx + Math.cos(a) * rr, y: cy + Math.sin(a) * rr });
+      }
+      let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+      for (let i = 0; i < pts.length; i++) {
+        const p1 = pts[i];
+        const p2 = pts[(i + 1) % pts.length];
+        const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
+        d += ` Q${p1.x.toFixed(1)},${p1.y.toFixed(1)} ${mx.toFixed(1)},${my.toFixed(1)}`;
+      }
+      d += ' Z';
+      paths += `<path d="${d}" fill="var(--ink)" fill-opacity="0.15" stroke="var(--ink)" stroke-width="1.5" stroke-opacity="0.3"/>\n`;
+    }
+    // Grid lines (graticule)
+    for (let x = 0; x <= 1200; x += 100) {
+      paths += `<line x1="${x}" y1="0" x2="${x}" y2="500" stroke="var(--ink)" stroke-width="0.3" stroke-opacity="0.15"/>\n`;
+    }
+    for (let y = 0; y <= 500; y += 80) {
+      paths += `<line x1="0" y1="${y}" x2="1200" y2="${y}" stroke="var(--ink)" stroke-width="0.3" stroke-opacity="0.15"/>\n`;
+    }
+    svg.innerHTML = paths;
   },
 
   // ─── Screen navigation ─────────────────────────────────────
@@ -130,32 +175,132 @@ const App = {
   // ─── Worlds ─────────────────────────────────────────────────
 
   async _loadWorlds() {
-    const worlds = await this._api('GET', '/api/worlds');
     const grid = document.getElementById('worlds-grid');
+    this._showSkeletons(grid);
+    const worlds = await this._api('GET', '/api/worlds');
     grid.innerHTML = '';
+
+    // "New world" dashed card first
+    const newCard = document.createElement('div');
+    newCard.className = 'world-card world-card-new';
+    newCard.innerHTML = `<div class="world-card-new-inner"><span class="plus-icon">+</span><span>Nouveau monde</span></div>`;
+    newCard.addEventListener('click', () => this._showNewWorldModal());
+    grid.appendChild(newCard);
 
     for (const w of worlds) {
       const card = document.createElement('div');
       card.className = 'world-card';
+      // Fetch entity/event counts
+      const entities = await this._api('GET', `/api/worlds/${w.id}/entities`);
+      const events = await this._api('GET', `/api/worlds/${w.id}/events`);
+      const date = w.updated_at ? new Date(w.updated_at).toLocaleDateString('fr-FR') : '';
+
       card.innerHTML = `
-        <button class="btn-icon delete-world" data-id="${w.id}" title="Delete">&times;</button>
-        <h3>${this._escapeHtml(w.name)}</h3>
-        <p>${this._escapeHtml(w.description || 'No description')}</p>
-        <div class="world-card-meta">Timeline: ${w.time_start} → ${w.time_end}</div>
+        <canvas class="world-card-preview" width="640" height="360"></canvas>
+        <div class="world-card-body">
+          <button class="btn-icon delete-world" data-id="${w.id}" title="Delete">&times;</button>
+          <h3>${this._escapeHtml(w.name)}</h3>
+          <p>${this._escapeHtml(w.description || 'Aucune description')}</p>
+          <div class="world-card-meta">
+            <span>${entities.length} entité${entities.length !== 1 ? 's' : ''}</span>
+            <span>${events.length} événement${events.length !== 1 ? 's' : ''}</span>
+            ${date ? `<span>${date}</span>` : ''}
+          </div>
+        </div>
+        <div class="world-card-overlay">
+          <button class="btn btn-sm card-open">Ouvrir</button>
+          <button class="btn btn-sm card-export">Exporter</button>
+        </div>
       `;
+
+      // Draw preview
+      const canvas = card.querySelector('.world-card-preview');
+      this._drawWorldPreview(canvas, entities);
+
       card.addEventListener('click', (e) => {
-        if (e.target.closest('.delete-world')) return;
+        if (e.target.closest('.delete-world') || e.target.closest('.card-export') || e.target.closest('.card-open')) return;
         this._openWorld(w.id);
+      });
+      card.querySelector('.card-open').addEventListener('click', (e) => {
+        e.stopPropagation();
+        this._openWorld(w.id);
+      });
+      card.querySelector('.card-export').addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const data = await this._api('GET', `/api/worlds/${w.id}/export`);
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `${w.name}.json`; a.click();
+        URL.revokeObjectURL(url);
       });
       card.querySelector('.delete-world').addEventListener('click', async (e) => {
         e.stopPropagation();
-        if (confirm(`Delete "${w.name}"? This cannot be undone.`)) {
+        if (confirm(`Supprimer "${w.name}" ? Action irréversible.`)) {
           await this._api('DELETE', `/api/worlds/${w.id}`);
           this._loadWorlds();
         }
       });
       grid.appendChild(card);
     }
+    this._observeCards();
+  },
+
+  _drawWorldPreview(canvas, entities) {
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const style = getComputedStyle(document.documentElement);
+    ctx.fillStyle = style.getPropertyValue('--bg').trim() || '#F5F0E8';
+    ctx.fillRect(0, 0, w, h);
+
+    if (entities.length === 0) {
+      ctx.fillStyle = style.getPropertyValue('--ink-light').trim() || '#888';
+      ctx.font = '14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Monde vide', w / 2, h / 2);
+      return;
+    }
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const e of entities) {
+      const d = e.data;
+      if (d.x !== undefined) { minX = Math.min(minX, d.x); maxX = Math.max(maxX, d.x); minY = Math.min(minY, d.y); maxY = Math.max(maxY, d.y); }
+      if (d.points) for (const p of d.points) { minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y); }
+      if (d.x1 !== undefined) { minX = Math.min(minX, d.x1, d.x2); maxX = Math.max(maxX, d.x1, d.x2); minY = Math.min(minY, d.y1, d.y2); maxY = Math.max(maxY, d.y1, d.y2); }
+    }
+    const pad = 40;
+    minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+    const bw = maxX - minX, bh = maxY - minY;
+    if (bw === 0 || bh === 0) return;
+    const scale = Math.min(w / bw, h / bh);
+    const ox = (w - bw * scale) / 2, oy = (h - bh * scale) / 2;
+    ctx.save();
+    ctx.translate(ox, oy);
+    ctx.scale(scale, scale);
+    ctx.translate(-minX, -minY);
+
+    const ink = style.getPropertyValue('--ink').trim() || '#2C1810';
+    const accent = style.getPropertyValue('--accent').trim() || '#8B2635';
+    for (const e of entities) {
+      const d = e.data;
+      if ((e.type === 'territory' || e.type === 'region') && d.points && d.points.length >= 3) {
+        ctx.beginPath();
+        ctx.moveTo(d.points[0].x, d.points[0].y);
+        for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
+        ctx.closePath();
+        ctx.fillStyle = (d.color || accent) + '25'; ctx.fill();
+        ctx.strokeStyle = d.color || accent; ctx.lineWidth = 2 / scale; ctx.stroke();
+      } else if (e.type === 'city') {
+        ctx.fillStyle = ink;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, (d.importance === 'capital' ? 4 : 2.5) / scale, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (e.type === 'route' && d.x1 !== undefined) {
+        ctx.strokeStyle = ink + '80'; ctx.lineWidth = 1.5 / scale;
+        ctx.beginPath(); ctx.moveTo(d.x1, d.y1); ctx.lineTo(d.x2, d.y2); ctx.stroke();
+      }
+    }
+    ctx.restore();
   },
 
   _showNewWorldModal() {
@@ -191,6 +336,7 @@ const App = {
     await this._api('POST', '/api/worlds/import', data);
     e.target.value = '';
     this._loadWorlds();
+    this._showToast('Monde importé avec succès', 'success');
   },
 
   // ─── Templates ─────────────────────────────────────────────
@@ -217,6 +363,7 @@ const App = {
       const canvas = card.querySelector('.template-preview');
       this._drawTemplatePreview(canvas, tpl);
     }
+    this._observeCards();
   },
 
   _drawTemplatePreview(canvas, tpl) {
@@ -514,6 +661,7 @@ const App = {
       const a = document.createElement('a');
       a.href = url; a.download = `${this.currentWorld.name}.svg`; a.click();
       URL.revokeObjectURL(url);
+      this._showToast('Export SVG téléchargé', 'success');
     });
   },
 
@@ -527,6 +675,7 @@ const App = {
     a.download = `${this.currentWorld.name}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    this._showToast('Export JSON téléchargé', 'success');
   },
 
   // ─── Share ──────────────────────────────────────────────────
@@ -665,6 +814,55 @@ const App = {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+  },
+
+  // ─── Toast notifications ──────────────────────────────────────
+  _showToast(message, type = 'info', duration = 3000) {
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'toast-container';
+      document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    const bar = document.createElement('div');
+    bar.className = 'toast-progress';
+    bar.style.animationDuration = duration + 'ms';
+    toast.appendChild(bar);
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.add('dismissing');
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  },
+
+  // ─── Stagger cards on scroll ──────────────────────────────────
+  _observeCards() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const idx = Array.from(el.parentNode.children).indexOf(el);
+          el.style.animationDelay = (idx * 0.07) + 's';
+          el.classList.add('visible');
+          observer.unobserve(el);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.world-card, .world-card-new, .template-card').forEach(c => observer.observe(c));
+  },
+
+  // ─── Skeleton screens ─────────────────────────────────────────
+  _showSkeletons(grid, count = 3) {
+    grid.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+      const sk = document.createElement('div');
+      sk.className = 'world-card skeleton-card';
+      sk.innerHTML = '<div class="skeleton-preview"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div>';
+      grid.appendChild(sk);
+    }
   },
 };
 

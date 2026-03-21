@@ -29,12 +29,22 @@ class Sidebar {
     this.allEntities = allEntities || [];
     this.events = events || [];
     this.el.hidden = false;
+    // Trigger reflow before adding class so transition plays
+    void this.el.offsetWidth;
+    this.el.classList.add('open');
     this.activeTab = 'details';
     this._render();
   }
 
   close() {
-    this.el.hidden = true;
+    this.el.classList.remove('open');
+    const onEnd = () => {
+      this.el.hidden = true;
+      this.el.removeEventListener('transitionend', onEnd);
+    };
+    this.el.addEventListener('transitionend', onEnd);
+    // Fallback in case transitionend doesn't fire
+    setTimeout(() => { this.el.hidden = true; }, 350);
     this.entity = null;
   }
 

@@ -253,6 +253,8 @@ class CanvasEngine {
   _renderEntity(ctx, entity) {
     const d = entity.data;
     const selected = this.selectedEntity && this.selectedEntity.id === entity.id;
+    // Pulse value for selection halo (0.3 → 0.8)
+    const pulse = selected ? 0.3 + 0.5 * (0.5 + 0.5 * Math.sin(Date.now() / 400)) : 0;
 
     switch (entity.type) {
       case 'territory': {
@@ -267,11 +269,16 @@ class CanvasEngine {
         ctx.lineWidth = selected ? 4 : 2.5;
         ctx.stroke();
         if (selected) {
+          const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+          ctx.save();
+          ctx.globalAlpha = pulse;
+          ctx.strokeStyle = accent;
+          ctx.lineWidth = 3;
           ctx.setLineDash([6, 4]);
-          ctx.strokeStyle = '#fff';
-          ctx.lineWidth = 1.5;
           ctx.stroke();
           ctx.setLineDash([]);
+          ctx.globalAlpha = 1;
+          ctx.restore();
         }
         // Label
         if (entity.name && d.points.length >= 3) {
@@ -287,13 +294,26 @@ class CanvasEngine {
       }
       case 'city': {
         const color = d.color || '#2C1810';
+        ctx.shadowColor = 'rgba(0,0,0,0.18)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
         drawCityIcon(ctx, d.x, d.y, d.importance || 'village', color);
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
         if (selected) {
-          ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-          ctx.lineWidth = 2;
+          const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+          ctx.save();
+          ctx.globalAlpha = pulse;
+          ctx.strokeStyle = accent;
+          ctx.lineWidth = 3;
           ctx.beginPath();
-          ctx.arc(d.x, d.y, 14, 0, Math.PI * 2);
+          ctx.arc(d.x, d.y, 16 + 2 * Math.sin(Date.now() / 400), 0, Math.PI * 2);
           ctx.stroke();
+          ctx.globalAlpha = 1;
+          ctx.restore();
         }
         // Label
         if (entity.name) {
@@ -324,6 +344,22 @@ class CanvasEngine {
         ctx.stroke();
         ctx.setLineDash([]);
         if (selected) {
+          const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+          ctx.save();
+          ctx.globalAlpha = pulse;
+          ctx.strokeStyle = accent;
+          ctx.lineWidth = sw + 3;
+          ctx.beginPath();
+          if (d.cx1 !== undefined) {
+            ctx.moveTo(d.x1, d.y1);
+            ctx.bezierCurveTo(d.cx1, d.cy1, d.cx2, d.cy2, d.x2, d.y2);
+          } else {
+            ctx.moveTo(d.x1, d.y1);
+            ctx.lineTo(d.x2, d.y2);
+          }
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+          ctx.restore();
           // Draw endpoints
           ctx.fillStyle = '#fff';
           ctx.strokeStyle = stroke;
@@ -350,9 +386,21 @@ class CanvasEngine {
         ctx.fill();
         ctx.globalAlpha = 1;
         // Border
-        ctx.strokeStyle = selected ? '#fff' : '#666';
-        ctx.lineWidth = selected ? 2 : 1;
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 1;
         ctx.stroke();
+        if (selected) {
+          const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+          ctx.save();
+          ctx.globalAlpha = pulse;
+          ctx.strokeStyle = accent;
+          ctx.lineWidth = 3;
+          ctx.setLineDash([6, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.globalAlpha = 1;
+          ctx.restore();
+        }
         break;
       }
       case 'text': {
@@ -363,11 +411,16 @@ class CanvasEngine {
         ctx.fillText(entity.name || d.text || '', d.x, d.y);
         if (selected) {
           const metrics = ctx.measureText(entity.name || d.text || '');
-          ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-          ctx.lineWidth = 1;
+          const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+          ctx.save();
+          ctx.globalAlpha = pulse;
+          ctx.strokeStyle = accent;
+          ctx.lineWidth = 2;
           ctx.setLineDash([4, 3]);
           ctx.strokeRect(d.x - 2, d.y - size, metrics.width + 4, size + 4);
           ctx.setLineDash([]);
+          ctx.globalAlpha = 1;
+          ctx.restore();
         }
         break;
       }
@@ -378,14 +431,27 @@ class CanvasEngine {
         ctx.save();
         ctx.translate(d.x, d.y);
         if (rotation) ctx.rotate(rotation * Math.PI / 180);
+        ctx.shadowColor = 'rgba(0,0,0,0.18)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
         // Render SVG symbol via cached image
         this._drawSymbol(ctx, d.symbolId, -symSize/2, -symSize/2, symSize, color);
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
         if (selected) {
-          ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-          ctx.lineWidth = 2;
-          ctx.setLineDash([4, 3]);
-          ctx.strokeRect(-symSize/2 - 4, -symSize/2 - 4, symSize + 8, symSize + 8);
-          ctx.setLineDash([]);
+          const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+          ctx.save();
+          ctx.globalAlpha = pulse;
+          ctx.strokeStyle = accent;
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(0, 0, symSize/2 + 6 + 2 * Math.sin(Date.now() / 400), 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+          ctx.restore();
         }
         ctx.restore();
         // Name label
