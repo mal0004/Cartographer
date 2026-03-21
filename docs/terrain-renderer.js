@@ -31,7 +31,7 @@ class TerrainRenderer {
 
   _initWorker() {
     try {
-      this._worker = new Worker('/worker-noise.js');
+      this._worker = new Worker('worker-noise.js');
       this._worker.onmessage = (e) => this._onWorkerResult(e.data);
     } catch (err) {
       // Fallback: generate on main thread
