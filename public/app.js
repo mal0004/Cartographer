@@ -60,6 +60,16 @@ const App = {
     // Mode toggle (simple/advanced)
     this._modeToggle = new ModeToggle();
 
+    // Golden Hour toggle
+    document.getElementById('btn-golden-hour').addEventListener('click', () => {
+      if (this.canvasEngine && this.canvasEngine.atmosphere) {
+        const atm = this.canvasEngine.atmosphere;
+        atm.goldenHour = !atm.goldenHour;
+        document.getElementById('btn-golden-hour').classList.toggle('active', atm.goldenHour);
+        this.canvasEngine.render();
+      }
+    });
+
     // Help button (relaunch onboarding)
     document.getElementById('btn-help').addEventListener('click', () => {
       if (this.currentWorld) {
@@ -477,6 +487,13 @@ const App = {
         if (this.minimap) this.minimap.render();
       };
     }
+
+    // Set world seed for coastline deformation
+    // Use world ID as a simple deterministic seed
+    const worldSeed = typeof this.currentWorld.id === 'number'
+      ? this.currentWorld.id
+      : Array.from(String(this.currentWorld.id)).reduce((s, c) => s * 31 + c.charCodeAt(0), 0);
+    this.canvasEngine.setWorldSeed(worldSeed);
 
     // Load entities and events
     await this._loadEntities();

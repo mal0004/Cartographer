@@ -819,6 +819,116 @@ a { color: var(--accent); }
   border-color: var(--accent);
 }
 
+/* Terrain panel */
+.terrain-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.terrain-preview-wrap {
+  position: relative;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  text-align: center;
+}
+.terrain-preview-wrap canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+.terrain-preview-label {
+  position: absolute;
+  bottom: 4px;
+  right: 6px;
+  font-size: 10px;
+  color: var(--ink-light);
+  opacity: 0.7;
+}
+.terrain-seed-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.terrain-seed-row input[type="number"] {
+  flex: 1;
+}
+.seed-controls {
+  display: flex;
+  gap: 4px;
+}
+.seed-controls button {
+  font-size: 12px;
+  padding: 4px 8px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.seed-controls button:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+.terrain-panel .sidebar-field input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  outline: none;
+}
+.terrain-panel .sidebar-field input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+  cursor: pointer;
+  box-shadow: 0 1px 3px var(--shadow);
+}
+.terrain-panel .sidebar-field input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+  cursor: pointer;
+  box-shadow: 0 1px 3px var(--shadow);
+}
+.terrain-panel .color-reset-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.terrain-panel .color-reset-row input[type="color"] {
+  width: 36px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  padding: 0;
+}
+.terrain-panel .color-reset-row button {
+  font-size: 11px;
+  padding: 3px 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--ink-light);
+  cursor: pointer;
+}
+.terrain-panel .color-reset-row button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* Tags */
 .tag {
   display: inline-block;

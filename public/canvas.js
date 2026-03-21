@@ -5,7 +5,7 @@
  * selection, and drag. Exposes a CanvasEngine class.
  */
 
-/* global app */
+/* global app, TerrainRenderer, HillShading, Coastlines, RiverEngine, VegetationRenderer, Atmosphere, PerformanceManager */
 
 // ─── SVG texture patterns for regions (drawn onto offscreen canvases) ────
 
@@ -149,6 +149,28 @@ class CanvasEngine {
     this.snapGuides = null; // set by App
 
     this._textureCache = {};
+
+    // Procedural terrain renderer
+    this.terrainRenderer = new TerrainRenderer();
+
+    // Global hill shading overlay
+    this.hillShading = new HillShading();
+
+    // Natural coastlines / edge displacement
+    this.coastlines = new Coastlines();
+
+    // River engine
+    this.riverEngine = new RiverEngine();
+
+    // Procedural vegetation
+    this.vegetationRenderer = new VegetationRenderer();
+
+    // Atmospheric post-processing
+    this.atmosphere = new Atmosphere();
+
+    // Performance manager
+    this.perf = new PerformanceManager();
+    this.perf.setRenderFunction(() => this._doRender());
   }
 
   // ─── Coordinate transforms ──────────────────────────────────
@@ -177,12 +199,22 @@ class CanvasEngine {
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     this.width = parent.clientWidth;
     this.height = parent.clientHeight;
+    if (this.atmosphere) this.atmosphere.invalidate();
     this.render();
   }
 
   // ─── Rendering ──────────────────────────────────────────────
 
   render() {
+    // Coalesce multiple render calls into one rAF
+    if (this.perf) {
+      this.perf.requestRender();
+    } else {
+      this._doRender();
+    }
+  }
+
+  _doRender() {
     const ctx = this.ctx;
     const w = this.width;
     const h = this.height;
@@ -197,22 +229,42 @@ class CanvasEngine {
     // Grid
     this._drawGrid(ctx, w, h);
 
+    // LOD settings
+    const lodSettings = this.perf ? this.perf.getLODSettings(this.zoom) : null;
+
     // Transform for world coords
     ctx.save();
     ctx.translate(this.offsetX, this.offsetY);
     ctx.scale(this.zoom, this.zoom);
 
     // Render entities in order: regions → territories → routes → cities → text
-    const order = ['region', 'territory', 'route', 'city', 'symbol', 'text'];
+    const order = ['region', 'territory', 'river', 'route', 'city', 'symbol', 'text'];
     const sorted = [...this.entities].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type));
 
     for (const entity of sorted) {
       // Layer filtering
       if (this.layersPanel && !this.layersPanel.isEntityVisible(entity)) continue;
+
+      // Viewport culling: skip entities entirely off-screen
+      if (this.perf) {
+        const bbox = this.perf.getEntityBBox(entity);
+        if (bbox && !this.perf.isVisible(bbox, this)) continue;
+      }
+
       const layerOpacity = this.layersPanel ? this.layersPanel.getEntityOpacity(entity) : 1;
       if (layerOpacity < 1) ctx.globalAlpha = layerOpacity;
-      this._renderEntity(ctx, entity);
+      this._renderEntity(ctx, entity, lodSettings);
       if (layerOpacity < 1) ctx.globalAlpha = 1;
+    }
+
+    // Global hill shading overlay (after all terrain entities, before UI)
+    if (this.hillShading) {
+      this.hillShading.render(ctx, this);
+    }
+
+    // Atmospheric post-processing (AO, golden hour, haze, vignette)
+    if (this.atmosphere) {
+      this.atmosphere.render(ctx, this);
     }
 
     // Snap guides
@@ -222,6 +274,9 @@ class CanvasEngine {
     this._drawPreview(ctx);
 
     ctx.restore();
+
+    // Clear dirty flags
+    if (this.perf) this.perf.clearDirty();
   }
 
   _drawGrid(ctx, w, h) {
@@ -250,7 +305,7 @@ class CanvasEngine {
     ctx.globalAlpha = 1;
   }
 
-  _renderEntity(ctx, entity) {
+  _renderEntity(ctx, entity, lodSettings) {
     const d = entity.data;
     const selected = this.selectedEntity && this.selectedEntity.id === entity.id;
     // Pulse value for selection halo (0.3 → 0.8)
@@ -259,12 +314,47 @@ class CanvasEngine {
     switch (entity.type) {
       case 'territory': {
         if (!d.points || d.points.length < 2) break;
-        ctx.beginPath();
-        ctx.moveTo(d.points[0].x, d.points[0].y);
-        for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
-        ctx.closePath();
-        ctx.fillStyle = (d.color || '#8B2635') + '40';
-        ctx.fill();
+
+        // Get deformed coastline points
+        const coastPts = this.coastlines
+          ? this.coastlines.getDeformedPoints(entity)
+          : d.points;
+
+        // Procedural terrain rendering (if terrainType is set)
+        if (d.terrainType && this.terrainRenderer) {
+          const drawn = this.terrainRenderer.drawTerrain(ctx, entity, this.zoom, () => this.render());
+          if (!drawn) {
+            // Fallback while async generation is pending
+            this._tracePath(ctx, coastPts);
+            ctx.fillStyle = (d.color || '#8B2635') + '20';
+            ctx.fill();
+          }
+        } else {
+          // Legacy flat fill with deformed border
+          this._tracePath(ctx, coastPts);
+          ctx.fillStyle = (d.color || '#8B2635') + '40';
+          ctx.fill();
+        }
+
+        // Vegetation overlay (skip at low LOD)
+        if (this.vegetationRenderer && d.terrainType && d.terrainType !== 'ocean' &&
+            (!lodSettings || lodSettings.vegetation)) {
+          const vegOverlay = this.vegetationRenderer.getVegetationOverlay(entity, this.terrainRenderer, this.zoom);
+          if (vegOverlay) {
+            ctx.drawImage(vegOverlay.canvas, vegOverlay.bbox.x, vegOverlay.bbox.y, vegOverlay.bbox.w, vegOverlay.bbox.h);
+          }
+        }
+
+        // Coastal effects (shallow water, foam)
+        if (this.coastlines && d.terrainType && d.terrainType !== 'ocean') {
+          this.coastlines.drawCoastalEffects(ctx, coastPts, entity, this.zoom);
+          if (!lodSettings || lodSettings.waveAnimation) {
+            this.coastlines.drawWaveAnimation(ctx, coastPts, this.zoom, Date.now());
+          }
+        }
+
+        // Border stroke with deformed outline
+        this._tracePath(ctx, coastPts);
         ctx.strokeStyle = d.color || '#8B2635';
         ctx.lineWidth = selected ? 4 : 2.5;
         ctx.stroke();
@@ -280,7 +370,7 @@ class CanvasEngine {
           ctx.globalAlpha = 1;
           ctx.restore();
         }
-        // Label
+        // Label (use original points centroid)
         if (entity.name && d.points.length >= 3) {
           const cx = d.points.reduce((s, p) => s + p.x, 0) / d.points.length;
           const cy = d.points.reduce((s, p) => s + p.y, 0) / d.points.length;
@@ -372,20 +462,71 @@ class CanvasEngine {
       }
       case 'region': {
         if (!d.points || d.points.length < 2) break;
-        ctx.beginPath();
-        ctx.moveTo(d.points[0].x, d.points[0].y);
-        for (let i = 1; i < d.points.length; i++) ctx.lineTo(d.points[i].x, d.points[i].y);
-        ctx.closePath();
-        // Texture fill
-        const terrain = d.terrain || 'forest';
-        if (!this._textureCache[terrain]) {
-          this._textureCache[terrain] = createTexturePattern(ctx, terrain);
+
+        // Get deformed coastline points for region
+        const regionCoastPts = this.coastlines
+          ? this.coastlines.getDeformedPoints(entity)
+          : d.points;
+
+        // Map region terrain types to procedural terrain types
+        const regionTerrainMap = { forest: 'plain', mountain: 'mountain', desert: 'desert', ocean: 'ocean' };
+        const proceduralType = regionTerrainMap[d.terrain] || d.terrain;
+
+        // Use procedural terrain if available
+        if (this.terrainRenderer && proceduralType) {
+          // Temporarily set terrainType for the renderer
+          const origType = d.terrainType;
+          d.terrainType = proceduralType;
+          const drawn = this.terrainRenderer.drawTerrain(ctx, entity, this.zoom, () => this.render());
+          d.terrainType = origType;
+
+          if (!drawn) {
+            // Fallback to old texture pattern while generating
+            this._tracePath(ctx, regionCoastPts);
+            const terrain = d.terrain || 'forest';
+            if (!this._textureCache[terrain]) {
+              this._textureCache[terrain] = createTexturePattern(ctx, terrain);
+            }
+            ctx.fillStyle = this._textureCache[terrain];
+            ctx.globalAlpha = 0.5;
+            ctx.fill();
+            ctx.globalAlpha = 1;
+          }
+        } else {
+          // Legacy texture pattern fill
+          this._tracePath(ctx, regionCoastPts);
+          const terrain = d.terrain || 'forest';
+          if (!this._textureCache[terrain]) {
+            this._textureCache[terrain] = createTexturePattern(ctx, terrain);
+          }
+          ctx.fillStyle = this._textureCache[terrain];
+          ctx.globalAlpha = 0.5;
+          ctx.fill();
+          ctx.globalAlpha = 1;
         }
-        ctx.fillStyle = this._textureCache[terrain];
-        ctx.globalAlpha = 0.5;
-        ctx.fill();
-        ctx.globalAlpha = 1;
-        // Border
+
+        // Vegetation overlay for regions (skip at low LOD)
+        if (this.vegetationRenderer && proceduralType && proceduralType !== 'ocean' &&
+            (!lodSettings || lodSettings.vegetation)) {
+          const origVegType = d.terrainType;
+          d.terrainType = proceduralType;
+          const vegOverlay = this.vegetationRenderer.getVegetationOverlay(entity, this.terrainRenderer, this.zoom);
+          d.terrainType = origVegType;
+          if (vegOverlay) {
+            ctx.drawImage(vegOverlay.canvas, vegOverlay.bbox.x, vegOverlay.bbox.y, vegOverlay.bbox.w, vegOverlay.bbox.h);
+          }
+        }
+
+        // Coastal effects for regions (skip ocean regions)
+        if (this.coastlines && d.terrain !== 'ocean') {
+          this.coastlines.drawCoastalEffects(ctx, regionCoastPts, entity, this.zoom);
+          if (!lodSettings || lodSettings.waveAnimation) {
+            this.coastlines.drawWaveAnimation(ctx, regionCoastPts, this.zoom, Date.now());
+          }
+        }
+
+        // Border with deformed outline
+        this._tracePath(ctx, regionCoastPts);
         ctx.strokeStyle = '#666';
         ctx.lineWidth = 1;
         ctx.stroke();
@@ -464,6 +605,21 @@ class CanvasEngine {
         }
         break;
       }
+      case 'river': {
+        if (this.riverEngine && d.sourceX !== undefined) {
+          const riverData = this.riverEngine.getRiverPath(entity, this.terrainRenderer, this.entities);
+          if (riverData) {
+            this.riverEngine.drawRiver(ctx, riverData, entity, this.zoom, selected);
+          } else {
+            // Draw just the source point while path is not yet computed
+            ctx.beginPath();
+            ctx.arc(d.sourceX, d.sourceY, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#4A7A9A';
+            ctx.fill();
+          }
+        }
+        break;
+      }
     }
   }
 
@@ -528,6 +684,17 @@ class CanvasEngine {
       case 'symbol': {
         const s = (d.size || 32) / 2 + 4;
         return Math.abs(wx - d.x) < s && Math.abs(wy - d.y) < s;
+      }
+      case 'river': {
+        if (d.sourceX === undefined) return false;
+        // Check source point first
+        if (Math.hypot(wx - d.sourceX, wy - d.sourceY) < 10) return true;
+        // Check along the path
+        if (this.riverEngine) {
+          const hit = this.riverEngine.hitTest(wx, wy, [e], this.terrainRenderer, this.entities, 8);
+          return !!hit;
+        }
+        return false;
       }
     }
     return false;
@@ -607,6 +774,8 @@ class CanvasEngine {
       this._createText(wx, wy);
     } else if (this.tool === 'symbol') {
       this._createSymbol(wx, wy);
+    } else if (this.tool === 'river') {
+      this._createRiver(wx, wy);
     }
   }
 
@@ -707,7 +876,7 @@ class CanvasEngine {
 
     // Tool shortcuts
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    const shortcuts = { v: 'select', t: 'territory', c: 'city', r: 'route', n: 'region', x: 'text', s: 'symbol' };
+    const shortcuts = { v: 'select', t: 'territory', c: 'city', r: 'route', n: 'region', x: 'text', s: 'symbol', w: 'river' };
     if (shortcuts[e.key]) {
       this.setTool(shortcuts[e.key]);
     }
@@ -777,6 +946,9 @@ class CanvasEngine {
       entityData.data.capitalName = '';
       entityData.data.resources = [];
       entityData.data.description = '';
+      entityData.data.terrainType = this.toolOptions.terrainType || '';
+      entityData.data.terrainSeed = Math.floor(Math.random() * 100000);
+      entityData.data.terrainIntensity = 50;
     } else {
       entityData.data.terrain = this.toolOptions.terrain || 'forest';
     }
@@ -812,6 +984,8 @@ class CanvasEngine {
         return null;
       case 'route':
         return d.x1 !== undefined ? { x: (d.x1 + d.x2) / 2, y: (d.y1 + d.y2) / 2 } : null;
+      case 'river':
+        return d.sourceX !== undefined ? { x: d.sourceX, y: d.sourceY } : null;
     }
     return null;
   }
@@ -853,6 +1027,20 @@ class CanvasEngine {
     if (this.onEntityCreated) this.onEntityCreated(entity);
   }
 
+  _createRiver(x, y) {
+    const entity = {
+      type: 'river',
+      name: '',
+      data: this._stampLayer({
+        sourceX: x,
+        sourceY: y,
+        color: '#6B8FA8',
+        widthScale: 1.0,
+      }),
+    };
+    if (this.onEntityCreated) this.onEntityCreated(entity);
+  }
+
   _moveEntity(entity, origData, dx, dy) {
     const d = entity.data;
     switch (entity.type) {
@@ -875,6 +1063,11 @@ class CanvasEngine {
           d.cx1 = origData.cx1 + dx; d.cy1 = origData.cy1 + dy;
           d.cx2 = origData.cx2 + dx; d.cy2 = origData.cy2 + dy;
         }
+        break;
+      case 'river':
+        d.sourceX = origData.sourceX + dx;
+        d.sourceY = origData.sourceY + dy;
+        if (this.riverEngine) this.riverEngine.invalidate(entity.id);
         break;
     }
   }
@@ -907,7 +1100,25 @@ class CanvasEngine {
     optionsEl.innerHTML = '';
     optionsEl.hidden = true;
 
-    if (this.tool === 'city') {
+    if (this.tool === 'territory') {
+      optionsEl.hidden = false;
+      optionsEl.innerHTML = `
+        <label>Terrain:
+          <select id="opt-territory-terrain">
+            <option value="">None (flat)</option>
+            <option value="plain">Plains</option>
+            <option value="hills">Hills</option>
+            <option value="mountain">Mountains</option>
+            <option value="desert">Desert</option>
+            <option value="marsh">Marsh</option>
+            <option value="ocean">Ocean / Lake</option>
+          </select>
+        </label>`;
+      optionsEl.querySelector('#opt-territory-terrain').value = this.toolOptions.terrainType || '';
+      optionsEl.querySelector('#opt-territory-terrain').addEventListener('change', (e) => {
+        this.toolOptions.terrainType = e.target.value;
+      });
+    } else if (this.tool === 'city') {
       optionsEl.hidden = false;
       optionsEl.innerHTML = `
         <label>Type:
@@ -944,6 +1155,9 @@ class CanvasEngine {
             <option value="mountain">Mountain</option>
             <option value="desert">Desert</option>
             <option value="ocean">Ocean</option>
+            <option value="plain">Plains</option>
+            <option value="hills">Hills</option>
+            <option value="marsh">Marsh</option>
           </select>
         </label>`;
       optionsEl.querySelector('#opt-terrain').value = this.toolOptions.terrain || 'forest';
@@ -978,10 +1192,38 @@ class CanvasEngine {
     this.render();
   }
 
+  /**
+   * Trace a closed polygon path from an array of {x,y} points.
+   */
+  _tracePath(ctx, points) {
+    if (!points || points.length < 2) return;
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+      ctx.lineTo(points[i].x, points[i].y);
+    }
+    ctx.closePath();
+  }
+
   setEntities(entities) {
     this.entities = entities;
     this._textureCache = {};
+    if (this.terrainRenderer) this.terrainRenderer.clearCache();
+    if (this.hillShading) this.hillShading.invalidate();
+    if (this.coastlines) this.coastlines.invalidate();
+    if (this.riverEngine) this.riverEngine.invalidate();
+    if (this.vegetationRenderer) this.vegetationRenderer.invalidate();
+    if (this.perf) { this.perf.clearTileCache(); this.perf.markAllDirty(); }
     this.render();
+  }
+
+  /**
+   * Set the world seed for coastline deformation.
+   */
+  setWorldSeed(seed) {
+    if (this.coastlines) this.coastlines.setSeed(seed);
+    if (this.riverEngine) this.riverEngine.setSeed(seed);
+    if (this.vegetationRenderer) this.vegetationRenderer.setSeed(seed);
   }
 
   centerOn(x, y, targetZoom) {
