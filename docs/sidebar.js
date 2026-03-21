@@ -57,15 +57,19 @@ class Sidebar {
     const e = this.entity;
     this.titleEl.textContent = e.name || `${e.type} #${e.id}`;
 
+    // Show Terrain tab for territory/region entities
+    const showTerrainTab = (e.type === 'territory' || e.type === 'region');
     const tabs = `
       <div class="sidebar-tabs">
         <button class="sidebar-tab ${this.activeTab === 'details' ? 'active' : ''}" data-tab="details">Details</button>
+        ${showTerrainTab ? `<button class="sidebar-tab ${this.activeTab === 'terrain' ? 'active' : ''}" data-tab="terrain">Terrain</button>` : ''}
         <button class="sidebar-tab ${this.activeTab === 'relations' ? 'active' : ''}" data-tab="relations">Relations</button>
         <button class="sidebar-tab ${this.activeTab === 'events' ? 'active' : ''}" data-tab="events">Events</button>
       </div>`;
 
     let body = '';
     if (this.activeTab === 'details') body = this._renderDetails(e);
+    else if (this.activeTab === 'terrain' && showTerrainTab) body = this._renderTerrainPanel(e);
     else if (this.activeTab === 'relations') body = this._renderRelations(e);
     else if (this.activeTab === 'events') body = this._renderEvents(e);
 
@@ -212,6 +216,62 @@ class Sidebar {
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
+  // ─── Terrain control panel ──────────────────────────────────
+
+  _renderTerrainPanel(e) {
+    const d = e.data;
+    const terrainType = d.terrainType || d.terrain || '';
+    const seed = d.terrainSeed ?? (e.id * 7919);
+    const intensity = d.terrainIntensity ?? 50;
+    const coastStyle = d.coastStyle || 'smooth';
+    const vegDensity = d.vegetationDensity ?? 50;
+    const terrainColor = d.terrainColor || '';
+
+    let html = '<div class="terrain-panel">';
+
+    // Preview canvas
+    html += `<div class="terrain-preview-wrap">
+      <canvas id="terrain-preview" width="200" height="150"></canvas>
+      <div class="terrain-preview-label">Preview</div>
+    </div>`;
+
+    // Terrain type
+    html += this._selectField('terrainType', 'Terrain Type', [
+      ['', 'None (flat)'], ['plain', 'Plains'], ['hills', 'Hills'], ['mountain', 'Mountains'],
+      ['desert', 'Desert'], ['marsh', 'Marsh'], ['ocean', 'Ocean / Lake']
+    ], terrainType);
+
+    // Seed + regenerate button
+    html += `<div class="sidebar-field terrain-seed-row">
+      <label>Seed</label>
+      <div class="seed-controls">
+        <input type="number" data-key="terrainSeed" value="${seed}" />
+        <button id="btn-regen-seed" class="btn btn-sm" title="Random seed">&#x21BB;</button>
+      </div>
+    </div>`;
+
+    // Intensity
+    html += this._rangeField('terrainIntensity', 'Relief Intensity', intensity, 0, 100);
+
+    // Coast roughness (maps to coastStyle internally but as a slider)
+    const coastRoughness = coastStyle === 'fjords' ? 100 : coastStyle === 'rugged' ? 60 : 20;
+    html += this._rangeField('coastRoughness', 'Coast Roughness', coastRoughness, 0, 100);
+
+    // Vegetation density
+    html += this._rangeField('vegetationDensity', 'Vegetation Density', vegDensity, 0, 100);
+
+    // Base color override
+    html += this._colorField('terrainColor', 'Base Color Override', terrainColor || '#C8D8A0');
+
+    // Reset color button
+    html += `<div class="sidebar-field">
+      <button id="btn-reset-terrain-color" class="btn btn-sm btn-secondary">Reset to Default Color</button>
+    </div>`;
+
+    html += '</div>';
+    return html;
+  }
+
   // ─── Relations tab ──────────────────────────────────────────
 
   _renderRelations(e) {
@@ -322,6 +382,116 @@ class Sidebar {
         }
       });
     }
+
+    // ─── Terrain panel bindings ────────────────────────────────
+    const regenBtn = this.contentEl.querySelector('#btn-regen-seed');
+    if (regenBtn) {
+      regenBtn.addEventListener('click', () => {
+        const newSeed = Math.floor(Math.random() * 100000);
+        const seedInput = this.contentEl.querySelector('[data-key="terrainSeed"]');
+        if (seedInput) {
+          seedInput.value = newSeed;
+          this._onFieldChange('terrainSeed', seedInput);
+        }
+      });
+    }
+
+    const resetColorBtn = this.contentEl.querySelector('#btn-reset-terrain-color');
+    if (resetColorBtn) {
+      resetColorBtn.addEventListener('click', () => {
+        this.entity.data.terrainColor = '';
+        this._invalidateAllTerrain();
+        if (this.onEntityUpdated) this.onEntityUpdated(this.entity);
+        this._render();
+      });
+    }
+
+    // Render terrain preview if the tab is active
+    if (this.activeTab === 'terrain') {
+      this._renderTerrainPreview();
+    }
+  }
+
+  /**
+   * Render a miniature terrain preview in the sidebar canvas.
+   */
+  _renderTerrainPreview() {
+    const canvas = this.contentEl.querySelector('#terrain-preview');
+    if (!canvas || !this.entity) return;
+
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
+    const d = this.entity.data;
+    const terrainType = d.terrainType || d.terrain || '';
+
+    // Clear
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = '#F5F0E8';
+    ctx.fillRect(0, 0, w, h);
+
+    if (!terrainType) {
+      ctx.fillStyle = '#999';
+      ctx.font = '12px "Source Serif 4", serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Select a terrain type', w / 2, h / 2);
+      ctx.textAlign = 'start';
+      return;
+    }
+
+    // Try to get the cached terrain canvas from the renderer
+    const engine = window.app && window.app.canvasEngine;
+    if (!engine || !engine.terrainRenderer) return;
+
+    const cached = engine.terrainRenderer._cache.get(this.entity.id);
+    if (cached && cached.canvas) {
+      // Draw the terrain canvas scaled to preview size
+      ctx.drawImage(cached.canvas, 0, 0, w, h);
+
+      // Overlay vegetation preview if available
+      if (engine.vegetationRenderer && terrainType !== 'ocean') {
+        const vegCached = engine.vegetationRenderer._cache.get(this.entity.id);
+        if (vegCached && vegCached.canvas) {
+          ctx.drawImage(vegCached.canvas, 0, 0, w, h);
+        }
+      }
+
+      // Draw terrain type label
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillRect(0, h - 22, w, 22);
+      ctx.fillStyle = '#fff';
+      ctx.font = '11px "Source Serif 4", serif';
+      ctx.textAlign = 'center';
+      const label = terrainType.charAt(0).toUpperCase() + terrainType.slice(1);
+      const intensity = d.terrainIntensity ?? 50;
+      ctx.fillText(`${label} — Intensity: ${intensity}%`, w / 2, h - 7);
+      ctx.textAlign = 'start';
+    } else {
+      // Terrain not yet generated — show placeholder
+      ctx.fillStyle = '#ccc';
+      ctx.font = '12px "Source Serif 4", serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Generating terrain...', w / 2, h / 2);
+      ctx.textAlign = 'start';
+
+      // Schedule a preview re-render after terrain generates
+      setTimeout(() => this._renderTerrainPreview(), 500);
+    }
+  }
+
+  /**
+   * Invalidate all terrain-related caches for the current entity.
+   */
+  _invalidateAllTerrain() {
+    const engine = window.app && window.app.canvasEngine;
+    if (!engine) return;
+    const id = this.entity.id;
+    if (engine.terrainRenderer) engine.terrainRenderer.invalidate(id);
+    if (engine.hillShading) engine.hillShading.invalidate();
+    if (engine.coastlines) engine.coastlines.invalidate(id);
+    if (engine.vegetationRenderer) engine.vegetationRenderer.invalidate(id);
+    if (engine.perf) { engine.perf.clearTileCache(); engine.perf.markDirty(id); }
+    engine.render();
   }
 
   _onFieldChange(key, input) {
@@ -338,21 +508,25 @@ class Sidebar {
       this.entity.data[key] = Number(value) || 0;
     } else if (key === 'fontSize') {
       this.entity.data[key] = Number(value) || 16;
+    } else if (key === 'terrainIntensity' || key === 'terrainSeed') {
+      this.entity.data[key] = Number(value) || 0;
+    } else if (key === 'coastRoughness') {
+      // Map roughness slider (0-100) to coastStyle enum
+      const roughness = Number(value);
+      this.entity.data.coastStyle = roughness > 80 ? 'fjords' : roughness > 40 ? 'rugged' : 'smooth';
+      this.entity.data.coastRoughness = roughness;
     } else {
       this.entity.data[key] = value;
     }
 
     // Invalidate terrain cache when terrain properties change
-    if (key === 'terrainType' || key === 'terrain') {
-      if (window.app && window.app.canvasEngine && window.app.canvasEngine.terrainRenderer) {
-        window.app.canvasEngine.terrainRenderer.invalidate(this.entity.id);
-      }
-      if (window.app && window.app.canvasEngine && window.app.canvasEngine.hillShading) {
-        window.app.canvasEngine.hillShading.invalidate();
-      }
+    if (key === 'terrainType' || key === 'terrain' || key === 'terrainSeed' || key === 'terrainIntensity' || key === 'terrainColor') {
+      this._invalidateAllTerrain();
+      // Update preview
+      setTimeout(() => this._renderTerrainPreview(), 100);
     }
-    // Invalidate coastline cache when coast style changes
-    if (key === 'coastStyle') {
+    // Invalidate coastline cache when coast style/roughness changes
+    if (key === 'coastStyle' || key === 'coastRoughness') {
       if (window.app && window.app.canvasEngine && window.app.canvasEngine.coastlines) {
         window.app.canvasEngine.coastlines.invalidate(this.entity.id);
       }
@@ -368,6 +542,7 @@ class Sidebar {
       if (window.app && window.app.canvasEngine && window.app.canvasEngine.vegetationRenderer) {
         window.app.canvasEngine.vegetationRenderer.invalidate(this.entity.id);
       }
+      setTimeout(() => this._renderTerrainPreview(), 100);
     }
 
     // Update markdown preview
