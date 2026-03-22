@@ -439,31 +439,55 @@ const App = {
     const grid = document.getElementById('templates-grid');
     if (!grid || !window.WORLD_TEMPLATES) return;
     grid.innerHTML = '';
+
+    // Tag map per template id
+    const tagMap = {
+      'fantasy-continent': ['Fantasy', 'Royaumes', 'Villes'],
+      'mysterious-archipelago': ['Îles', 'Maritime', 'Mystère'],
+      'desert-empire': ['Désert', 'Empire', 'Antique'],
+      'medieval-region': ['Médiéval', 'Régional', 'Comté'],
+      'post-apocalyptic': ['Sci-Fi', 'Ruines', 'Survie'],
+    };
+
     for (const tpl of WORLD_TEMPLATES) {
       const card = document.createElement('div');
-      card.className = 'template-card';
-      // Generate a tiny preview canvas
+      card.className = 'lp-tpl-card';
+      const tags = (tagMap[tpl.id] || []).map(t => `<span class="lp-tpl-tag">${t}</span>`).join('');
       card.innerHTML = `
-        <canvas class="template-preview" width="280" height="160"></canvas>
-        <div class="template-info">
-          <h4>${this._escapeHtml(tpl.name)}</h4>
-          <p>${this._escapeHtml(tpl.description)}</p>
+        <canvas class="lp-tpl-preview" width="280" height="160"></canvas>
+        <div class="lp-tpl-info">
+          <h4 class="lp-tpl-name">${this._escapeHtml(tpl.name)}</h4>
+          <p class="lp-tpl-desc">${this._escapeHtml(tpl.description)}</p>
+          <div class="lp-tpl-tags">${tags}</div>
+          <button class="lp-tpl-use">Utiliser ce template</button>
         </div>
       `;
       card.addEventListener('click', () => this._loadTemplate(tpl));
       grid.appendChild(card);
 
-      // Draw preview
-      const canvas = card.querySelector('.template-preview');
+      const canvas = card.querySelector('.lp-tpl-preview');
       this._drawTemplatePreview(canvas, tpl);
     }
+
+    // Carousel arrow handlers
+    const prev = document.querySelector('.lp-carousel-prev');
+    const next = document.querySelector('.lp-carousel-next');
+    if (prev && next && grid) {
+      prev.addEventListener('click', () => {
+        grid.scrollBy({ left: -300, behavior: 'smooth' });
+      });
+      next.addEventListener('click', () => {
+        grid.scrollBy({ left: 300, behavior: 'smooth' });
+      });
+    }
+
     this._observeCards();
   },
 
   _drawTemplatePreview(canvas, tpl) {
     const ctx = canvas.getContext('2d');
     const w = canvas.width, h = canvas.height;
-    ctx.fillStyle = '#F5F0E8';
+    ctx.fillStyle = '#1A1208';
     ctx.fillRect(0, 0, w, h);
 
     // Compute bounds
@@ -952,7 +976,7 @@ const App = {
         }
       });
     }, { threshold: 0.1 });
-    document.querySelectorAll('.world-card, .world-card-new, .template-card').forEach(c => observer.observe(c));
+    document.querySelectorAll('.world-card, .world-card-new, .template-card, .lp-tpl-card').forEach(c => observer.observe(c));
   },
 
   // ─── Skeleton screens ─────────────────────────────────────────

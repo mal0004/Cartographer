@@ -128,9 +128,28 @@
       <div id="worlds-grid" class="lp-worlds-grid"></div>
     </section>
 
-    <section class="home-section" id="templates-section">
-      <h2 class="section-title">Partir d'un template</h2>
-      <div id="templates-grid" class="templates-grid"></div>
+    <!-- 4. TEMPLATES -->
+    <section class="lp-section lp-templates-section" id="templates-section" aria-label="Templates">
+      <div class="lp-section-header">
+        <svg class="lp-section-ornament" width="240" height="24" viewBox="0 0 240 24" role="img" aria-label="Ornement de section">
+          <line x1="0" y1="12" x2="100" y2="12" stroke="#2E2416" stroke-width="1"/>
+          <line x1="100" y1="12" x2="108" y2="12" stroke="#2E2416" stroke-width="0.5"/>
+          <path d="M108,12 L114,6 L120,12 L114,18Z" fill="#2E2416"/>
+          <line x1="120" y1="12" x2="128" y2="12" stroke="#2E2416" stroke-width="0.5"/>
+          <line x1="128" y1="12" x2="240" y2="12" stroke="#2E2416" stroke-width="1"/>
+        </svg>
+        <h2 class="lp-section-title">Partir d'un template</h2>
+        <p class="lp-section-sub">Cinq mondes prêts à explorer et modifier</p>
+      </div>
+      <div class="lp-carousel-wrapper">
+        <button class="lp-carousel-arrow lp-carousel-prev" aria-label="Défiler vers la gauche">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div id="templates-grid" class="lp-templates-grid"></div>
+        <button class="lp-carousel-arrow lp-carousel-next" aria-label="Défiler vers la droite">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
     </section>
 
     <footer class="home-footer">
