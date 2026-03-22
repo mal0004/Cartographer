@@ -1723,4 +1723,221 @@ body, .editor-topbar, .sidebar, .timeline, .toolbar, .tool-options, .modal-conte
   .sidebar {
     transition: none;
   }
+  .lp-scroll-chevron { animation: none !important; }
+  .lp-hero-map { transform: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LANDING PAGE — Dark theme for home screen
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Skip Link ──────────────────────────────────────────────────── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  background: #8B2635;
+  color: #F5F0E8;
+  padding: 8px 16px;
+  border-radius: 0 0 4px 4px;
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  z-index: 10000;
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 0;
+  outline: 2px solid #8B2635;
+  outline-offset: 2px;
+}
+
+/* ─── LP Focus visible ───────────────────────────────────────────── */
+#home-screen *:focus-visible {
+  outline: 2px solid #8B2635;
+  outline-offset: 3px;
+}
+
+/* ─── 1. HERO ────────────────────────────────────────────────────── */
+.lp-hero {
+  position: relative;
+  height: 100dvh;
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #0D0A07;
+}
+
+/* Background map */
+.lp-hero-map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+}
+.lp-hero-map svg {
+  width: 100%;
+  height: 100%;
+  filter: blur(1.5px);
+  opacity: 0.25;
+}
+
+/* Gradient overlay */
+.lp-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(13,10,7,0.2) 30%,
+    rgba(13,10,7,0.6) 60%,
+    #0D0A07 100%
+  );
+  pointer-events: none;
+}
+
+/* Hero content */
+.lp-hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 0 20px;
+}
+
+/* Ornament */
+.lp-ornament {
+  display: block;
+  margin: 0 auto 1.5rem;
+  opacity: 0.8;
+}
+
+/* Title */
+.lp-hero-title {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-weight: 700;
+  font-size: clamp(52px, 8vw, 96px);
+  color: #F5F0E8;
+  letter-spacing: 0.15em;
+  text-shadow:
+    0 1px 0 #8B6340,
+    0 2px 0 #7A5530,
+    0 4px 12px rgba(0,0,0,0.6);
+  margin: 0;
+  line-height: 1.1;
+}
+
+/* Tagline */
+.lp-hero-tagline {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: clamp(16px, 2vw, 22px);
+  color: #C4A882;
+  margin: 1.5rem 0 0;
+}
+
+/* Sub-tagline */
+.lp-hero-sub {
+  font-family: 'Source Serif 4', 'Georgia', serif;
+  font-size: 16px;
+  color: #8A7A6A;
+  margin: 0.75rem 0 0;
+}
+
+/* CTA buttons */
+.lp-hero-ctas {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 3rem;
+}
+
+.lp-cta-primary {
+  font-family: 'Cinzel', serif;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  padding: 14px 36px;
+  border: none;
+  border-radius: 2px;
+  background: #8B2635;
+  color: #F5F0E8;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.lp-cta-primary:hover {
+  background: #A33040;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(139,38,53,0.4);
+}
+.lp-cta-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.lp-cta-outline {
+  font-family: 'Cinzel', serif;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  padding: 14px 36px;
+  border: 1px solid #C4A882;
+  border-radius: 2px;
+  background: transparent;
+  color: #C4A882;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.lp-cta-outline:hover {
+  background: rgba(196,168,130,0.1);
+  transform: translateY(-2px);
+}
+.lp-cta-outline:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Import link (subtle) */
+.lp-import-link {
+  display: inline-block;
+  margin-top: 1.5rem;
+  font-family: 'Source Serif 4', 'Georgia', serif;
+  font-size: 13px;
+  color: #5A4A3A;
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+.lp-import-link:hover {
+  color: #C4A882;
+  border-bottom-color: #C4A882;
+}
+
+/* Scroll indicator */
+.lp-scroll-indicator {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: #5A4A3A;
+}
+.lp-scroll-text {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.lp-scroll-chevron {
+  animation: lp-bounce 2s ease-in-out infinite;
+}
+@keyframes lp-bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(6px); opacity: 1; }
 }

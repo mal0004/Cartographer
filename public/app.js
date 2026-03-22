@@ -131,23 +131,30 @@ const App = {
   _renderHeroMap() {
     const svg = document.getElementById('hero-map-bg');
     if (!svg) return;
-    // Seeded pseudo-random for consistent landmasses
-    const seed = 42;
+    const seed = 4892;
     const rand = (i) => ((Math.sin(seed * 127.1 + i * 311.7) * 43758.5453) % 1 + 1) % 1;
 
-    let paths = '';
-    // Generate ~8 landmasses as closed bezier blobs
-    for (let k = 0; k < 8; k++) {
-      const cx = 100 + rand(k * 10) * 1000;
-      const cy = 50 + rand(k * 10 + 1) * 400;
+    const W = 1400, H = 700;
+    let out = '';
+
+    // Graticule
+    for (let x = 0; x <= W; x += 100)
+      out += `<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="#C4A882" stroke-width="0.3" stroke-opacity="0.08"/>\n`;
+    for (let y = 0; y <= H; y += 80)
+      out += `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#C4A882" stroke-width="0.3" stroke-opacity="0.08"/>\n`;
+
+    // Landmass blobs helper
+    const landmasses = [];
+    function makeBlob(k, cx, cy, baseR, nPts) {
       const pts = [];
-      const n = 6 + Math.floor(rand(k * 10 + 2) * 4);
-      const r = 40 + rand(k * 10 + 3) * 120;
+      const n = nPts || (7 + Math.floor(rand(k * 10 + 2) * 5));
+      const r = baseR || (50 + rand(k * 10 + 3) * 140);
       for (let i = 0; i < n; i++) {
         const a = (i / n) * Math.PI * 2;
-        const rr = r * (0.7 + rand(k * 100 + i) * 0.6);
+        const rr = r * (0.65 + rand(k * 100 + i) * 0.7);
         pts.push({ x: cx + Math.cos(a) * rr, y: cy + Math.sin(a) * rr });
       }
+      landmasses.push({ cx, cy, r, pts });
       let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
       for (let i = 0; i < pts.length; i++) {
         const p1 = pts[i];
@@ -156,16 +163,60 @@ const App = {
         d += ` Q${p1.x.toFixed(1)},${p1.y.toFixed(1)} ${mx.toFixed(1)},${my.toFixed(1)}`;
       }
       d += ' Z';
-      paths += `<path d="${d}" fill="var(--ink)" fill-opacity="0.15" stroke="var(--ink)" stroke-width="1.5" stroke-opacity="0.3"/>\n`;
+      return d;
     }
-    // Grid lines (graticule)
-    for (let x = 0; x <= 1200; x += 100) {
-      paths += `<line x1="${x}" y1="0" x2="${x}" y2="500" stroke="var(--ink)" stroke-width="0.3" stroke-opacity="0.15"/>\n`;
+
+    // 10 organic landmasses
+    const blobs = [
+      [0, 250, 250, 140], [1, 550, 180, 110], [2, 800, 350, 160],
+      [3, 1050, 200, 100], [4, 350, 480, 90],  [5, 700, 520, 80],
+      [6, 1200, 450, 120], [7, 150, 500, 70],  [8, 950, 550, 65],
+      [9, 480, 350, 55],
+    ];
+    for (const [k, cx, cy, r] of blobs) {
+      const d = makeBlob(k, cx, cy, r);
+      out += `<path d="${d}" fill="#C4A882" fill-opacity="0.12" stroke="#C4A882" stroke-width="1.2" stroke-opacity="0.2"/>\n`;
+      // Inner contour line
+      const dInner = makeBlob(k + 50, cx, cy, r * 0.55);
+      out += `<path d="${dInner}" fill="none" stroke="#C4A882" stroke-width="0.5" stroke-opacity="0.12" stroke-dasharray="4,3"/>\n`;
     }
-    for (let y = 0; y <= 500; y += 80) {
-      paths += `<line x1="0" y1="${y}" x2="1200" y2="${y}" stroke="var(--ink)" stroke-width="0.3" stroke-opacity="0.15"/>\n`;
+
+    // Rivers
+    const rivers = [
+      { x1: 280, y1: 170, cx: 320, cy: 280, x2: 380, y2: 480 },
+      { x1: 780, y1: 260, cx: 820, cy: 380, x2: 720, y2: 520 },
+      { x1: 1020, y1: 140, cx: 1080, cy: 250, x2: 1050, y2: 380 },
+      { x1: 530, y1: 160, cx: 560, cy: 240, x2: 490, y2: 350 },
+    ];
+    for (const rv of rivers)
+      out += `<path d="M${rv.x1},${rv.y1} Q${rv.cx},${rv.cy} ${rv.x2},${rv.y2}" fill="none" stroke="#5A7A9A" stroke-width="1" stroke-opacity="0.2" stroke-linecap="round"/>\n`;
+
+    // City dots
+    const cities = [
+      [220, 220, 4], [290, 300, 3], [560, 180, 4], [520, 200, 2.5],
+      [810, 320, 5], [850, 370, 2.5], [770, 400, 3], [1060, 190, 3.5],
+      [1040, 240, 2], [370, 450, 3], [700, 500, 2.5], [1180, 420, 3],
+      [160, 480, 2], [950, 530, 2], [480, 340, 2.5],
+    ];
+    for (const [cx, cy, r] of cities)
+      out += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#C4A882" fill-opacity="0.25"/>\n`;
+
+    // Small cross markers on some cities (map symbols)
+    const markers = [[220, 220], [560, 180], [810, 320], [1060, 190]];
+    for (const [mx, my] of markers)
+      out += `<path d="M${mx-4},${my} L${mx+4},${my} M${mx},${my-4} L${mx},${my+4}" stroke="#C4A882" stroke-width="0.6" stroke-opacity="0.3"/>\n`;
+
+    svg.innerHTML = out;
+
+    // Parallax on scroll
+    const homeScreen = document.getElementById('home-screen');
+    const heroMap = document.getElementById('lp-hero-map');
+    if (homeScreen && heroMap) {
+      homeScreen.addEventListener('scroll', () => {
+        const scrollY = homeScreen.scrollTop;
+        heroMap.style.transform = `translateY(${scrollY * 0.3}px)`;
+      }, { passive: true });
     }
-    svg.innerHTML = paths;
   },
 
   // ─── Screen navigation ─────────────────────────────────────

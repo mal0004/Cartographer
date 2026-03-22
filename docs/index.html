@@ -1,35 +1,77 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cartographer — World Map Editor</title>
+  <title>Cartographer — Éditeur de cartes de mondes fictifs</title>
+  <meta name="description" content="Cartographer est un éditeur de cartes open source pour vos mondes imaginaires. Dessinez, annotez, exportez en SVG. Gratuit et sans inscription.">
+  <meta property="og:title" content="Cartographer — Éditeur de cartes de mondes fictifs">
+  <meta property="og:description" content="Donnez vie à vos mondes imaginaires. Open source et gratuit.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;500;700&family=IM+Fell+English:ital@1&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;500;700&family=IM+Fell+English:ital@1&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Cartographer",
+    "description": "Éditeur de cartes de mondes fictifs open source",
+    "applicationCategory": "DesignApplication",
+    "operatingSystem": "Web",
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"},
+    "license": "https://opensource.org/licenses/MIT"
+  }
+  </script>
 </head>
 <body>
+  <a href="#lp-main" class="skip-link">Aller au contenu</a>
+
   <!-- ─── Home screen ─────────────────────────────────── -->
   <div id="home-screen" class="screen active">
-    <section class="hero">
-      <svg class="hero-map-bg" id="hero-map-bg" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
-      <div class="hero-content">
-        <h1 class="hero-title">Cartographer</h1>
-        <p class="hero-tagline">Fictional World Map Editor</p>
-        <div class="home-actions">
-          <button id="btn-new-world" class="btn btn-cta-primary">+ Nouveau monde</button>
-          <a href="#templates-section" class="btn btn-cta-outline">Voir les templates</a>
-          <label class="btn btn-cta-outline">
-            Importer JSON
-            <input type="file" id="import-file" accept=".json" hidden>
-          </label>
-        </div>
+
+    <!-- 1. HERO -->
+    <section class="lp-hero" aria-label="Présentation">
+      <div class="lp-hero-map" id="lp-hero-map" aria-hidden="true">
+        <svg id="hero-map-bg" viewBox="0 0 1400 700" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Carte générée procéduralement"></svg>
       </div>
-      <div class="scroll-indicator" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="28" height="28"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <div class="lp-hero-overlay" aria-hidden="true"></div>
+      <div class="lp-hero-content" id="lp-main">
+        <!-- Ornament -->
+        <svg class="lp-ornament" width="200" height="20" viewBox="0 0 200 20" role="img" aria-label="Ornement décoratif">
+          <line x1="0" y1="10" x2="82" y2="10" stroke="#C4A882" stroke-width="0.75" opacity="0.6"/>
+          <circle cx="88" cy="10" r="1.5" fill="#C4A882" opacity="0.5"/>
+          <path d="M95,10 L100,4 L105,10 L100,16Z" fill="none" stroke="#C4A882" stroke-width="0.75" opacity="0.8"/>
+          <circle cx="100" cy="10" r="1" fill="#C4A882" opacity="0.6"/>
+          <circle cx="112" cy="10" r="1.5" fill="#C4A882" opacity="0.5"/>
+          <line x1="118" y1="10" x2="200" y2="10" stroke="#C4A882" stroke-width="0.75" opacity="0.6"/>
+        </svg>
+
+        <h1 class="lp-hero-title">CARTOGRAPHER</h1>
+        <p class="lp-hero-tagline">Donnez vie à vos mondes imaginaires</p>
+        <p class="lp-hero-sub">Dessinez, annotez, exportez. Open source et gratuit.</p>
+
+        <div class="lp-hero-ctas">
+          <button id="btn-new-world" class="lp-cta-primary" aria-label="Créer un nouveau monde">Créer un monde</button>
+          <a href="#templates-section" class="lp-cta-outline" aria-label="Voir la démo">Voir la démo</a>
+        </div>
+        <label class="lp-import-link" aria-label="Importer un fichier JSON">
+          Importer JSON
+          <input type="file" id="import-file" accept=".json" hidden>
+        </label>
+      </div>
+      <div class="lp-scroll-indicator" aria-hidden="true">
+        <span class="lp-scroll-text">Explorer</span>
+        <svg class="lp-scroll-chevron" viewBox="0 0 24 24" width="16" height="16">
+          <path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </div>
     </section>
 
+    <!-- Remaining sections (worlds, templates, footer) — untouched for now -->
     <section class="home-section" id="worlds-section">
       <h2 class="section-title">Mes mondes</h2>
       <div id="worlds-grid" class="worlds-grid"></div>
@@ -56,14 +98,14 @@
     <!-- New world modal -->
     <div id="modal-new-world" class="modal" hidden>
       <div class="modal-content">
-        <h2>Create a New World</h2>
-        <label>Name<input type="text" id="new-world-name" placeholder="Middle-earth"></label>
-        <label>Description<textarea id="new-world-desc" rows="3" placeholder="A brief description..."></textarea></label>
-        <label>Timeline start<input type="number" id="new-world-tstart" value="0"></label>
-        <label>Timeline end<input type="number" id="new-world-tend" value="1000"></label>
+        <h2>Nouveau Monde</h2>
+        <label>Nom<input type="text" id="new-world-name" placeholder="Middle-earth"></label>
+        <label>Description<textarea id="new-world-desc" rows="3" placeholder="Une brève description..."></textarea></label>
+        <label>Début de la timeline<input type="number" id="new-world-tstart" value="0"></label>
+        <label>Fin de la timeline<input type="number" id="new-world-tend" value="1000"></label>
         <div class="modal-actions">
-          <button id="modal-cancel" class="btn btn-secondary">Cancel</button>
-          <button id="modal-create" class="btn btn-primary">Create</button>
+          <button id="modal-cancel" class="btn btn-secondary">Annuler</button>
+          <button id="modal-create" class="btn btn-primary">Créer</button>
         </div>
       </div>
     </div>
