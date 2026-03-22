@@ -1723,4 +1723,1001 @@ body, .editor-topbar, .sidebar, .timeline, .toolbar, .tool-options, .modal-conte
   .sidebar {
     transition: none;
   }
+  .lp-scroll-chevron { animation: none !important; }
+  .lp-hero-map { transform: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LANDING PAGE — Dark theme for home screen
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Skip Link ──────────────────────────────────────────────────── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  background: #8B2635;
+  color: #F5F0E8;
+  padding: 8px 16px;
+  border-radius: 0 0 4px 4px;
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  z-index: 10000;
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 0;
+  outline: 2px solid #8B2635;
+  outline-offset: 2px;
+}
+
+/* ─── LP Focus visible ───────────────────────────────────────────── */
+#home-screen *:focus-visible {
+  outline: 2px solid #8B2635;
+  outline-offset: 3px;
+}
+
+/* ─── 1. HERO ────────────────────────────────────────────────────── */
+.lp-hero {
+  position: relative;
+  height: 100dvh;
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #0D0A07;
+}
+
+/* Background map */
+.lp-hero-map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+}
+.lp-hero-map svg {
+  width: 100%;
+  height: 100%;
+  filter: blur(1.5px);
+  opacity: 0.25;
+}
+
+/* Gradient overlay */
+.lp-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(13,10,7,0.2) 30%,
+    rgba(13,10,7,0.6) 60%,
+    #0D0A07 100%
+  );
+  pointer-events: none;
+}
+
+/* Hero content */
+.lp-hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 0 20px;
+}
+
+/* Ornament */
+.lp-ornament {
+  display: block;
+  margin: 0 auto 1.5rem;
+  opacity: 0.8;
+}
+
+/* Title */
+.lp-hero-title {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-weight: 700;
+  font-size: clamp(52px, 8vw, 96px);
+  color: #F5F0E8;
+  letter-spacing: 0.15em;
+  text-shadow:
+    0 1px 0 #8B6340,
+    0 2px 0 #7A5530,
+    0 4px 12px rgba(0,0,0,0.6);
+  margin: 0;
+  line-height: 1.1;
+}
+
+/* Tagline */
+.lp-hero-tagline {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: clamp(16px, 2vw, 22px);
+  color: #C4A882;
+  margin: 1.5rem 0 0;
+}
+
+/* Sub-tagline */
+.lp-hero-sub {
+  font-family: 'Source Serif 4', 'Georgia', serif;
+  font-size: 16px;
+  color: #8A7A6A;
+  margin: 0.75rem 0 0;
+}
+
+/* CTA buttons */
+.lp-hero-ctas {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 3rem;
+}
+
+.lp-cta-primary {
+  font-family: 'Cinzel', serif;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  padding: 14px 36px;
+  border: none;
+  border-radius: 2px;
+  background: #8B2635;
+  color: #F5F0E8;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.lp-cta-primary:hover {
+  background: #A33040;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(139,38,53,0.4);
+}
+.lp-cta-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.lp-cta-outline {
+  font-family: 'Cinzel', serif;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  padding: 14px 36px;
+  border: 1px solid #C4A882;
+  border-radius: 2px;
+  background: transparent;
+  color: #C4A882;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.lp-cta-outline:hover {
+  background: rgba(196,168,130,0.1);
+  transform: translateY(-2px);
+}
+.lp-cta-outline:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Import link (subtle) */
+.lp-import-link {
+  display: inline-block;
+  margin-top: 1.5rem;
+  font-family: 'Source Serif 4', 'Georgia', serif;
+  font-size: 13px;
+  color: #5A4A3A;
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+.lp-import-link:hover {
+  color: #C4A882;
+  border-bottom-color: #C4A882;
+}
+
+/* Scroll indicator */
+.lp-scroll-indicator {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: #5A4A3A;
+}
+.lp-scroll-text {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.lp-scroll-chevron {
+  animation: lp-bounce 2s ease-in-out infinite;
+}
+@keyframes lp-bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(6px); opacity: 1; }
+}
+
+/* ─── 2. STATS BAND ─────────────────────────────────────────────── */
+.lp-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 28px 20px;
+  background: #1A1208;
+  border-top: 1px solid #2E2416;
+  border-bottom: 1px solid #2E2416;
+  flex-wrap: wrap;
+}
+
+.lp-stats-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0 clamp(20px, 3vw, 48px);
+  /* fade-up animation */
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.lp-stats-item.lp-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.lp-stats-icon {
+  color: #8B2635;
+  flex-shrink: 0;
+}
+
+.lp-stats-title {
+  font-family: 'Cinzel', serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: #F5F0E8;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.lp-stats-sub {
+  font-family: 'Source Serif 4', 'Georgia', serif;
+  font-size: 12px;
+  color: #8A7A6A;
+  white-space: nowrap;
+}
+
+.lp-stats-sep {
+  width: 1px;
+  height: 40px;
+  background: #2E2416;
+  flex-shrink: 0;
+}
+
+/* Responsive: stack on small screens */
+@media (max-width: 768px) {
+  .lp-stats {
+    flex-wrap: wrap;
+    gap: 20px 0;
+    padding: 24px 16px;
+  }
+  .lp-stats-sep {
+    display: none;
+  }
+  .lp-stats-item {
+    width: 50%;
+    padding: 8px 0;
+  }
+}
+
+/* ─── LP Sections (shared) ───────────────────────────────────── */
+.lp-section {
+  padding: 80px 0;
+}
+.lp-section-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.lp-section-ornament {
+  display: block;
+  margin: 0 auto 20px;
+}
+.lp-section-title {
+  font-family: 'Cinzel', serif;
+  font-weight: 500;
+  font-size: 32px;
+  color: #F5F0E8;
+  margin: 0;
+}
+.lp-section-sub {
+  font-family: 'Source Serif 4', 'Georgia', serif;
+  font-style: italic;
+  font-size: 16px;
+  color: #8A7A6A;
+  margin: 8px 0 0;
+}
+
+/* ─── 3. WORLDS SECTION ──────────────────────────────────────── */
+.lp-worlds-section {
+  background: #0D0A07;
+}
+
+.lp-worlds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  padding: 0 clamp(24px, 5vw, 80px);
+}
+
+/* Override old .worlds-grid if #worlds-grid is used */
+#worlds-grid.lp-worlds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+/* Dark world card */
+.lp-worlds-section .world-card {
+  background: #1A1208;
+  border: 1px solid #2E2416;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+.lp-worlds-section .world-card:hover {
+  border-color: #8B2635;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+/* Thumbnail wrapper */
+.world-card-thumb {
+  position: relative;
+  overflow: hidden;
+}
+.lp-worlds-section .world-card-preview {
+  width: 100%;
+  height: 180px;
+  display: block;
+  background: #1A1208;
+  border-bottom: 1px solid #2E2416;
+}
+
+/* Overlay on thumbnail only */
+.lp-worlds-section .world-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(13,10,7,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+.lp-worlds-section .world-card:hover .world-card-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+.lp-worlds-section .world-card-overlay .card-open {
+  background: #8B2635;
+  border: 1px solid #8B2635;
+  color: #F5F0E8;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  padding: 6px 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.lp-worlds-section .world-card-overlay .card-open:hover {
+  background: #A33040;
+}
+.lp-worlds-section .world-card-overlay .card-export {
+  background: transparent;
+  border: 1px solid #C4A882;
+  color: #C4A882;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  padding: 6px 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.lp-worlds-section .world-card-overlay .card-export:hover {
+  background: rgba(196,168,130,0.1);
+}
+.lp-worlds-section .world-card-overlay .delete-world {
+  background: transparent;
+  border: 1px solid #5A4A3A;
+  color: #8A7A6A;
+  border-radius: 2px;
+  padding: 5px 7px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: static;
+  opacity: 1;
+  font-size: inherit;
+}
+.lp-worlds-section .world-card-overlay .delete-world:hover {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+/* Card body */
+.lp-worlds-section .world-card-body {
+  padding: 20px;
+}
+.lp-worlds-section .world-card h3 {
+  font-family: 'Cinzel', serif;
+  font-weight: 500;
+  font-size: 18px;
+  color: #F5F0E8;
+  margin: 0 0 6px;
+}
+.lp-worlds-section .world-card p {
+  font-family: 'Source Serif 4', 'Georgia', serif;
+  font-size: 14px;
+  color: #8A7A6A;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+.lp-worlds-section .world-card-meta {
+  font-size: 12px;
+  color: #5A4A3A;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #2E2416;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.lp-worlds-section .world-card-meta svg {
+  vertical-align: -1px;
+  margin-right: 2px;
+}
+
+/* New world card (dashed) */
+.lp-worlds-section .world-card-new {
+  border: 1px dashed #2E2416;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  background: transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.lp-worlds-section .world-card-new:hover {
+  border-color: #8B2635;
+  background: rgba(139,38,53,0.05);
+}
+.lp-worlds-section .world-card-new-inner {
+  text-align: center;
+  color: #5A4A3A;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.lp-worlds-section .world-card-new-inner svg {
+  color: #2E2416;
+  transition: color 0.25s;
+}
+.lp-worlds-section .world-card-new:hover .world-card-new-inner svg {
+  color: #8B2635;
+}
+.lp-worlds-section .world-card-new-inner span {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  transition: color 0.25s;
+}
+.lp-worlds-section .world-card-new:hover .world-card-new-inner span {
+  color: #C4A882;
+}
+
+/* Card animations (reuse existing fade-up) */
+.lp-worlds-section .world-card,
+.lp-worlds-section .world-card-new {
+  opacity: 0;
+}
+.lp-worlds-section .world-card.visible,
+.lp-worlds-section .world-card-new.visible {
+  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Skeleton cards in dark theme */
+.lp-worlds-section .skeleton-card {
+  background: #1A1208;
+  border: 1px solid #2E2416;
+}
+.lp-worlds-section .skeleton-card .skeleton-preview {
+  background: linear-gradient(90deg, #1A1208 25%, #2E2416 37%, #1A1208 63%);
+  background-size: 600px 100%;
+}
+.lp-worlds-section .skeleton-card .skeleton-line {
+  background: linear-gradient(90deg, #1A1208 25%, #2E2416 37%, #1A1208 63%);
+  background-size: 600px 100%;
+}
+
+/* ─── Section 4: Templates ──────────────────────────────────────── */
+
+.lp-templates-section {
+  background: #0F0C08;
+  padding: clamp(48px, 5vw, 80px) clamp(20px, 4vw, 80px);
+}
+
+/* Carousel wrapper */
+.lp-carousel-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Templates grid — 5 columns on large, carousel on smaller */
+.lp-templates-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: clamp(14px, 1.2vw, 20px);
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 1400px) {
+  .lp-templates-grid {
+    display: flex;
+    overflow-x: auto;
+    gap: 16px;
+    padding-bottom: 8px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-behavior: smooth;
+  }
+  .lp-templates-grid::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Carousel arrow buttons */
+.lp-carousel-arrow {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #2E2416;
+  background: rgba(15, 12, 8, 0.8);
+  color: #8A7A6A;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(4px);
+}
+.lp-carousel-arrow:hover {
+  border-color: #C4A882;
+  color: #C4A882;
+  background: rgba(46, 36, 22, 0.6);
+}
+.lp-carousel-arrow:active {
+  transform: scale(0.95);
+}
+/* Hide arrows on wide screens (grid, no scroll) */
+@media (min-width: 1401px) {
+  .lp-carousel-arrow {
+    display: none;
+  }
+}
+
+/* Template card — dark theme */
+.lp-templates-section .lp-tpl-card {
+  background: #1A1208;
+  border: 1px solid #2E2416;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  position: relative;
+  min-width: 260px;
+  scroll-snap-align: start;
+}
+.lp-templates-section .lp-tpl-card:hover {
+  border-color: #C4A882;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+  transform: translateY(-3px);
+}
+
+/* Template preview canvas */
+.lp-tpl-card .lp-tpl-preview {
+  width: 100%;
+  height: 160px;
+  display: block;
+  border-bottom: 1px solid #2E2416;
+}
+
+/* Template info */
+.lp-tpl-card .lp-tpl-info {
+  padding: 14px 16px 16px;
+}
+.lp-tpl-card .lp-tpl-name {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #F5F0E8;
+  margin: 0 0 6px;
+}
+.lp-tpl-card .lp-tpl-desc {
+  font-family: 'Source Serif 4', serif;
+  font-size: 12px;
+  color: #8A7A6A;
+  line-height: 1.5;
+  margin: 0 0 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Tags as pills */
+.lp-tpl-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.lp-tpl-tag {
+  font-family: 'Source Serif 4', serif;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #C4A882;
+  border: 1px solid #2E2416;
+  border-radius: 2px;
+  padding: 2px 8px;
+  background: rgba(46, 36, 22, 0.3);
+}
+
+/* "Utiliser ce template" hover button overlay */
+.lp-tpl-card .lp-tpl-use {
+  display: block;
+  width: 100%;
+  padding: 8px 0;
+  background: #8B2635;
+  color: #F5F0E8;
+  border: none;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease, background 0.2s ease;
+}
+.lp-tpl-card:hover .lp-tpl-use {
+  opacity: 1;
+  transform: translateY(0);
+}
+.lp-tpl-card .lp-tpl-use:hover {
+  background: #A02E40;
+}
+
+/* Card fade-up animation */
+.lp-templates-section .lp-tpl-card {
+  opacity: 0;
+}
+.lp-templates-section .lp-tpl-card.visible {
+  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ─── Section 5: Features ───────────────────────────────────────── */
+
+.lp-features-section {
+  background: #0D0A07;
+  padding: clamp(48px, 5vw, 80px) clamp(20px, 4vw, 80px);
+}
+
+/* Feature row — alternating layout */
+.lp-feature {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(32px, 4vw, 80px);
+  align-items: center;
+  padding: clamp(32px, 3vw, 56px) 0;
+  border-bottom: 1px solid #1A1208;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.lp-feature.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.lp-feature:last-child {
+  border-bottom: none;
+}
+
+/* Reverse row: visual left, text right */
+.lp-feature-row-reverse {
+  direction: rtl;
+}
+.lp-feature-row-reverse > * {
+  direction: ltr;
+}
+
+/* Feature number decoration */
+.lp-feature-num {
+  display: block;
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-size: clamp(36px, 4vw, 64px);
+  font-weight: 700;
+  color: #1A1208;
+  line-height: 1;
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+  user-select: none;
+}
+
+/* Feature text */
+.lp-feature-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(18px, 1.6vw, 24px);
+  font-weight: 500;
+  color: #F5F0E8;
+  margin: 0 0 12px;
+}
+.lp-feature-desc {
+  font-family: 'Source Serif 4', serif;
+  font-size: clamp(14px, 1.1vw, 16px);
+  color: #8A7A6A;
+  line-height: 1.7;
+  margin: 0;
+  max-width: 480px;
+}
+
+/* Feature visual — SVG illustration */
+.lp-feature-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lp-feature-visual svg {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  opacity: 0.85;
+}
+
+/* Responsive: stack on mobile */
+@media (max-width: 768px) {
+  .lp-feature {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    text-align: center;
+  }
+  .lp-feature-row-reverse {
+    direction: ltr;
+  }
+  .lp-feature-desc {
+    max-width: none;
+  }
+  .lp-feature-visual {
+    order: -1;
+  }
+  .lp-feature-visual svg {
+    max-width: 240px;
+  }
+}
+
+/* ─── Section 6: Open Source ────────────────────────────────────── */
+
+.lp-opensource-section {
+  background: #1A1208;
+  padding: clamp(56px, 6vw, 100px) clamp(20px, 4vw, 80px);
+  text-align: center;
+}
+.lp-opensource-inner {
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Compass rose */
+.lp-compass-rose {
+  margin-bottom: 32px;
+  opacity: 0;
+  transform: rotate(-30deg) scale(0.8);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.lp-opensource-section.visible .lp-compass-rose {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+/* Title & description */
+.lp-opensource-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(22px, 2vw, 32px);
+  font-weight: 500;
+  color: #F5F0E8;
+  margin: 0 0 16px;
+  letter-spacing: 1px;
+}
+.lp-opensource-desc {
+  font-family: 'Source Serif 4', serif;
+  font-size: clamp(14px, 1.1vw, 16px);
+  color: #8A7A6A;
+  line-height: 1.7;
+  margin: 0 0 32px;
+  max-width: 520px;
+}
+
+/* GitHub stats row */
+.lp-gh-stats {
+  display: flex;
+  gap: clamp(24px, 3vw, 48px);
+  margin-bottom: 36px;
+}
+.lp-gh-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #5A4A3A;
+}
+.lp-gh-stat svg {
+  color: #C4A882;
+}
+.lp-gh-stat-val {
+  font-family: 'Cinzel', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #F5F0E8;
+}
+.lp-gh-stat-label {
+  font-family: 'Source Serif 4', serif;
+  font-size: 11px;
+  color: #5A4A3A;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* CTAs */
+.lp-opensource-ctas {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.lp-opensource-ctas .lp-cta-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.lp-gh-icon {
+  flex-shrink: 0;
+}
+
+/* ─── Section 7: Footer ────────────────────────────────────────── */
+
+.lp-footer {
+  background: #0D0A07;
+  padding: 0 clamp(20px, 4vw, 80px) clamp(24px, 2vw, 40px);
+  color: #5A4A3A;
+  font-family: 'Source Serif 4', serif;
+}
+
+.lp-footer-top {
+  margin-bottom: clamp(32px, 3vw, 48px);
+}
+
+/* 3-column grid */
+.lp-footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: clamp(24px, 3vw, 60px);
+  margin-bottom: clamp(32px, 3vw, 48px);
+}
+@media (max-width: 768px) {
+  .lp-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
+/* Brand column */
+.lp-footer-brand {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #C4A882;
+  margin: 0 0 10px;
+  letter-spacing: 2px;
+}
+.lp-footer-tagline {
+  font-size: 13px;
+  color: #5A4A3A;
+  line-height: 1.6;
+  margin: 0 0 16px;
+  max-width: 320px;
+}
+
+/* Theme indicator */
+.lp-footer-theme-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #5A4A3A;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.lp-footer-theme-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8B2635;
+  box-shadow: 0 0 6px #8B263580;
+}
+
+/* Column headings */
+.lp-footer-heading {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #8A7A6A;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 0 0 14px;
+}
+
+/* Navigation links */
+.lp-footer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lp-footer-link {
+  font-size: 13px;
+  color: #5A4A3A;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.lp-footer-link:hover {
+  color: #C4A882;
+}
+
+/* Bottom bar */
+.lp-footer-bottom {
+  border-top: 1px solid #1A1208;
+  padding-top: clamp(16px, 1.5vw, 24px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.lp-footer-compass {
+  animation: compass-spin 60s linear infinite;
+}
+.lp-footer-copy {
+  font-size: 11px;
+  color: #5A4A3A;
+  margin: 0;
+  letter-spacing: 0.5px;
 }

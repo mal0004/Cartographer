@@ -1,69 +1,413 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cartographer — World Map Editor</title>
+  <title>Cartographer — Éditeur de cartes de mondes fictifs</title>
+  <meta name="description" content="Cartographer est un éditeur de cartes open source pour vos mondes imaginaires. Dessinez, annotez, exportez en SVG. Gratuit et sans inscription.">
+  <meta property="og:title" content="Cartographer — Éditeur de cartes de mondes fictifs">
+  <meta property="og:description" content="Donnez vie à vos mondes imaginaires. Open source et gratuit.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;500;700&family=IM+Fell+English:ital@1&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;500;700&family=IM+Fell+English:ital@1&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Cartographer",
+    "description": "Éditeur de cartes de mondes fictifs open source",
+    "applicationCategory": "DesignApplication",
+    "operatingSystem": "Web",
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"},
+    "license": "https://opensource.org/licenses/MIT"
+  }
+  </script>
 </head>
 <body>
+  <a href="#lp-main" class="skip-link">Aller au contenu</a>
+
   <!-- ─── Home screen ─────────────────────────────────── -->
   <div id="home-screen" class="screen active">
-    <section class="hero">
-      <svg class="hero-map-bg" id="hero-map-bg" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
-      <div class="hero-content">
-        <h1 class="hero-title">Cartographer</h1>
-        <p class="hero-tagline">Fictional World Map Editor</p>
-        <div class="home-actions">
-          <button id="btn-new-world" class="btn btn-cta-primary">+ Nouveau monde</button>
-          <a href="#templates-section" class="btn btn-cta-outline">Voir les templates</a>
-          <label class="btn btn-cta-outline">
-            Importer JSON
-            <input type="file" id="import-file" accept=".json" hidden>
-          </label>
+
+    <!-- 1. HERO -->
+    <section class="lp-hero" aria-label="Présentation">
+      <div class="lp-hero-map" id="lp-hero-map" aria-hidden="true">
+        <svg id="hero-map-bg" viewBox="0 0 1400 700" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Carte générée procéduralement"></svg>
+      </div>
+      <div class="lp-hero-overlay" aria-hidden="true"></div>
+      <div class="lp-hero-content" id="lp-main">
+        <!-- Ornament -->
+        <svg class="lp-ornament" width="200" height="20" viewBox="0 0 200 20" role="img" aria-label="Ornement décoratif">
+          <line x1="0" y1="10" x2="82" y2="10" stroke="#C4A882" stroke-width="0.75" opacity="0.6"/>
+          <circle cx="88" cy="10" r="1.5" fill="#C4A882" opacity="0.5"/>
+          <path d="M95,10 L100,4 L105,10 L100,16Z" fill="none" stroke="#C4A882" stroke-width="0.75" opacity="0.8"/>
+          <circle cx="100" cy="10" r="1" fill="#C4A882" opacity="0.6"/>
+          <circle cx="112" cy="10" r="1.5" fill="#C4A882" opacity="0.5"/>
+          <line x1="118" y1="10" x2="200" y2="10" stroke="#C4A882" stroke-width="0.75" opacity="0.6"/>
+        </svg>
+
+        <h1 class="lp-hero-title">CARTOGRAPHER</h1>
+        <p class="lp-hero-tagline">Donnez vie à vos mondes imaginaires</p>
+        <p class="lp-hero-sub">Dessinez, annotez, exportez. Open source et gratuit.</p>
+
+        <div class="lp-hero-ctas">
+          <button id="btn-new-world" class="lp-cta-primary" aria-label="Créer un nouveau monde">Créer un monde</button>
+          <a href="#templates-section" class="lp-cta-outline" aria-label="Voir la démo">Voir la démo</a>
+        </div>
+        <label class="lp-import-link" aria-label="Importer un fichier JSON">
+          Importer JSON
+          <input type="file" id="import-file" accept=".json" hidden>
+        </label>
+      </div>
+      <div class="lp-scroll-indicator" aria-hidden="true">
+        <span class="lp-scroll-text">Explorer</span>
+        <svg class="lp-scroll-chevron" viewBox="0 0 24 24" width="16" height="16">
+          <path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </section>
+
+    <!-- 2. STATS BAND -->
+    <div class="lp-stats" role="list" aria-label="Caractéristiques clés">
+      <div class="lp-stats-item" role="listitem">
+        <svg class="lp-stats-icon" viewBox="0 0 24 24" width="20" height="20" role="img" aria-label="Étoile">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        <span class="lp-stats-title">Open Source</span>
+        <span class="lp-stats-sub">MIT License</span>
+      </div>
+      <div class="lp-stats-sep" aria-hidden="true"></div>
+      <div class="lp-stats-item" role="listitem">
+        <svg class="lp-stats-icon" viewBox="0 0 24 24" width="20" height="20" role="img" aria-label="Serveur">
+          <rect x="2" y="2" width="20" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="2" y="14" width="20" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="6" cy="6" r="1" fill="currentColor"/><circle cx="6" cy="18" r="1" fill="currentColor"/>
+        </svg>
+        <span class="lp-stats-title">Zero Cloud</span>
+        <span class="lp-stats-sub">Vos données restent chez vous</span>
+      </div>
+      <div class="lp-stats-sep" aria-hidden="true"></div>
+      <div class="lp-stats-item" role="listitem">
+        <svg class="lp-stats-icon" viewBox="0 0 24 24" width="20" height="20" role="img" aria-label="Plume">
+          <path d="M20.24 12.24a6 6 0 00-8.49-8.49L5 10.5V19h8.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          <line x1="16" y1="8" x2="2" y2="22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="17.5" y1="15" x2="9" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="lp-stats-title">50+ Symboles</span>
+        <span class="lp-stats-sub">Bibliothèque cartographique</span>
+      </div>
+      <div class="lp-stats-sep" aria-hidden="true"></div>
+      <div class="lp-stats-item" role="listitem">
+        <svg class="lp-stats-icon" viewBox="0 0 24 24" width="20" height="20" role="img" aria-label="Carte">
+          <polygon points="1,6 1,22 8,18 16,22 23,18 23,2 16,6 8,2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          <line x1="8" y1="2" x2="8" y2="18" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="16" y1="6" x2="16" y2="22" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        <span class="lp-stats-title">Export SVG</span>
+        <span class="lp-stats-sub">Qualité impression</span>
+      </div>
+    </div>
+
+    <!-- 3. WORLDS SECTION -->
+    <section class="lp-section lp-worlds-section" id="worlds-section" aria-label="Vos mondes">
+      <div class="lp-section-header">
+        <svg class="lp-section-ornament" width="240" height="24" viewBox="0 0 240 24" role="img" aria-label="Ornement de section">
+          <line x1="0" y1="12" x2="100" y2="12" stroke="#2E2416" stroke-width="1"/>
+          <line x1="100" y1="12" x2="108" y2="12" stroke="#2E2416" stroke-width="0.5"/>
+          <path d="M108,12 L114,6 L120,12 L114,18Z" fill="#2E2416"/>
+          <line x1="120" y1="12" x2="128" y2="12" stroke="#2E2416" stroke-width="0.5"/>
+          <line x1="128" y1="12" x2="240" y2="12" stroke="#2E2416" stroke-width="1"/>
+        </svg>
+        <h2 class="lp-section-title">Vos mondes</h2>
+        <p class="lp-section-sub">Chaque monde, une aventure unique à cartographier</p>
+      </div>
+      <div id="worlds-grid" class="lp-worlds-grid"></div>
+    </section>
+
+    <!-- 4. TEMPLATES -->
+    <section class="lp-section lp-templates-section" id="templates-section" aria-label="Templates">
+      <div class="lp-section-header">
+        <svg class="lp-section-ornament" width="240" height="24" viewBox="0 0 240 24" role="img" aria-label="Ornement de section">
+          <line x1="0" y1="12" x2="100" y2="12" stroke="#2E2416" stroke-width="1"/>
+          <line x1="100" y1="12" x2="108" y2="12" stroke="#2E2416" stroke-width="0.5"/>
+          <path d="M108,12 L114,6 L120,12 L114,18Z" fill="#2E2416"/>
+          <line x1="120" y1="12" x2="128" y2="12" stroke="#2E2416" stroke-width="0.5"/>
+          <line x1="128" y1="12" x2="240" y2="12" stroke="#2E2416" stroke-width="1"/>
+        </svg>
+        <h2 class="lp-section-title">Partir d'un template</h2>
+        <p class="lp-section-sub">Cinq mondes prêts à explorer et modifier</p>
+      </div>
+      <div class="lp-carousel-wrapper">
+        <button class="lp-carousel-arrow lp-carousel-prev" aria-label="Défiler vers la gauche">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div id="templates-grid" class="lp-templates-grid"></div>
+        <button class="lp-carousel-arrow lp-carousel-next" aria-label="Défiler vers la droite">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M9 18l6-6-6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- 5. FEATURES -->
+    <section class="lp-section lp-features-section" id="features-section" aria-label="Fonctionnalités">
+      <div class="lp-section-header">
+        <svg class="lp-section-ornament" width="240" height="24" viewBox="0 0 240 24" role="img" aria-label="Ornement de section">
+          <line x1="0" y1="12" x2="100" y2="12" stroke="#2E2416" stroke-width="1"/>
+          <line x1="100" y1="12" x2="108" y2="12" stroke="#2E2416" stroke-width="0.5"/>
+          <path d="M108,12 L114,6 L120,12 L114,18Z" fill="#2E2416"/>
+          <line x1="120" y1="12" x2="128" y2="12" stroke="#2E2416" stroke-width="0.5"/>
+          <line x1="128" y1="12" x2="240" y2="12" stroke="#2E2416" stroke-width="1"/>
+        </svg>
+        <h2 class="lp-section-title">Un éditeur pensé pour les créateurs</h2>
+        <p class="lp-section-sub">Six outils essentiels pour donner vie à vos mondes</p>
+      </div>
+
+      <div class="lp-feature lp-feature-row">
+        <div class="lp-feature-text">
+          <span class="lp-feature-num" aria-hidden="true">01</span>
+          <h3 class="lp-feature-title">Territoires &amp; Régions</h3>
+          <p class="lp-feature-desc">Dessinez des frontières organiques à main levée. Chaque territoire peut avoir sa couleur, son dirigeant, ses ressources — un monde politique complet en quelques clics.</p>
+        </div>
+        <div class="lp-feature-visual" aria-hidden="true">
+          <svg viewBox="0 0 300 200" width="300" height="200">
+            <polygon points="40,160 80,40 160,20 240,60 260,140 200,180 100,180" fill="#8B263520" stroke="#8B2635" stroke-width="1.5" stroke-linejoin="round"/>
+            <polygon points="120,150 180,80 260,100 240,170 160,180" fill="#2E7D3220" stroke="#2E7D32" stroke-width="1" stroke-dasharray="4,3" stroke-linejoin="round"/>
+            <circle cx="110" cy="90" r="4" fill="#C4A882"/><text x="120" y="94" fill="#C4A882" font-size="10" font-family="Cinzel,serif">Valdris</text>
+            <circle cx="200" cy="120" r="3" fill="#C4A882"/><text x="210" y="124" fill="#C4A882" font-size="9" font-family="Cinzel,serif">Solhaven</text>
+            <path d="M110,90 Q150,70 200,120" fill="none" stroke="#5A4A3A" stroke-width="0.8" stroke-dasharray="3,2"/>
+          </svg>
         </div>
       </div>
-      <div class="scroll-indicator" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="28" height="28"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+
+      <div class="lp-feature lp-feature-row-reverse">
+        <div class="lp-feature-text">
+          <span class="lp-feature-num" aria-hidden="true">02</span>
+          <h3 class="lp-feature-title">Villes &amp; Points d'intérêt</h3>
+          <p class="lp-feature-desc">Capitales, cités, villages, ruines — placez vos lieux avec des niveaux d'importance distincts. Chaque ville porte sa fiche : population, histoire, fondation.</p>
+        </div>
+        <div class="lp-feature-visual" aria-hidden="true">
+          <svg viewBox="0 0 300 200" width="300" height="200">
+            <circle cx="150" cy="100" r="7" fill="#8B2635" opacity="0.9"/><circle cx="150" cy="100" r="12" fill="none" stroke="#8B2635" stroke-width="0.5" opacity="0.4"/>
+            <text x="166" y="104" fill="#F5F0E8" font-size="11" font-family="Cinzel,serif" font-weight="500">Capitale</text>
+            <circle cx="80" cy="60" r="4" fill="#C4A882"/><text x="92" y="64" fill="#8A7A6A" font-size="9" font-family="Source Serif 4,serif">Cité</text>
+            <circle cx="230" cy="140" r="4" fill="#C4A882"/><text x="242" y="144" fill="#8A7A6A" font-size="9" font-family="Source Serif 4,serif">Port</text>
+            <circle cx="60" cy="150" r="2.5" fill="#5A4A3A"/><text x="70" y="154" fill="#5A4A3A" font-size="8" font-family="Source Serif 4,serif">Village</text>
+            <circle cx="220" cy="50" r="2.5" fill="#5A4A3A"/><text x="230" y="54" fill="#5A4A3A" font-size="8" font-family="Source Serif 4,serif">Ruine</text>
+            <path d="M80,60 Q110,80 150,100" fill="none" stroke="#2E2416" stroke-width="0.7" stroke-dasharray="2,2"/>
+            <path d="M150,100 Q190,120 230,140" fill="none" stroke="#2E2416" stroke-width="0.7" stroke-dasharray="2,2"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="lp-feature lp-feature-row">
+        <div class="lp-feature-text">
+          <span class="lp-feature-num" aria-hidden="true">03</span>
+          <h3 class="lp-feature-title">Routes &amp; Rivières</h3>
+          <p class="lp-feature-desc">Tracez des chemins commerciaux, des sentiers dangereux, des fleuves sinueux. Courbes de Bézier naturelles qui suivent le relief de votre monde.</p>
+        </div>
+        <div class="lp-feature-visual" aria-hidden="true">
+          <svg viewBox="0 0 300 200" width="300" height="200">
+            <path d="M30,180 C80,140 120,60 180,50 S260,80 280,30" fill="none" stroke="#C4A882" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M20,40 C60,60 80,120 100,160 S130,190 160,180" fill="none" stroke="#4A7FB5" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+            <path d="M100,160 C120,140 140,150 160,180" fill="none" stroke="#4A7FB5" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+            <circle cx="30" cy="180" r="3" fill="#C4A882"/><circle cx="280" cy="30" r="3" fill="#C4A882"/>
+            <text x="36" y="176" fill="#8A7A6A" font-size="8" font-family="Source Serif 4,serif">Départ</text>
+            <text x="240" y="26" fill="#8A7A6A" font-size="8" font-family="Source Serif 4,serif">Arrivée</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="lp-feature lp-feature-row-reverse">
+        <div class="lp-feature-text">
+          <span class="lp-feature-num" aria-hidden="true">04</span>
+          <h3 class="lp-feature-title">Timeline interactive</h3>
+          <p class="lp-feature-desc">Déroulez l'histoire de votre monde sur une frise chronologique. Batailles, fondations, catastrophes — chaque événement lié aux entités de votre carte.</p>
+        </div>
+        <div class="lp-feature-visual" aria-hidden="true">
+          <svg viewBox="0 0 300 200" width="300" height="200">
+            <line x1="30" y1="100" x2="270" y2="100" stroke="#2E2416" stroke-width="1.5"/>
+            <line x1="30" y1="94" x2="30" y2="106" stroke="#5A4A3A" stroke-width="1"/>
+            <line x1="270" y1="94" x2="270" y2="106" stroke="#5A4A3A" stroke-width="1"/>
+            <circle cx="70" cy="100" r="5" fill="#8B2635"/><text x="58" y="85" fill="#C4A882" font-size="8" font-family="Cinzel,serif">An 23</text>
+            <circle cx="140" cy="100" r="5" fill="#C4A882"/><text x="122" y="125" fill="#8A7A6A" font-size="8" font-family="Source Serif 4,serif">An 456</text>
+            <circle cx="210" cy="100" r="5" fill="#8B2635"/><text x="195" y="85" fill="#C4A882" font-size="8" font-family="Cinzel,serif">An 800</text>
+            <text x="55" y="72" fill="#5A4A3A" font-size="7" font-family="Source Serif 4,serif" font-style="italic">Fondation</text>
+            <text x="120" y="140" fill="#5A4A3A" font-size="7" font-family="Source Serif 4,serif" font-style="italic">Alliance</text>
+            <text x="198" y="72" fill="#5A4A3A" font-size="7" font-family="Source Serif 4,serif" font-style="italic">Guerre</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="lp-feature lp-feature-row">
+        <div class="lp-feature-text">
+          <span class="lp-feature-num" aria-hidden="true">05</span>
+          <h3 class="lp-feature-title">Export SVG haute qualité</h3>
+          <p class="lp-feature-desc">Exportez votre carte en SVG vectoriel — parfait pour l'impression, les livres, les wikis. Chaque trait, chaque label, net à n'importe quelle résolution.</p>
+        </div>
+        <div class="lp-feature-visual" aria-hidden="true">
+          <svg viewBox="0 0 300 200" width="300" height="200">
+            <rect x="60" y="30" width="180" height="140" rx="4" fill="none" stroke="#2E2416" stroke-width="1"/>
+            <rect x="70" y="40" width="160" height="120" rx="2" fill="#0D0A07" stroke="#5A4A3A" stroke-width="0.5"/>
+            <polygon points="100,130 130,70 170,90 210,60 210,130" fill="#8B263515" stroke="#8B2635" stroke-width="0.8"/>
+            <circle cx="120" cy="100" r="2" fill="#C4A882"/><circle cx="180" cy="80" r="2" fill="#C4A882"/>
+            <text x="100" y="155" fill="#C4A882" font-size="10" font-family="Cinzel,serif" letter-spacing="3">SVG</text>
+            <path d="M245,85 L265,85 L255,95Z" fill="#5A4A3A"/>
+            <text x="244" y="110" fill="#5A4A3A" font-size="7" font-family="Source Serif 4,serif">Export</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="lp-feature lp-feature-row-reverse">
+        <div class="lp-feature-text">
+          <span class="lp-feature-num" aria-hidden="true">06</span>
+          <h3 class="lp-feature-title">Thèmes &amp; Ambiances</h3>
+          <p class="lp-feature-desc">Parchemin ancien, encre sépia, nuit étoilée, heure dorée — sept thèmes qui transforment l'atmosphère de votre carte en un clic.</p>
+        </div>
+        <div class="lp-feature-visual" aria-hidden="true">
+          <svg viewBox="0 0 300 200" width="300" height="200">
+            <rect x="30" y="50" width="60" height="100" rx="6" fill="#F5F0E8" stroke="#C4A882" stroke-width="1" opacity="0.8"/>
+            <text x="45" y="108" fill="#2C1810" font-size="7" font-family="Source Serif 4,serif">Parchemin</text>
+            <rect x="100" y="50" width="60" height="100" rx="6" fill="#1A1208" stroke="#C4A882" stroke-width="1" opacity="0.8"/>
+            <text x="115" y="108" fill="#C4A882" font-size="7" font-family="Source Serif 4,serif">Sombre</text>
+            <rect x="170" y="50" width="60" height="100" rx="6" fill="#1a1a2e" stroke="#4A7FB5" stroke-width="1" opacity="0.8"/>
+            <text x="192" y="108" fill="#7BA4CC" font-size="7" font-family="Source Serif 4,serif">Nuit</text>
+            <rect x="240" y="50" width="60" height="100" rx="6" fill="#2C1810" stroke="#C9A84C" stroke-width="1" opacity="0.8"/>
+            <text x="247" y="108" fill="#C9A84C" font-size="7" font-family="Source Serif 4,serif">Heure dorée</text>
+          </svg>
+        </div>
       </div>
     </section>
 
-    <section class="home-section" id="worlds-section">
-      <h2 class="section-title">Mes mondes</h2>
-      <div id="worlds-grid" class="worlds-grid"></div>
+    <!-- 6. OPEN SOURCE -->
+    <section class="lp-section lp-opensource-section" id="opensource-section" aria-label="Open Source">
+      <div class="lp-opensource-inner">
+        <div class="lp-compass-rose" aria-hidden="true">
+          <svg viewBox="0 0 200 200" width="160" height="160">
+            <circle cx="100" cy="100" r="90" fill="none" stroke="#2E2416" stroke-width="0.75"/>
+            <circle cx="100" cy="100" r="80" fill="none" stroke="#2E2416" stroke-width="0.5"/>
+            <g stroke="#5A4A3A" stroke-width="0.5">
+              <line x1="100" y1="10" x2="100" y2="18"/><line x1="100" y1="182" x2="100" y2="190"/>
+              <line x1="10" y1="100" x2="18" y2="100"/><line x1="182" y1="100" x2="190" y2="100"/>
+              <line x1="36" y1="36" x2="42" y2="42"/><line x1="158" y1="158" x2="164" y2="164"/>
+              <line x1="164" y1="36" x2="158" y2="42"/><line x1="36" y1="164" x2="42" y2="158"/>
+            </g>
+            <polygon points="100,16 106,60 100,50 94,60" fill="#8B2635"/>
+            <polygon points="100,184 106,140 100,150 94,140" fill="#2E2416"/>
+            <polygon points="16,100 60,94 50,100 60,106" fill="#2E2416"/>
+            <polygon points="184,100 140,94 150,100 140,106" fill="#2E2416"/>
+            <polygon points="40,40 72,72 60,72 72,60" fill="#2E2416" opacity="0.5"/>
+            <polygon points="160,40 128,72 140,72 128,60" fill="#2E2416" opacity="0.5"/>
+            <polygon points="40,160 72,128 60,128 72,140" fill="#2E2416" opacity="0.5"/>
+            <polygon points="160,160 128,128 140,128 128,140" fill="#2E2416" opacity="0.5"/>
+            <circle cx="100" cy="100" r="6" fill="none" stroke="#C4A882" stroke-width="1"/>
+            <circle cx="100" cy="100" r="2" fill="#C4A882"/>
+            <text x="100" y="8" fill="#C4A882" font-size="9" font-family="Cinzel,serif" text-anchor="middle" dominant-baseline="auto">N</text>
+            <text x="100" y="198" fill="#5A4A3A" font-size="9" font-family="Cinzel,serif" text-anchor="middle" dominant-baseline="auto">S</text>
+            <text x="5" y="104" fill="#5A4A3A" font-size="9" font-family="Cinzel,serif" text-anchor="middle">O</text>
+            <text x="195" y="104" fill="#5A4A3A" font-size="9" font-family="Cinzel,serif" text-anchor="middle">E</text>
+          </svg>
+        </div>
+
+        <h2 class="lp-opensource-title">Open Source, pour toujours</h2>
+        <p class="lp-opensource-desc">Cartographer est un projet communautaire sous licence MIT. Consultez le code, proposez des améliorations, créez votre propre version — la cartographie appartient à tous.</p>
+
+        <div class="lp-gh-stats" id="lp-gh-stats" role="list" aria-label="Statistiques GitHub">
+          <div class="lp-gh-stat" role="listitem">
+            <svg viewBox="0 0 16 16" width="16" height="16"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z" fill="currentColor"/></svg>
+            <span class="lp-gh-stat-val" id="lp-gh-stars">—</span>
+            <span class="lp-gh-stat-label">Stars</span>
+          </div>
+          <div class="lp-gh-stat" role="listitem">
+            <svg viewBox="0 0 16 16" width="16" height="16"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75v-.878a2.25 2.25 0 111.5 0v.878a2.25 2.25 0 01-2.25 2.25h-1.5v2.128a2.251 2.251 0 11-1.5 0V8.5h-1.5A2.25 2.25 0 013.5 6.25v-.878a2.25 2.25 0 111.5 0zM5 3.25a.75.75 0 10-1.5 0 .75.75 0 001.5 0zm6.75.75a.75.75 0 100-1.5.75.75 0 000 1.5zM8 12.75a.75.75 0 10-1.5 0 .75.75 0 001.5 0z" fill="currentColor"/></svg>
+            <span class="lp-gh-stat-val" id="lp-gh-forks">—</span>
+            <span class="lp-gh-stat-label">Forks</span>
+          </div>
+          <div class="lp-gh-stat" role="listitem">
+            <svg viewBox="0 0 16 16" width="16" height="16"><path d="M8 9.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" fill="currentColor"/><path fill-rule="evenodd" d="M8 0a8 8 0 100 16A8 8 0 008 0zM1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0z" fill="currentColor"/></svg>
+            <span class="lp-gh-stat-val" id="lp-gh-issues">—</span>
+            <span class="lp-gh-stat-label">Issues</span>
+          </div>
+        </div>
+
+        <div class="lp-opensource-ctas">
+          <a href="https://github.com/mal0004/Cartographer" target="_blank" rel="noopener noreferrer" class="lp-cta-primary">
+            <svg viewBox="0 0 16 16" width="16" height="16" class="lp-gh-icon"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" fill="currentColor"/></svg>
+            Voir sur GitHub
+          </a>
+          <a href="#worlds-section" class="lp-cta-outline">Commencer à créer</a>
+        </div>
+      </div>
     </section>
 
-    <section class="home-section" id="templates-section">
-      <h2 class="section-title">Partir d'un template</h2>
-      <div id="templates-grid" class="templates-grid"></div>
-    </section>
+    <!-- 7. FOOTER -->
+    <footer class="lp-footer" role="contentinfo">
+      <div class="lp-footer-top">
+        <div class="lp-footer-separator" aria-hidden="true">
+          <svg width="100%" height="1" preserveAspectRatio="none">
+            <line x1="0" y1="0.5" x2="100%" y2="0.5" stroke="#2E2416" stroke-width="1"/>
+          </svg>
+        </div>
+      </div>
 
-    <footer class="home-footer">
-      <svg class="footer-compass" viewBox="0 0 60 60" width="40" height="40" aria-hidden="true">
-        <g transform="translate(30,30)">
-          <polygon points="0,-25 3,-8 -3,-8" fill="var(--accent)"/>
-          <polygon points="0,25 3,8 -3,8" fill="var(--border)"/>
-          <polygon points="-25,0 -8,3 -8,-3" fill="var(--border)"/>
-          <polygon points="25,0 8,3 8,-3" fill="var(--border)"/>
-          <circle r="3" fill="none" stroke="var(--accent)" stroke-width="1"/>
-        </g>
-      </svg>
-      <p>Cartographer &mdash; MIT License</p>
+      <div class="lp-footer-grid">
+        <div class="lp-footer-col">
+          <h4 class="lp-footer-brand">Cartographer</h4>
+          <p class="lp-footer-tagline">Donnez vie à vos mondes imaginaires. Éditeur de cartes open source, gratuit et sans inscription.</p>
+          <div class="lp-footer-theme-indicator" aria-label="Thème actif">
+            <span class="lp-footer-theme-dot" aria-hidden="true"></span>
+            <span class="lp-footer-theme-label">Thème sombre</span>
+          </div>
+        </div>
+
+        <div class="lp-footer-col">
+          <h5 class="lp-footer-heading">Navigation</h5>
+          <nav class="lp-footer-nav" aria-label="Navigation du pied de page">
+            <a href="#lp-main" class="lp-footer-link">Accueil</a>
+            <a href="#worlds-section" class="lp-footer-link">Vos mondes</a>
+            <a href="#templates-section" class="lp-footer-link">Templates</a>
+            <a href="#features-section" class="lp-footer-link">Fonctionnalités</a>
+          </nav>
+        </div>
+
+        <div class="lp-footer-col">
+          <h5 class="lp-footer-heading">Projet</h5>
+          <nav class="lp-footer-nav" aria-label="Liens du projet">
+            <a href="https://github.com/mal0004/Cartographer" target="_blank" rel="noopener noreferrer" class="lp-footer-link">GitHub</a>
+            <a href="https://github.com/mal0004/Cartographer/issues" target="_blank" rel="noopener noreferrer" class="lp-footer-link">Signaler un bug</a>
+            <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer" class="lp-footer-link">Licence MIT</a>
+          </nav>
+        </div>
+      </div>
+
+      <div class="lp-footer-bottom">
+        <svg class="lp-footer-compass" viewBox="0 0 60 60" width="28" height="28" aria-hidden="true">
+          <g transform="translate(30,30)">
+            <polygon points="0,-22 3,-6 -3,-6" fill="#8B2635"/>
+            <polygon points="0,22 3,6 -3,6" fill="#2E2416"/>
+            <polygon points="-22,0 -6,3 -6,-3" fill="#2E2416"/>
+            <polygon points="22,0 6,3 6,-3" fill="#2E2416"/>
+            <circle r="2.5" fill="none" stroke="#C4A882" stroke-width="0.75"/>
+          </g>
+        </svg>
+        <p class="lp-footer-copy">&copy; 2025 Cartographer &mdash; MIT License</p>
+      </div>
     </footer>
 
     <!-- New world modal -->
     <div id="modal-new-world" class="modal" hidden>
       <div class="modal-content">
-        <h2>Create a New World</h2>
-        <label>Name<input type="text" id="new-world-name" placeholder="Middle-earth"></label>
-        <label>Description<textarea id="new-world-desc" rows="3" placeholder="A brief description..."></textarea></label>
-        <label>Timeline start<input type="number" id="new-world-tstart" value="0"></label>
-        <label>Timeline end<input type="number" id="new-world-tend" value="1000"></label>
+        <h2>Nouveau Monde</h2>
+        <label>Nom<input type="text" id="new-world-name" placeholder="Middle-earth"></label>
+        <label>Description<textarea id="new-world-desc" rows="3" placeholder="Une brève description..."></textarea></label>
+        <label>Début de la timeline<input type="number" id="new-world-tstart" value="0"></label>
+        <label>Fin de la timeline<input type="number" id="new-world-tend" value="1000"></label>
         <div class="modal-actions">
-          <button id="modal-cancel" class="btn btn-secondary">Cancel</button>
-          <button id="modal-create" class="btn btn-primary">Create</button>
+          <button id="modal-cancel" class="btn btn-secondary">Annuler</button>
+          <button id="modal-create" class="btn btn-primary">Créer</button>
         </div>
       </div>
     </div>

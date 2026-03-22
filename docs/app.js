@@ -125,6 +125,9 @@ const App = {
     } else if (savedTheme === 'night') {
       this.themeManager.applyTheme('nightgold');
     }
+
+    // Landing page scroll animations
+    this._initLandingAnimations();
   },
 
   // ─── Hero procedural map ───────────────────────────────────
@@ -132,20 +135,28 @@ const App = {
   _renderHeroMap() {
     const svg = document.getElementById('hero-map-bg');
     if (!svg) return;
-    const seed = 42;
+    const seed = 4892;
     const rand = (i) => ((Math.sin(seed * 127.1 + i * 311.7) * 43758.5453) % 1 + 1) % 1;
-    let paths = '';
-    for (let k = 0; k < 8; k++) {
-      const cx = 100 + rand(k * 10) * 1000;
-      const cy = 50 + rand(k * 10 + 1) * 400;
+
+    const W = 1400, H = 700;
+    let out = '';
+
+    for (let x = 0; x <= W; x += 100)
+      out += `<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="#C4A882" stroke-width="0.3" stroke-opacity="0.08"/>\n`;
+    for (let y = 0; y <= H; y += 80)
+      out += `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#C4A882" stroke-width="0.3" stroke-opacity="0.08"/>\n`;
+
+    const landmasses = [];
+    function makeBlob(k, cx, cy, baseR, nPts) {
       const pts = [];
-      const n = 6 + Math.floor(rand(k * 10 + 2) * 4);
-      const r = 40 + rand(k * 10 + 3) * 120;
+      const n = nPts || (7 + Math.floor(rand(k * 10 + 2) * 5));
+      const r = baseR || (50 + rand(k * 10 + 3) * 140);
       for (let i = 0; i < n; i++) {
         const a = (i / n) * Math.PI * 2;
-        const rr = r * (0.7 + rand(k * 100 + i) * 0.6);
+        const rr = r * (0.65 + rand(k * 100 + i) * 0.7);
         pts.push({ x: cx + Math.cos(a) * rr, y: cy + Math.sin(a) * rr });
       }
+      landmasses.push({ cx, cy, r, pts });
       let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
       for (let i = 0; i < pts.length; i++) {
         const p1 = pts[i];
@@ -154,11 +165,120 @@ const App = {
         d += ` Q${p1.x.toFixed(1)},${p1.y.toFixed(1)} ${mx.toFixed(1)},${my.toFixed(1)}`;
       }
       d += ' Z';
-      paths += `<path d="${d}" fill="var(--ink)" fill-opacity="0.15" stroke="var(--ink)" stroke-width="1.5" stroke-opacity="0.3"/>\n`;
+      return d;
     }
-    for (let x = 0; x <= 1200; x += 100) paths += `<line x1="${x}" y1="0" x2="${x}" y2="500" stroke="var(--ink)" stroke-width="0.3" stroke-opacity="0.15"/>\n`;
-    for (let y = 0; y <= 500; y += 80) paths += `<line x1="0" y1="${y}" x2="1200" y2="${y}" stroke="var(--ink)" stroke-width="0.3" stroke-opacity="0.15"/>\n`;
-    svg.innerHTML = paths;
+
+    const blobs = [
+      [0, 250, 250, 140], [1, 550, 180, 110], [2, 800, 350, 160],
+      [3, 1050, 200, 100], [4, 350, 480, 90],  [5, 700, 520, 80],
+      [6, 1200, 450, 120], [7, 150, 500, 70],  [8, 950, 550, 65],
+      [9, 480, 350, 55],
+    ];
+    for (const [k, cx, cy, r] of blobs) {
+      const d = makeBlob(k, cx, cy, r);
+      out += `<path d="${d}" fill="#C4A882" fill-opacity="0.12" stroke="#C4A882" stroke-width="1.2" stroke-opacity="0.2"/>\n`;
+      const dInner = makeBlob(k + 50, cx, cy, r * 0.55);
+      out += `<path d="${dInner}" fill="none" stroke="#C4A882" stroke-width="0.5" stroke-opacity="0.12" stroke-dasharray="4,3"/>\n`;
+    }
+
+    const rivers = [
+      { x1: 280, y1: 170, cx: 320, cy: 280, x2: 380, y2: 480 },
+      { x1: 780, y1: 260, cx: 820, cy: 380, x2: 720, y2: 520 },
+      { x1: 1020, y1: 140, cx: 1080, cy: 250, x2: 1050, y2: 380 },
+      { x1: 530, y1: 160, cx: 560, cy: 240, x2: 490, y2: 350 },
+    ];
+    for (const rv of rivers)
+      out += `<path d="M${rv.x1},${rv.y1} Q${rv.cx},${rv.cy} ${rv.x2},${rv.y2}" fill="none" stroke="#5A7A9A" stroke-width="1" stroke-opacity="0.2" stroke-linecap="round"/>\n`;
+
+    const cities = [
+      [220, 220, 4], [290, 300, 3], [560, 180, 4], [520, 200, 2.5],
+      [810, 320, 5], [850, 370, 2.5], [770, 400, 3], [1060, 190, 3.5],
+      [1040, 240, 2], [370, 450, 3], [700, 500, 2.5], [1180, 420, 3],
+      [160, 480, 2], [950, 530, 2], [480, 340, 2.5],
+    ];
+    for (const [cx, cy, r] of cities)
+      out += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#C4A882" fill-opacity="0.25"/>\n`;
+
+    const markers = [[220, 220], [560, 180], [810, 320], [1060, 190]];
+    for (const [mx, my] of markers)
+      out += `<path d="M${mx-4},${my} L${mx+4},${my} M${mx},${my-4} L${mx},${my+4}" stroke="#C4A882" stroke-width="0.6" stroke-opacity="0.3"/>\n`;
+
+    svg.innerHTML = out;
+
+    const homeScreen = document.getElementById('home-screen');
+    const heroMap = document.getElementById('lp-hero-map');
+    if (homeScreen && heroMap) {
+      homeScreen.addEventListener('scroll', () => {
+        const scrollY = homeScreen.scrollTop;
+        heroMap.style.transform = `translateY(${scrollY * 0.3}px)`;
+      }, { passive: true });
+    }
+  },
+
+  // ─── Landing page scroll animations ───────────────────────────
+
+  _initLandingAnimations() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const siblings = el.parentNode.querySelectorAll('.lp-stats-item');
+          const idx = Array.from(siblings).indexOf(el);
+          el.style.transitionDelay = (idx * 0.12) + 's';
+          el.classList.add('lp-visible');
+          observer.unobserve(el);
+        }
+      });
+    }, { threshold: 0.2 });
+
+    document.querySelectorAll('.lp-stats-item').forEach(el => observer.observe(el));
+
+    // Feature rows scroll reveal
+    const featureObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          featureObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('.lp-feature').forEach((el, i) => {
+      el.style.transitionDelay = (i % 2 === 0 ? '0s' : '0.1s');
+      featureObserver.observe(el);
+    });
+
+    // Open source section reveal
+    const osSection = document.querySelector('.lp-opensource-section');
+    if (osSection) {
+      const osObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            osObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.2 });
+      osObserver.observe(osSection);
+    }
+
+    // Fetch GitHub stats
+    this._fetchGitHubStats();
+  },
+
+  _fetchGitHubStats() {
+    fetch('https://api.github.com/repos/mal0004/Cartographer')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        const stars = document.getElementById('lp-gh-stars');
+        const forks = document.getElementById('lp-gh-forks');
+        const issues = document.getElementById('lp-gh-issues');
+        if (stars) stars.textContent = data.stargazers_count ?? '—';
+        if (forks) forks.textContent = data.forks_count ?? '—';
+        if (issues) issues.textContent = data.open_issues_count ?? '—';
+      })
+      .catch(() => {});
   },
 
   // ─── Screen navigation ─────────────────────────────────────
@@ -186,7 +306,16 @@ const App = {
     // "New world" dashed card
     const newCard = document.createElement('div');
     newCard.className = 'world-card world-card-new';
-    newCard.innerHTML = `<div class="world-card-new-inner"><span class="plus-icon">+</span><span>Nouveau monde</span></div>`;
+    newCard.innerHTML = `<div class="world-card-new-inner">
+      <svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M12 2a10 10 0 000 20" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <ellipse cx="12" cy="12" rx="4" ry="10" fill="none" stroke="currentColor" stroke-width="0.8"/>
+        <line x1="2" y1="9" x2="22" y2="9" stroke="currentColor" stroke-width="0.6"/>
+        <line x1="2" y1="15" x2="22" y2="15" stroke="currentColor" stroke-width="0.6"/>
+      </svg>
+      <span>Nouveau monde</span>
+    </div>`;
     newCard.addEventListener('click', () => this._showNewWorldModal());
     grid.appendChild(newCard);
 
@@ -197,20 +326,24 @@ const App = {
       const card = document.createElement('div');
       card.className = 'world-card';
       card.innerHTML = `
-        <canvas class="world-card-preview" width="640" height="360"></canvas>
+        <div class="world-card-thumb">
+          <canvas class="world-card-preview" width="640" height="360"></canvas>
+          <div class="world-card-overlay">
+            <button class="btn btn-sm card-open" aria-label="Ouvrir ${this._escapeHtml(w.name)}">Ouvrir</button>
+            <button class="btn btn-sm card-export" aria-label="Exporter ${this._escapeHtml(w.name)}">Exporter</button>
+            <button class="btn-icon delete-world" data-id="${w.id}" title="Supprimer" aria-label="Supprimer ${this._escapeHtml(w.name)}">
+              <svg viewBox="0 0 24 24" width="16" height="16"><path d="M3 6h18M8 6V4h8v2m1 0v14H7V6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
         <div class="world-card-body">
-          <button class="btn-icon delete-world" data-id="${w.id}" title="Delete">&times;</button>
           <h3>${this._escapeHtml(w.name)}</h3>
           <p>${this._escapeHtml(w.description || 'Aucune description')}</p>
           <div class="world-card-meta">
-            <span>${entities.length} entité${entities.length !== 1 ? 's' : ''}</span>
-            <span>${events.length} événement${events.length !== 1 ? 's' : ''}</span>
-            ${date ? `<span>${date}</span>` : ''}
+            <span><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.3"><polygon points="8,1 10,6 15,6 11,9 12.5,14 8,11 3.5,14 5,9 1,6 6,6"/></svg> ${entities.length} entité${entities.length !== 1 ? 's' : ''}</span>
+            <span><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"/><path d="M8 4.5v4l2.5 2" stroke-linecap="round"/></svg> ${events.length} événement${events.length !== 1 ? 's' : ''}</span>
+            ${date ? `<span>modifié le ${date}</span>` : ''}
           </div>
-        </div>
-        <div class="world-card-overlay">
-          <button class="btn btn-sm card-open">Ouvrir</button>
-          <button class="btn btn-sm card-export">Exporter</button>
         </div>
       `;
       const canvas = card.querySelector('.world-card-preview');
@@ -243,11 +376,10 @@ const App = {
   _drawWorldPreview(canvas, entities) {
     const ctx = canvas.getContext('2d');
     const w = canvas.width, h = canvas.height;
-    const style = getComputedStyle(document.documentElement);
-    ctx.fillStyle = style.getPropertyValue('--bg').trim() || '#F5F0E8';
+    ctx.fillStyle = '#1A1208';
     ctx.fillRect(0, 0, w, h);
     if (entities.length === 0) {
-      ctx.fillStyle = style.getPropertyValue('--ink-light').trim() || '#888';
+      ctx.fillStyle = '#5A4A3A';
       ctx.font = '14px sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('Monde vide', w / 2, h / 2);
       return;
@@ -265,8 +397,8 @@ const App = {
     const scale = Math.min(w / bw, h / bh);
     const ox = (w - bw * scale) / 2, oy = (h - bh * scale) / 2;
     ctx.save(); ctx.translate(ox, oy); ctx.scale(scale, scale); ctx.translate(-minX, -minY);
-    const ink = style.getPropertyValue('--ink').trim() || '#2C1810';
-    const accent = style.getPropertyValue('--accent').trim() || '#8B2635';
+    const ink = '#C4A882';
+    const accent = '#8B2635';
     for (const e of entities) {
       const d = e.data;
       if ((e.type === 'territory' || e.type === 'region') && d.points && d.points.length >= 3) {
@@ -327,28 +459,53 @@ const App = {
     const grid = document.getElementById('templates-grid');
     if (!grid || !window.WORLD_TEMPLATES) return;
     grid.innerHTML = '';
+
+    const tagMap = {
+      'fantasy-continent': ['Fantasy', 'Royaumes', 'Villes'],
+      'mysterious-archipelago': ['Îles', 'Maritime', 'Mystère'],
+      'desert-empire': ['Désert', 'Empire', 'Antique'],
+      'medieval-region': ['Médiéval', 'Régional', 'Comté'],
+      'post-apocalyptic': ['Sci-Fi', 'Ruines', 'Survie'],
+    };
+
     for (const tpl of WORLD_TEMPLATES) {
       const card = document.createElement('div');
-      card.className = 'template-card';
+      card.className = 'lp-tpl-card';
+      const tags = (tagMap[tpl.id] || []).map(t => `<span class="lp-tpl-tag">${t}</span>`).join('');
       card.innerHTML = `
-        <canvas class="template-preview" width="280" height="160"></canvas>
-        <div class="template-info">
-          <h4>${this._escapeHtml(tpl.name)}</h4>
-          <p>${this._escapeHtml(tpl.description)}</p>
+        <canvas class="lp-tpl-preview" width="280" height="160"></canvas>
+        <div class="lp-tpl-info">
+          <h4 class="lp-tpl-name">${this._escapeHtml(tpl.name)}</h4>
+          <p class="lp-tpl-desc">${this._escapeHtml(tpl.description)}</p>
+          <div class="lp-tpl-tags">${tags}</div>
+          <button class="lp-tpl-use">Utiliser ce template</button>
         </div>
       `;
       card.addEventListener('click', () => this._loadTemplate(tpl));
       grid.appendChild(card);
-      const canvas = card.querySelector('.template-preview');
+
+      const canvas = card.querySelector('.lp-tpl-preview');
       this._drawTemplatePreview(canvas, tpl);
     }
+
+    const prev = document.querySelector('.lp-carousel-prev');
+    const next = document.querySelector('.lp-carousel-next');
+    if (prev && next && grid) {
+      prev.addEventListener('click', () => {
+        grid.scrollBy({ left: -300, behavior: 'smooth' });
+      });
+      next.addEventListener('click', () => {
+        grid.scrollBy({ left: 300, behavior: 'smooth' });
+      });
+    }
+
     this._observeCards();
   },
 
   _drawTemplatePreview(canvas, tpl) {
     const ctx = canvas.getContext('2d');
     const w = canvas.width, h = canvas.height;
-    ctx.fillStyle = '#F5F0E8';
+    ctx.fillStyle = '#1A1208';
     ctx.fillRect(0, 0, w, h);
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const e of tpl.entities) {
@@ -861,7 +1018,7 @@ const App = {
         }
       });
     }, { threshold: 0.1 });
-    document.querySelectorAll('.world-card, .world-card-new, .template-card').forEach(c => observer.observe(c));
+    document.querySelectorAll('.world-card, .world-card-new, .template-card, .lp-tpl-card').forEach(c => observer.observe(c));
   },
 
   // ─── Skeleton screens ─────────────────────────────────────────
