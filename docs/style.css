@@ -2613,3 +2613,111 @@ body, .editor-topbar, .sidebar, .timeline, .toolbar, .tool-options, .modal-conte
 .lp-gh-icon {
   flex-shrink: 0;
 }
+
+/* ─── Section 7: Footer ────────────────────────────────────────── */
+
+.lp-footer {
+  background: #0D0A07;
+  padding: 0 clamp(20px, 4vw, 80px) clamp(24px, 2vw, 40px);
+  color: #5A4A3A;
+  font-family: 'Source Serif 4', serif;
+}
+
+.lp-footer-top {
+  margin-bottom: clamp(32px, 3vw, 48px);
+}
+
+/* 3-column grid */
+.lp-footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: clamp(24px, 3vw, 60px);
+  margin-bottom: clamp(32px, 3vw, 48px);
+}
+@media (max-width: 768px) {
+  .lp-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
+/* Brand column */
+.lp-footer-brand {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #C4A882;
+  margin: 0 0 10px;
+  letter-spacing: 2px;
+}
+.lp-footer-tagline {
+  font-size: 13px;
+  color: #5A4A3A;
+  line-height: 1.6;
+  margin: 0 0 16px;
+  max-width: 320px;
+}
+
+/* Theme indicator */
+.lp-footer-theme-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #5A4A3A;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.lp-footer-theme-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8B2635;
+  box-shadow: 0 0 6px #8B263580;
+}
+
+/* Column headings */
+.lp-footer-heading {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #8A7A6A;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 0 0 14px;
+}
+
+/* Navigation links */
+.lp-footer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lp-footer-link {
+  font-size: 13px;
+  color: #5A4A3A;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.lp-footer-link:hover {
+  color: #C4A882;
+}
+
+/* Bottom bar */
+.lp-footer-bottom {
+  border-top: 1px solid #1A1208;
+  padding-top: clamp(16px, 1.5vw, 24px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.lp-footer-compass {
+  animation: compass-spin 60s linear infinite;
+}
+.lp-footer-copy {
+  font-size: 11px;
+  color: #5A4A3A;
+  margin: 0;
+  letter-spacing: 0.5px;
+}

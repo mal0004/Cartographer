@@ -343,17 +343,58 @@
       </div>
     </section>
 
-    <footer class="home-footer">
-      <svg class="footer-compass" viewBox="0 0 60 60" width="40" height="40" aria-hidden="true">
-        <g transform="translate(30,30)">
-          <polygon points="0,-25 3,-8 -3,-8" fill="var(--accent)"/>
-          <polygon points="0,25 3,8 -3,8" fill="var(--border)"/>
-          <polygon points="-25,0 -8,3 -8,-3" fill="var(--border)"/>
-          <polygon points="25,0 8,3 8,-3" fill="var(--border)"/>
-          <circle r="3" fill="none" stroke="var(--accent)" stroke-width="1"/>
-        </g>
-      </svg>
-      <p>Cartographer &mdash; MIT License</p>
+    <!-- 7. FOOTER -->
+    <footer class="lp-footer" role="contentinfo">
+      <div class="lp-footer-top">
+        <div class="lp-footer-separator" aria-hidden="true">
+          <svg width="100%" height="1" preserveAspectRatio="none">
+            <line x1="0" y1="0.5" x2="100%" y2="0.5" stroke="#2E2416" stroke-width="1"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="lp-footer-grid">
+        <div class="lp-footer-col">
+          <h4 class="lp-footer-brand">Cartographer</h4>
+          <p class="lp-footer-tagline">Donnez vie à vos mondes imaginaires. Éditeur de cartes open source, gratuit et sans inscription.</p>
+          <div class="lp-footer-theme-indicator" aria-label="Thème actif">
+            <span class="lp-footer-theme-dot" aria-hidden="true"></span>
+            <span class="lp-footer-theme-label">Thème sombre</span>
+          </div>
+        </div>
+
+        <div class="lp-footer-col">
+          <h5 class="lp-footer-heading">Navigation</h5>
+          <nav class="lp-footer-nav" aria-label="Navigation du pied de page">
+            <a href="#lp-main" class="lp-footer-link">Accueil</a>
+            <a href="#worlds-section" class="lp-footer-link">Vos mondes</a>
+            <a href="#templates-section" class="lp-footer-link">Templates</a>
+            <a href="#features-section" class="lp-footer-link">Fonctionnalités</a>
+          </nav>
+        </div>
+
+        <div class="lp-footer-col">
+          <h5 class="lp-footer-heading">Projet</h5>
+          <nav class="lp-footer-nav" aria-label="Liens du projet">
+            <a href="https://github.com/mal0004/Cartographer" target="_blank" rel="noopener noreferrer" class="lp-footer-link">GitHub</a>
+            <a href="https://github.com/mal0004/Cartographer/issues" target="_blank" rel="noopener noreferrer" class="lp-footer-link">Signaler un bug</a>
+            <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer" class="lp-footer-link">Licence MIT</a>
+          </nav>
+        </div>
+      </div>
+
+      <div class="lp-footer-bottom">
+        <svg class="lp-footer-compass" viewBox="0 0 60 60" width="28" height="28" aria-hidden="true">
+          <g transform="translate(30,30)">
+            <polygon points="0,-22 3,-6 -3,-6" fill="#8B2635"/>
+            <polygon points="0,22 3,6 -3,6" fill="#2E2416"/>
+            <polygon points="-22,0 -6,3 -6,-3" fill="#2E2416"/>
+            <polygon points="22,0 6,3 6,-3" fill="#2E2416"/>
+            <circle r="2.5" fill="none" stroke="#C4A882" stroke-width="0.75"/>
+          </g>
+        </svg>
+        <p class="lp-footer-copy">&copy; 2025 Cartographer &mdash; MIT License</p>
+      </div>
     </footer>
 
     <!-- New world modal -->
