@@ -124,6 +124,9 @@ const App = {
     } else if (savedTheme === 'night') {
       this.themeManager.applyTheme('nightgold');
     }
+
+    // Landing page scroll animations
+    this._initLandingAnimations();
   },
 
   // ─── Hero procedural map ───────────────────────────────────
@@ -217,6 +220,25 @@ const App = {
         heroMap.style.transform = `translateY(${scrollY * 0.3}px)`;
       }, { passive: true });
     }
+  },
+
+  // ─── Landing page scroll animations ───────────────────────────
+
+  _initLandingAnimations() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const siblings = el.parentNode.querySelectorAll('.lp-stats-item');
+          const idx = Array.from(siblings).indexOf(el);
+          el.style.transitionDelay = (idx * 0.12) + 's';
+          el.classList.add('lp-visible');
+          observer.unobserve(el);
+        }
+      });
+    }, { threshold: 0.2 });
+
+    document.querySelectorAll('.lp-stats-item').forEach(el => observer.observe(el));
   },
 
   // ─── Screen navigation ─────────────────────────────────────
