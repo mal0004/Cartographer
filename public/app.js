@@ -239,6 +239,21 @@ const App = {
     }, { threshold: 0.2 });
 
     document.querySelectorAll('.lp-stats-item').forEach(el => observer.observe(el));
+
+    // Feature rows scroll reveal
+    const featureObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          featureObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('.lp-feature').forEach((el, i) => {
+      el.style.transitionDelay = (i % 2 === 0 ? '0s' : '0.1s');
+      featureObserver.observe(el);
+    });
   },
 
   // ─── Screen navigation ─────────────────────────────────────

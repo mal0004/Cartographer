@@ -2423,3 +2423,102 @@ body, .editor-topbar, .sidebar, .timeline, .toolbar, .tool-options, .modal-conte
 .lp-templates-section .lp-tpl-card.visible {
   animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
+
+/* ─── Section 5: Features ───────────────────────────────────────── */
+
+.lp-features-section {
+  background: #0D0A07;
+  padding: clamp(48px, 5vw, 80px) clamp(20px, 4vw, 80px);
+}
+
+/* Feature row — alternating layout */
+.lp-feature {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(32px, 4vw, 80px);
+  align-items: center;
+  padding: clamp(32px, 3vw, 56px) 0;
+  border-bottom: 1px solid #1A1208;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.lp-feature.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.lp-feature:last-child {
+  border-bottom: none;
+}
+
+/* Reverse row: visual left, text right */
+.lp-feature-row-reverse {
+  direction: rtl;
+}
+.lp-feature-row-reverse > * {
+  direction: ltr;
+}
+
+/* Feature number decoration */
+.lp-feature-num {
+  display: block;
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-size: clamp(36px, 4vw, 64px);
+  font-weight: 700;
+  color: #1A1208;
+  line-height: 1;
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+  user-select: none;
+}
+
+/* Feature text */
+.lp-feature-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(18px, 1.6vw, 24px);
+  font-weight: 500;
+  color: #F5F0E8;
+  margin: 0 0 12px;
+}
+.lp-feature-desc {
+  font-family: 'Source Serif 4', serif;
+  font-size: clamp(14px, 1.1vw, 16px);
+  color: #8A7A6A;
+  line-height: 1.7;
+  margin: 0;
+  max-width: 480px;
+}
+
+/* Feature visual — SVG illustration */
+.lp-feature-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lp-feature-visual svg {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  opacity: 0.85;
+}
+
+/* Responsive: stack on mobile */
+@media (max-width: 768px) {
+  .lp-feature {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    text-align: center;
+  }
+  .lp-feature-row-reverse {
+    direction: ltr;
+  }
+  .lp-feature-desc {
+    max-width: none;
+  }
+  .lp-feature-visual {
+    order: -1;
+  }
+  .lp-feature-visual svg {
+    max-width: 240px;
+  }
+}
