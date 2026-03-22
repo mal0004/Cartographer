@@ -2014,3 +2014,240 @@ body, .editor-topbar, .sidebar, .timeline, .toolbar, .tool-options, .modal-conte
     padding: 8px 0;
   }
 }
+
+/* ─── LP Sections (shared) ───────────────────────────────────── */
+.lp-section {
+  padding: 80px 0;
+}
+.lp-section-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.lp-section-ornament {
+  display: block;
+  margin: 0 auto 20px;
+}
+.lp-section-title {
+  font-family: 'Cinzel', serif;
+  font-weight: 500;
+  font-size: 32px;
+  color: #F5F0E8;
+  margin: 0;
+}
+.lp-section-sub {
+  font-family: 'Source Serif 4', 'Georgia', serif;
+  font-style: italic;
+  font-size: 16px;
+  color: #8A7A6A;
+  margin: 8px 0 0;
+}
+
+/* ─── 3. WORLDS SECTION ──────────────────────────────────────── */
+.lp-worlds-section {
+  background: #0D0A07;
+}
+
+.lp-worlds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  padding: 0 clamp(24px, 5vw, 80px);
+}
+
+/* Override old .worlds-grid if #worlds-grid is used */
+#worlds-grid.lp-worlds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+/* Dark world card */
+.lp-worlds-section .world-card {
+  background: #1A1208;
+  border: 1px solid #2E2416;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+.lp-worlds-section .world-card:hover {
+  border-color: #8B2635;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+/* Thumbnail wrapper */
+.world-card-thumb {
+  position: relative;
+  overflow: hidden;
+}
+.lp-worlds-section .world-card-preview {
+  width: 100%;
+  height: 180px;
+  display: block;
+  background: #1A1208;
+  border-bottom: 1px solid #2E2416;
+}
+
+/* Overlay on thumbnail only */
+.lp-worlds-section .world-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(13,10,7,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+.lp-worlds-section .world-card:hover .world-card-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+.lp-worlds-section .world-card-overlay .card-open {
+  background: #8B2635;
+  border: 1px solid #8B2635;
+  color: #F5F0E8;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  padding: 6px 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.lp-worlds-section .world-card-overlay .card-open:hover {
+  background: #A33040;
+}
+.lp-worlds-section .world-card-overlay .card-export {
+  background: transparent;
+  border: 1px solid #C4A882;
+  color: #C4A882;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  padding: 6px 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.lp-worlds-section .world-card-overlay .card-export:hover {
+  background: rgba(196,168,130,0.1);
+}
+.lp-worlds-section .world-card-overlay .delete-world {
+  background: transparent;
+  border: 1px solid #5A4A3A;
+  color: #8A7A6A;
+  border-radius: 2px;
+  padding: 5px 7px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: static;
+  opacity: 1;
+  font-size: inherit;
+}
+.lp-worlds-section .world-card-overlay .delete-world:hover {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+/* Card body */
+.lp-worlds-section .world-card-body {
+  padding: 20px;
+}
+.lp-worlds-section .world-card h3 {
+  font-family: 'Cinzel', serif;
+  font-weight: 500;
+  font-size: 18px;
+  color: #F5F0E8;
+  margin: 0 0 6px;
+}
+.lp-worlds-section .world-card p {
+  font-family: 'Source Serif 4', 'Georgia', serif;
+  font-size: 14px;
+  color: #8A7A6A;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+.lp-worlds-section .world-card-meta {
+  font-size: 12px;
+  color: #5A4A3A;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #2E2416;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.lp-worlds-section .world-card-meta svg {
+  vertical-align: -1px;
+  margin-right: 2px;
+}
+
+/* New world card (dashed) */
+.lp-worlds-section .world-card-new {
+  border: 1px dashed #2E2416;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  background: transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.lp-worlds-section .world-card-new:hover {
+  border-color: #8B2635;
+  background: rgba(139,38,53,0.05);
+}
+.lp-worlds-section .world-card-new-inner {
+  text-align: center;
+  color: #5A4A3A;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.lp-worlds-section .world-card-new-inner svg {
+  color: #2E2416;
+  transition: color 0.25s;
+}
+.lp-worlds-section .world-card-new:hover .world-card-new-inner svg {
+  color: #8B2635;
+}
+.lp-worlds-section .world-card-new-inner span {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  transition: color 0.25s;
+}
+.lp-worlds-section .world-card-new:hover .world-card-new-inner span {
+  color: #C4A882;
+}
+
+/* Card animations (reuse existing fade-up) */
+.lp-worlds-section .world-card,
+.lp-worlds-section .world-card-new {
+  opacity: 0;
+}
+.lp-worlds-section .world-card.visible,
+.lp-worlds-section .world-card-new.visible {
+  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Skeleton cards in dark theme */
+.lp-worlds-section .skeleton-card {
+  background: #1A1208;
+  border: 1px solid #2E2416;
+}
+.lp-worlds-section .skeleton-card .skeleton-preview {
+  background: linear-gradient(90deg, #1A1208 25%, #2E2416 37%, #1A1208 63%);
+  background-size: 600px 100%;
+}
+.lp-worlds-section .skeleton-card .skeleton-line {
+  background: linear-gradient(90deg, #1A1208 25%, #2E2416 37%, #1A1208 63%);
+  background-size: 600px 100%;
+}

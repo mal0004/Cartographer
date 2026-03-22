@@ -263,36 +263,48 @@ const App = {
     const worlds = await this._api('GET', '/api/worlds');
     grid.innerHTML = '';
 
-    // "New world" dashed card first
+    // "New world" dashed card
     const newCard = document.createElement('div');
     newCard.className = 'world-card world-card-new';
-    newCard.innerHTML = `<div class="world-card-new-inner"><span class="plus-icon">+</span><span>Nouveau monde</span></div>`;
+    newCard.innerHTML = `<div class="world-card-new-inner">
+      <svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M12 2a10 10 0 000 20" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <ellipse cx="12" cy="12" rx="4" ry="10" fill="none" stroke="currentColor" stroke-width="0.8"/>
+        <line x1="2" y1="9" x2="22" y2="9" stroke="currentColor" stroke-width="0.6"/>
+        <line x1="2" y1="15" x2="22" y2="15" stroke="currentColor" stroke-width="0.6"/>
+      </svg>
+      <span>Nouveau monde</span>
+    </div>`;
     newCard.addEventListener('click', () => this._showNewWorldModal());
     grid.appendChild(newCard);
 
     for (const w of worlds) {
       const card = document.createElement('div');
       card.className = 'world-card';
-      // Fetch entity/event counts
       const entities = await this._api('GET', `/api/worlds/${w.id}/entities`);
       const events = await this._api('GET', `/api/worlds/${w.id}/events`);
       const date = w.updated_at ? new Date(w.updated_at).toLocaleDateString('fr-FR') : '';
 
       card.innerHTML = `
-        <canvas class="world-card-preview" width="640" height="360"></canvas>
+        <div class="world-card-thumb">
+          <canvas class="world-card-preview" width="640" height="360"></canvas>
+          <div class="world-card-overlay">
+            <button class="btn btn-sm card-open" aria-label="Ouvrir ${this._escapeHtml(w.name)}">Ouvrir</button>
+            <button class="btn btn-sm card-export" aria-label="Exporter ${this._escapeHtml(w.name)}">Exporter</button>
+            <button class="btn-icon delete-world" data-id="${w.id}" title="Supprimer" aria-label="Supprimer ${this._escapeHtml(w.name)}">
+              <svg viewBox="0 0 24 24" width="16" height="16"><path d="M3 6h18M8 6V4h8v2m1 0v14H7V6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
         <div class="world-card-body">
-          <button class="btn-icon delete-world" data-id="${w.id}" title="Delete">&times;</button>
           <h3>${this._escapeHtml(w.name)}</h3>
           <p>${this._escapeHtml(w.description || 'Aucune description')}</p>
           <div class="world-card-meta">
-            <span>${entities.length} entité${entities.length !== 1 ? 's' : ''}</span>
-            <span>${events.length} événement${events.length !== 1 ? 's' : ''}</span>
-            ${date ? `<span>${date}</span>` : ''}
+            <span><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.3"><polygon points="8,1 10,6 15,6 11,9 12.5,14 8,11 3.5,14 5,9 1,6 6,6"/></svg> ${entities.length} entité${entities.length !== 1 ? 's' : ''}</span>
+            <span><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"/><path d="M8 4.5v4l2.5 2" stroke-linecap="round"/></svg> ${events.length} événement${events.length !== 1 ? 's' : ''}</span>
+            ${date ? `<span>modifié le ${date}</span>` : ''}
           </div>
-        </div>
-        <div class="world-card-overlay">
-          <button class="btn btn-sm card-open">Ouvrir</button>
-          <button class="btn btn-sm card-export">Exporter</button>
         </div>
       `;
 
@@ -332,12 +344,11 @@ const App = {
   _drawWorldPreview(canvas, entities) {
     const ctx = canvas.getContext('2d');
     const w = canvas.width, h = canvas.height;
-    const style = getComputedStyle(document.documentElement);
-    ctx.fillStyle = style.getPropertyValue('--bg').trim() || '#F5F0E8';
+    ctx.fillStyle = '#1A1208';
     ctx.fillRect(0, 0, w, h);
 
     if (entities.length === 0) {
-      ctx.fillStyle = style.getPropertyValue('--ink-light').trim() || '#888';
+      ctx.fillStyle = '#5A4A3A';
       ctx.font = '14px sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('Monde vide', w / 2, h / 2);
@@ -362,8 +373,8 @@ const App = {
     ctx.scale(scale, scale);
     ctx.translate(-minX, -minY);
 
-    const ink = style.getPropertyValue('--ink').trim() || '#2C1810';
-    const accent = style.getPropertyValue('--accent').trim() || '#8B2635';
+    const ink = '#C4A882';
+    const accent = '#8B2635';
     for (const e of entities) {
       const d = e.data;
       if ((e.type === 'territory' || e.type === 'region') && d.points && d.points.length >= 3) {
