@@ -254,6 +254,38 @@ const App = {
       el.style.transitionDelay = (i % 2 === 0 ? '0s' : '0.1s');
       featureObserver.observe(el);
     });
+
+    // Open source section reveal
+    const osSection = document.querySelector('.lp-opensource-section');
+    if (osSection) {
+      const osObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            osObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.2 });
+      osObserver.observe(osSection);
+    }
+
+    // Fetch GitHub stats
+    this._fetchGitHubStats();
+  },
+
+  _fetchGitHubStats() {
+    fetch('https://api.github.com/repos/mal0004/Cartographer')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        const stars = document.getElementById('lp-gh-stars');
+        const forks = document.getElementById('lp-gh-forks');
+        const issues = document.getElementById('lp-gh-issues');
+        if (stars) stars.textContent = data.stargazers_count ?? '—';
+        if (forks) forks.textContent = data.forks_count ?? '—';
+        if (issues) issues.textContent = data.open_issues_count ?? '—';
+      })
+      .catch(() => {});
   },
 
   // ─── Screen navigation ─────────────────────────────────────
