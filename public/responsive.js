@@ -190,7 +190,4 @@ class ResponsiveUI {
   }
 }
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => new ResponsiveUI());
-
-window.ResponsiveUI = ResponsiveUI;
+export { ResponsiveUI };

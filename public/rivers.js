@@ -17,7 +17,7 @@
  * Zero dependencies beyond noise.js (SimplexNoise) and terrain-renderer.js cache.
  */
 
-/* global SimplexNoise */
+import { SimplexNoise } from './noise.js';
 
 class RiverEngine {
   constructor() {
@@ -526,4 +526,4 @@ class RiverEngine {
   }
 }
 
-window.RiverEngine = RiverEngine;
+export { RiverEngine };

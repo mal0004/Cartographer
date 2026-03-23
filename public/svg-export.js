@@ -5,6 +5,8 @@
  * compass rose styles, title cartouche, and custom scale.
  */
 
+import { ALL_SYMBOLS } from './symbols.js';
+
 const SVG_EXPORT_DEFAULTS = {
   vignette: true,
   paperGrain: true,
@@ -160,7 +162,7 @@ class SvgExportPanel {
         const pts = d.points.map(p => `${p.x},${p.y}`).join(' ');
         content += `<polygon points="${pts}" fill="#999" fill-opacity="0.15" stroke="#666" stroke-width="1"/>\n`;
       } else if (e.type === 'symbol') {
-        const sym = window.ALL_SYMBOLS ? window.ALL_SYMBOLS.find(s => s.id === d.symbolId) : null;
+        const sym = ALL_SYMBOLS ? ALL_SYMBOLS.find(s => s.id === d.symbolId) : null;
         if (sym) {
           const sz = d.size || 32;
           content += `<g transform="translate(${d.x - sz/2},${d.y - sz/2}) scale(${sz/24})">${sym.svg.replace(/currentColor/g, d.color || '#2C1810')}</g>\n`;
@@ -261,4 +263,4 @@ class SvgExportPanel {
   }
 }
 
-window.SvgExportPanel = SvgExportPanel;
+export { SvgExportPanel, SVG_EXPORT_DEFAULTS };

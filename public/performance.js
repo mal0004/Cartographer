@@ -416,4 +416,4 @@ class PerformanceManager {
   }
 }
 
-window.PerformanceManager = PerformanceManager;
+export { PerformanceManager };

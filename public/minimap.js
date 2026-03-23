@@ -196,4 +196,4 @@ class Minimap {
   }
 }
 
-window.Minimap = Minimap;
+export { Minimap };
