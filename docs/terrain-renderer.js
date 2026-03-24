@@ -8,7 +8,7 @@
  * Integrates into CanvasEngine's render pipeline.
  */
 
-/* global HeightMap, SimplexNoise */
+import { HeightMap, SimplexNoise } from './noise.js';
 
 const TERRAIN_TYPES = {
   plain:    { label: 'Plains',    elevMin: 0.3,  elevMax: 0.5,  contours: 2,  color: '#C8D8A0', colorDark: '#8FA860' },
@@ -31,7 +31,7 @@ class TerrainRenderer {
 
   _initWorker() {
     try {
-      this._worker = new Worker('worker-noise.js');
+      this._worker = new Worker('/worker-noise.js');
       this._worker.onmessage = (e) => this._onWorkerResult(e.data);
     } catch (err) {
       // Fallback: generate on main thread
@@ -642,5 +642,4 @@ class TerrainRenderer {
   }
 }
 
-window.TerrainRenderer = TerrainRenderer;
-window.TERRAIN_TYPES = TERRAIN_TYPES;
+export { TerrainRenderer, TERRAIN_TYPES };

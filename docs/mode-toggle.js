@@ -5,6 +5,8 @@
  * Persisted in localStorage (not per world).
  */
 
+import { t } from './i18n.js';
+
 class ModeToggle {
   constructor() {
     this.advanced = localStorage.getItem('cartographer-advanced') === '1';
@@ -20,7 +22,7 @@ class ModeToggle {
     const btn = document.createElement('button');
     btn.id = 'btn-settings';
     btn.className = 'btn-icon';
-    btn.title = 'Paramètres';
+    btn.title = t('editor.modeToggle.settings');
     btn.innerHTML = '&#9881;';
     topbarRight.appendChild(btn);
 
@@ -32,7 +34,7 @@ class ModeToggle {
     dropdown.innerHTML = `
       <label class="settings-toggle-label">
         <input type="checkbox" id="advanced-mode-toggle" ${this.advanced ? 'checked' : ''}>
-        <span>Mode avancé</span>
+        <span>${t('editor.modeToggle.advancedMode')}</span>
       </label>
     `;
     btn.parentElement.style.position = 'relative';
@@ -66,4 +68,4 @@ class ModeToggle {
   }
 }
 
-window.ModeToggle = ModeToggle;
+export { ModeToggle };

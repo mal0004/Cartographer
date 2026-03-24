@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;500;700&family=IM+Fell+English:ital@1&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;500;700&family=IM+Fell+English:ital@1&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/style.css">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -28,20 +28,27 @@
   </script>
 </head>
 <body>
-  <a href="#lp-main" class="skip-link">Aller au contenu</a>
+  <a href="#lp-main" class="skip-link" data-i18n="common.skipToContent">Aller au contenu</a>
 
   <!-- ─── Home screen ─────────────────────────────────── -->
   <div id="home-screen" class="screen active">
 
+    <!-- Language toggle (landing) -->
+    <div class="lang-toggle lang-toggle-landing" role="group" aria-label="Language">
+      <button class="lang-btn" data-lang="fr" aria-pressed="true">FR</button>
+      <span aria-hidden="true">&middot;</span>
+      <button class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+
     <!-- 1. HERO -->
-    <section class="lp-hero" aria-label="Présentation">
+    <section class="lp-hero" data-i18n-aria="landing.hero.ariaPresentation" aria-label="Présentation">
       <div class="lp-hero-map" id="lp-hero-map" aria-hidden="true">
-        <svg id="hero-map-bg" viewBox="0 0 1400 700" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Carte générée procéduralement"></svg>
+        <svg id="hero-map-bg" viewBox="0 0 1400 700" preserveAspectRatio="xMidYMid slice" role="img" data-i18n-aria="landing.hero.ariaMap" aria-label="Carte générée procéduralement"></svg>
       </div>
       <div class="lp-hero-overlay" aria-hidden="true"></div>
       <div class="lp-hero-content" id="lp-main">
         <!-- Ornament -->
-        <svg class="lp-ornament" width="200" height="20" viewBox="0 0 200 20" role="img" aria-label="Ornement décoratif">
+        <svg class="lp-ornament" width="200" height="20" viewBox="0 0 200 20" role="img" data-i18n-aria="landing.hero.ariaOrnament" aria-label="Ornement décoratif">
           <line x1="0" y1="10" x2="82" y2="10" stroke="#C4A882" stroke-width="0.75" opacity="0.6"/>
           <circle cx="88" cy="10" r="1.5" fill="#C4A882" opacity="0.5"/>
           <path d="M95,10 L100,4 L105,10 L100,16Z" fill="none" stroke="#C4A882" stroke-width="0.75" opacity="0.8"/>
@@ -50,21 +57,21 @@
           <line x1="118" y1="10" x2="200" y2="10" stroke="#C4A882" stroke-width="0.75" opacity="0.6"/>
         </svg>
 
-        <h1 class="lp-hero-title">CARTOGRAPHER</h1>
-        <p class="lp-hero-tagline">Donnez vie à vos mondes imaginaires</p>
-        <p class="lp-hero-sub">Dessinez, annotez, exportez. Open source et gratuit.</p>
+        <h1 class="lp-hero-title" data-i18n="landing.hero.title">CARTOGRAPHER</h1>
+        <p class="lp-hero-tagline" data-i18n="landing.hero.tagline">Donnez vie à vos mondes imaginaires</p>
+        <p class="lp-hero-sub" data-i18n="landing.hero.sub">Dessinez, annotez, exportez. Open source et gratuit.</p>
 
         <div class="lp-hero-ctas">
-          <button id="btn-new-world" class="lp-cta-primary" aria-label="Créer un nouveau monde">Créer un monde</button>
-          <a href="#templates-section" class="lp-cta-outline" aria-label="Voir la démo">Voir la démo</a>
+          <button id="btn-new-world" class="lp-cta-primary" data-i18n="landing.hero.ctaCreate" data-i18n-aria="landing.hero.ctaCreateAria" aria-label="Créer un nouveau monde">Créer un monde</button>
+          <a href="#templates-section" class="lp-cta-outline" data-i18n="landing.hero.ctaDemo" data-i18n-aria="landing.hero.ctaDemo" aria-label="Voir la démo">Voir la démo</a>
         </div>
-        <label class="lp-import-link" aria-label="Importer un fichier JSON">
-          Importer JSON
+        <label class="lp-import-link" data-i18n-aria="landing.hero.ctaImportAria" aria-label="Importer un fichier JSON">
+          <span data-i18n="landing.hero.ctaImport">Importer JSON</span>
           <input type="file" id="import-file" accept=".json" hidden>
         </label>
       </div>
       <div class="lp-scroll-indicator" aria-hidden="true">
-        <span class="lp-scroll-text">Explorer</span>
+        <span class="lp-scroll-text" data-i18n="landing.hero.scroll">Explorer</span>
         <svg class="lp-scroll-chevron" viewBox="0 0 24 24" width="16" height="16">
           <path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -72,9 +79,9 @@
     </section>
 
     <!-- 2. STATS BAND -->
-    <div class="lp-stats" role="list" aria-label="Caractéristiques clés">
+    <div class="lp-stats" role="list" data-i18n-aria="landing.stats.ariaLabel" aria-label="Caractéristiques clés">
       <div class="lp-stats-item" role="listitem">
-        <svg class="lp-stats-icon" viewBox="0 0 24 24" width="20" height="20" role="img" aria-label="Étoile">
+        <svg class="lp-stats-icon" viewBox="0 0 24 24" width="20" height="20" role="img" data-i18n-aria="landing.stats.ariaStar" aria-label="Étoile">
           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
         </svg>
         <span class="lp-stats-title">Open Source</span>
@@ -82,33 +89,33 @@
       </div>
       <div class="lp-stats-sep" aria-hidden="true"></div>
       <div class="lp-stats-item" role="listitem">
-        <svg class="lp-stats-icon" viewBox="0 0 24 24" width="20" height="20" role="img" aria-label="Serveur">
+        <svg class="lp-stats-icon" viewBox="0 0 24 24" width="20" height="20" role="img" data-i18n-aria="landing.stats.ariaServer" aria-label="Serveur">
           <rect x="2" y="2" width="20" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
           <rect x="2" y="14" width="20" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
           <circle cx="6" cy="6" r="1" fill="currentColor"/><circle cx="6" cy="18" r="1" fill="currentColor"/>
         </svg>
         <span class="lp-stats-title">Zero Cloud</span>
-        <span class="lp-stats-sub">Vos données restent chez vous</span>
+        <span class="lp-stats-sub" data-i18n="landing.stats.localFirst">Vos données restent chez vous</span>
       </div>
       <div class="lp-stats-sep" aria-hidden="true"></div>
       <div class="lp-stats-item" role="listitem">
-        <svg class="lp-stats-icon" viewBox="0 0 24 24" width="20" height="20" role="img" aria-label="Plume">
+        <svg class="lp-stats-icon" viewBox="0 0 24 24" width="20" height="20" role="img" data-i18n-aria="landing.stats.ariaPen" aria-label="Plume">
           <path d="M20.24 12.24a6 6 0 00-8.49-8.49L5 10.5V19h8.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
           <line x1="16" y1="8" x2="2" y2="22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           <line x1="17.5" y1="15" x2="9" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
         <span class="lp-stats-title">50+ Symboles</span>
-        <span class="lp-stats-sub">Bibliothèque cartographique</span>
+        <span class="lp-stats-sub" data-i18n="landing.stats.symbols">Bibliothèque cartographique</span>
       </div>
       <div class="lp-stats-sep" aria-hidden="true"></div>
       <div class="lp-stats-item" role="listitem">
-        <svg class="lp-stats-icon" viewBox="0 0 24 24" width="20" height="20" role="img" aria-label="Carte">
+        <svg class="lp-stats-icon" viewBox="0 0 24 24" width="20" height="20" role="img" data-i18n-aria="landing.stats.ariaMap" aria-label="Carte">
           <polygon points="1,6 1,22 8,18 16,22 23,18 23,2 16,6 8,2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
           <line x1="8" y1="2" x2="8" y2="18" stroke="currentColor" stroke-width="1.5"/>
           <line x1="16" y1="6" x2="16" y2="22" stroke="currentColor" stroke-width="1.5"/>
         </svg>
         <span class="lp-stats-title">Export SVG</span>
-        <span class="lp-stats-sub">Qualité impression</span>
+        <span class="lp-stats-sub" data-i18n="landing.stats.printQuality">Qualité impression</span>
       </div>
     </div>
 
@@ -153,24 +160,25 @@
     </section>
 
     <!-- 5. FEATURES -->
-    <section class="lp-section lp-features-section" id="features-section" aria-label="Fonctionnalités">
+    <section class="lp-section lp-features-section" id="features-section" data-i18n-aria="landing.features.ariaLabel">
       <div class="lp-section-header">
-        <svg class="lp-section-ornament" width="240" height="24" viewBox="0 0 240 24" role="img" aria-label="Ornement de section">
+        <svg class="lp-section-ornament" width="240" height="24" viewBox="0 0 240 24" role="img" data-i18n-aria="landing.features.ariaOrnament">
           <line x1="0" y1="12" x2="100" y2="12" stroke="#2E2416" stroke-width="1"/>
           <line x1="100" y1="12" x2="108" y2="12" stroke="#2E2416" stroke-width="0.5"/>
           <path d="M108,12 L114,6 L120,12 L114,18Z" fill="#2E2416"/>
           <line x1="120" y1="12" x2="128" y2="12" stroke="#2E2416" stroke-width="0.5"/>
           <line x1="128" y1="12" x2="240" y2="12" stroke="#2E2416" stroke-width="1"/>
         </svg>
-        <h2 class="lp-section-title">Un éditeur pensé pour les créateurs</h2>
-        <p class="lp-section-sub">Six outils essentiels pour donner vie à vos mondes</p>
+        <h2 class="lp-section-title" data-i18n="landing.features.title">Un éditeur pensé pour les créateurs</h2>
+        <p class="lp-section-sub" data-i18n="landing.features.sub">Six outils essentiels pour donner vie à vos mondes</p>
       </div>
 
+      <!-- Feature 1: Territories — text left, visual right -->
       <div class="lp-feature lp-feature-row">
         <div class="lp-feature-text">
           <span class="lp-feature-num" aria-hidden="true">01</span>
-          <h3 class="lp-feature-title">Territoires &amp; Régions</h3>
-          <p class="lp-feature-desc">Dessinez des frontières organiques à main levée. Chaque territoire peut avoir sa couleur, son dirigeant, ses ressources — un monde politique complet en quelques clics.</p>
+          <h3 class="lp-feature-title" data-i18n="landing.features.territories.title">Territoires &amp; Régions</h3>
+          <p class="lp-feature-desc" data-i18n="landing.features.territories.desc">Dessinez des frontières organiques à main levée. Chaque territoire peut avoir sa couleur, son dirigeant, ses ressources — un monde politique complet en quelques clics.</p>
         </div>
         <div class="lp-feature-visual" aria-hidden="true">
           <svg viewBox="0 0 300 200" width="300" height="200">
@@ -183,11 +191,12 @@
         </div>
       </div>
 
+      <!-- Feature 2: Cities — visual left, text right -->
       <div class="lp-feature lp-feature-row-reverse">
         <div class="lp-feature-text">
           <span class="lp-feature-num" aria-hidden="true">02</span>
-          <h3 class="lp-feature-title">Villes &amp; Points d'intérêt</h3>
-          <p class="lp-feature-desc">Capitales, cités, villages, ruines — placez vos lieux avec des niveaux d'importance distincts. Chaque ville porte sa fiche : population, histoire, fondation.</p>
+          <h3 class="lp-feature-title" data-i18n="landing.features.cities.title">Villes &amp; Points d'intérêt</h3>
+          <p class="lp-feature-desc" data-i18n="landing.features.cities.desc">Capitales, cités, villages, ruines — placez vos lieux avec des niveaux d'importance distincts. Chaque ville porte sa fiche : population, histoire, fondation.</p>
         </div>
         <div class="lp-feature-visual" aria-hidden="true">
           <svg viewBox="0 0 300 200" width="300" height="200">
@@ -203,11 +212,12 @@
         </div>
       </div>
 
+      <!-- Feature 3: Routes — text left, visual right -->
       <div class="lp-feature lp-feature-row">
         <div class="lp-feature-text">
           <span class="lp-feature-num" aria-hidden="true">03</span>
-          <h3 class="lp-feature-title">Routes &amp; Rivières</h3>
-          <p class="lp-feature-desc">Tracez des chemins commerciaux, des sentiers dangereux, des fleuves sinueux. Courbes de Bézier naturelles qui suivent le relief de votre monde.</p>
+          <h3 class="lp-feature-title" data-i18n="landing.features.routes.title">Routes &amp; Rivières</h3>
+          <p class="lp-feature-desc" data-i18n="landing.features.routes.desc">Tracez des chemins commerciaux, des sentiers dangereux, des fleuves sinueux. Courbes de Bézier naturelles qui suivent le relief de votre monde.</p>
         </div>
         <div class="lp-feature-visual" aria-hidden="true">
           <svg viewBox="0 0 300 200" width="300" height="200">
@@ -221,11 +231,12 @@
         </div>
       </div>
 
+      <!-- Feature 4: Timeline — visual left, text right -->
       <div class="lp-feature lp-feature-row-reverse">
         <div class="lp-feature-text">
           <span class="lp-feature-num" aria-hidden="true">04</span>
-          <h3 class="lp-feature-title">Timeline interactive</h3>
-          <p class="lp-feature-desc">Déroulez l'histoire de votre monde sur une frise chronologique. Batailles, fondations, catastrophes — chaque événement lié aux entités de votre carte.</p>
+          <h3 class="lp-feature-title" data-i18n="landing.features.timeline.title">Timeline interactive</h3>
+          <p class="lp-feature-desc" data-i18n="landing.features.timeline.desc">Déroulez l'histoire de votre monde sur une frise chronologique. Batailles, fondations, catastrophes — chaque événement lié aux entités de votre carte.</p>
         </div>
         <div class="lp-feature-visual" aria-hidden="true">
           <svg viewBox="0 0 300 200" width="300" height="200">
@@ -242,11 +253,12 @@
         </div>
       </div>
 
+      <!-- Feature 5: Export SVG — text left, visual right -->
       <div class="lp-feature lp-feature-row">
         <div class="lp-feature-text">
           <span class="lp-feature-num" aria-hidden="true">05</span>
-          <h3 class="lp-feature-title">Export SVG haute qualité</h3>
-          <p class="lp-feature-desc">Exportez votre carte en SVG vectoriel — parfait pour l'impression, les livres, les wikis. Chaque trait, chaque label, net à n'importe quelle résolution.</p>
+          <h3 class="lp-feature-title" data-i18n="landing.features.svgExport.title">Export SVG haute qualité</h3>
+          <p class="lp-feature-desc" data-i18n="landing.features.svgExport.desc">Exportez votre carte en SVG vectoriel — parfait pour l'impression, les livres, les wikis. Chaque trait, chaque label, net à n'importe quelle résolution.</p>
         </div>
         <div class="lp-feature-visual" aria-hidden="true">
           <svg viewBox="0 0 300 200" width="300" height="200">
@@ -261,11 +273,12 @@
         </div>
       </div>
 
+      <!-- Feature 6: Themes — visual left, text right -->
       <div class="lp-feature lp-feature-row-reverse">
         <div class="lp-feature-text">
           <span class="lp-feature-num" aria-hidden="true">06</span>
-          <h3 class="lp-feature-title">Thèmes &amp; Ambiances</h3>
-          <p class="lp-feature-desc">Parchemin ancien, encre sépia, nuit étoilée, heure dorée — sept thèmes qui transforment l'atmosphère de votre carte en un clic.</p>
+          <h3 class="lp-feature-title" data-i18n="landing.features.themes.title">Thèmes &amp; Ambiances</h3>
+          <p class="lp-feature-desc" data-i18n="landing.features.themes.desc">Parchemin ancien, encre sépia, nuit étoilée, heure dorée — sept thèmes qui transforment l'atmosphère de votre carte en un clic.</p>
         </div>
         <div class="lp-feature-visual" aria-hidden="true">
           <svg viewBox="0 0 300 200" width="300" height="200">
@@ -283,28 +296,35 @@
     </section>
 
     <!-- 6. OPEN SOURCE -->
-    <section class="lp-section lp-opensource-section" id="opensource-section" aria-label="Open Source">
+    <section class="lp-section lp-opensource-section" id="opensource-section" data-i18n-aria="landing.opensource.ariaLabel">
       <div class="lp-opensource-inner">
+        <!-- Rose des vents SVG -->
         <div class="lp-compass-rose" aria-hidden="true">
           <svg viewBox="0 0 200 200" width="160" height="160">
+            <!-- Outer ring -->
             <circle cx="100" cy="100" r="90" fill="none" stroke="#2E2416" stroke-width="0.75"/>
             <circle cx="100" cy="100" r="80" fill="none" stroke="#2E2416" stroke-width="0.5"/>
+            <!-- Tick marks -->
             <g stroke="#5A4A3A" stroke-width="0.5">
               <line x1="100" y1="10" x2="100" y2="18"/><line x1="100" y1="182" x2="100" y2="190"/>
               <line x1="10" y1="100" x2="18" y2="100"/><line x1="182" y1="100" x2="190" y2="100"/>
               <line x1="36" y1="36" x2="42" y2="42"/><line x1="158" y1="158" x2="164" y2="164"/>
               <line x1="164" y1="36" x2="158" y2="42"/><line x1="36" y1="164" x2="42" y2="158"/>
             </g>
+            <!-- Cardinal points -->
             <polygon points="100,16 106,60 100,50 94,60" fill="#8B2635"/>
             <polygon points="100,184 106,140 100,150 94,140" fill="#2E2416"/>
             <polygon points="16,100 60,94 50,100 60,106" fill="#2E2416"/>
             <polygon points="184,100 140,94 150,100 140,106" fill="#2E2416"/>
+            <!-- Intercardinal points -->
             <polygon points="40,40 72,72 60,72 72,60" fill="#2E2416" opacity="0.5"/>
             <polygon points="160,40 128,72 140,72 128,60" fill="#2E2416" opacity="0.5"/>
             <polygon points="40,160 72,128 60,128 72,140" fill="#2E2416" opacity="0.5"/>
             <polygon points="160,160 128,128 140,128 128,140" fill="#2E2416" opacity="0.5"/>
+            <!-- Center -->
             <circle cx="100" cy="100" r="6" fill="none" stroke="#C4A882" stroke-width="1"/>
             <circle cx="100" cy="100" r="2" fill="#C4A882"/>
+            <!-- Letters -->
             <text x="100" y="8" fill="#C4A882" font-size="9" font-family="Cinzel,serif" text-anchor="middle" dominant-baseline="auto">N</text>
             <text x="100" y="198" fill="#5A4A3A" font-size="9" font-family="Cinzel,serif" text-anchor="middle" dominant-baseline="auto">S</text>
             <text x="5" y="104" fill="#5A4A3A" font-size="9" font-family="Cinzel,serif" text-anchor="middle">O</text>
@@ -312,10 +332,11 @@
           </svg>
         </div>
 
-        <h2 class="lp-opensource-title">Open Source, pour toujours</h2>
-        <p class="lp-opensource-desc">Cartographer est un projet communautaire sous licence MIT. Consultez le code, proposez des améliorations, créez votre propre version — la cartographie appartient à tous.</p>
+        <h2 class="lp-opensource-title" data-i18n="landing.opensource.title">Open Source, pour toujours</h2>
+        <p class="lp-opensource-desc" data-i18n="landing.opensource.desc">Cartographer est un projet communautaire sous licence MIT. Consultez le code, proposez des améliorations, créez votre propre version — la cartographie appartient à tous.</p>
 
-        <div class="lp-gh-stats" id="lp-gh-stats" role="list" aria-label="Statistiques GitHub">
+        <!-- GitHub stats -->
+        <div class="lp-gh-stats" id="lp-gh-stats" role="list" data-i18n-aria="landing.opensource.ariaStats">
           <div class="lp-gh-stat" role="listitem">
             <svg viewBox="0 0 16 16" width="16" height="16"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z" fill="currentColor"/></svg>
             <span class="lp-gh-stat-val" id="lp-gh-stars">—</span>
@@ -336,9 +357,9 @@
         <div class="lp-opensource-ctas">
           <a href="https://github.com/mal0004/Cartographer" target="_blank" rel="noopener noreferrer" class="lp-cta-primary">
             <svg viewBox="0 0 16 16" width="16" height="16" class="lp-gh-icon"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" fill="currentColor"/></svg>
-            Voir sur GitHub
+            <span data-i18n="landing.opensource.viewGithub">Voir sur GitHub</span>
           </a>
-          <a href="#worlds-section" class="lp-cta-outline">Commencer à créer</a>
+          <a href="#worlds-section" class="lp-cta-outline" data-i18n="landing.opensource.startCreating">Commencer à créer</a>
         </div>
       </div>
     </section>
@@ -354,31 +375,34 @@
       </div>
 
       <div class="lp-footer-grid">
+        <!-- Column 1: Brand -->
         <div class="lp-footer-col">
           <h4 class="lp-footer-brand">Cartographer</h4>
-          <p class="lp-footer-tagline">Donnez vie à vos mondes imaginaires. Éditeur de cartes open source, gratuit et sans inscription.</p>
-          <div class="lp-footer-theme-indicator" aria-label="Thème actif">
+          <p class="lp-footer-tagline" data-i18n="landing.footer.tagline">Donnez vie à vos mondes imaginaires. Éditeur de cartes open source, gratuit et sans inscription.</p>
+          <div class="lp-footer-theme-indicator" data-i18n-aria="landing.footer.ariaTheme">
             <span class="lp-footer-theme-dot" aria-hidden="true"></span>
-            <span class="lp-footer-theme-label">Thème sombre</span>
+            <span class="lp-footer-theme-label" data-i18n="landing.footer.themeLabel">Thème sombre</span>
           </div>
         </div>
 
+        <!-- Column 2: Navigation -->
         <div class="lp-footer-col">
-          <h5 class="lp-footer-heading">Navigation</h5>
-          <nav class="lp-footer-nav" aria-label="Navigation du pied de page">
-            <a href="#lp-main" class="lp-footer-link">Accueil</a>
-            <a href="#worlds-section" class="lp-footer-link">Vos mondes</a>
-            <a href="#templates-section" class="lp-footer-link">Templates</a>
-            <a href="#features-section" class="lp-footer-link">Fonctionnalités</a>
+          <h5 class="lp-footer-heading" data-i18n="landing.footer.navHeading">Navigation</h5>
+          <nav class="lp-footer-nav" data-i18n-aria="landing.footer.ariaNav">
+            <a href="#lp-main" class="lp-footer-link" data-i18n="landing.footer.home">Accueil</a>
+            <a href="#worlds-section" class="lp-footer-link" data-i18n="landing.footer.yourWorlds">Vos mondes</a>
+            <a href="#templates-section" class="lp-footer-link" data-i18n="landing.footer.templates">Templates</a>
+            <a href="#features-section" class="lp-footer-link" data-i18n="landing.footer.features">Fonctionnalités</a>
           </nav>
         </div>
 
+        <!-- Column 3: Project -->
         <div class="lp-footer-col">
-          <h5 class="lp-footer-heading">Projet</h5>
-          <nav class="lp-footer-nav" aria-label="Liens du projet">
+          <h5 class="lp-footer-heading" data-i18n="landing.footer.projectHeading">Projet</h5>
+          <nav class="lp-footer-nav" data-i18n-aria="landing.footer.ariaProject">
             <a href="https://github.com/mal0004/Cartographer" target="_blank" rel="noopener noreferrer" class="lp-footer-link">GitHub</a>
-            <a href="https://github.com/mal0004/Cartographer/issues" target="_blank" rel="noopener noreferrer" class="lp-footer-link">Signaler un bug</a>
-            <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer" class="lp-footer-link">Licence MIT</a>
+            <a href="https://github.com/mal0004/Cartographer/issues" target="_blank" rel="noopener noreferrer" class="lp-footer-link" data-i18n="landing.footer.reportBug">Signaler un bug</a>
+            <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer" class="lp-footer-link" data-i18n="landing.footer.license">Licence MIT</a>
           </nav>
         </div>
       </div>
@@ -394,20 +418,25 @@
           </g>
         </svg>
         <p class="lp-footer-copy">&copy; 2025 Cartographer &mdash; MIT License</p>
+        <div class="lang-toggle" role="group" aria-label="Language">
+          <button class="lang-btn" data-lang="fr" aria-pressed="true">FR</button>
+          <span aria-hidden="true">&middot;</span>
+          <button class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+        </div>
       </div>
     </footer>
 
     <!-- New world modal -->
     <div id="modal-new-world" class="modal" hidden>
       <div class="modal-content">
-        <h2>Nouveau Monde</h2>
-        <label>Nom<input type="text" id="new-world-name" placeholder="Middle-earth"></label>
-        <label>Description<textarea id="new-world-desc" rows="3" placeholder="Une brève description..."></textarea></label>
-        <label>Début de la timeline<input type="number" id="new-world-tstart" value="0"></label>
-        <label>Fin de la timeline<input type="number" id="new-world-tend" value="1000"></label>
+        <h2 data-i18n="editor.modals.newWorld">Nouveau Monde</h2>
+        <label><span data-i18n="editor.modals.name">Nom</span><input type="text" id="new-world-name" data-i18n-placeholder="editor.modals.namePlaceholder" placeholder="Middle-earth"></label>
+        <label><span data-i18n="editor.modals.description">Description</span><textarea id="new-world-desc" rows="3" data-i18n-placeholder="editor.modals.descPlaceholder" placeholder="Une brève description..."></textarea></label>
+        <label><span data-i18n="editor.modals.timelineStart">Début de la timeline</span><input type="number" id="new-world-tstart" value="0"></label>
+        <label><span data-i18n="editor.modals.timelineEnd">Fin de la timeline</span><input type="number" id="new-world-tend" value="1000"></label>
         <div class="modal-actions">
-          <button id="modal-cancel" class="btn btn-secondary">Annuler</button>
-          <button id="modal-create" class="btn btn-primary">Créer</button>
+          <button id="modal-cancel" class="btn btn-secondary" data-i18n="common.cancel">Annuler</button>
+          <button id="modal-create" class="btn btn-primary" data-i18n="common.create">Créer</button>
         </div>
       </div>
     </div>
@@ -416,18 +445,23 @@
   <!-- ─── Editor screen ──────────────────────────────── -->
   <div id="editor-screen" class="screen">
     <div id="editor-topbar" class="editor-topbar">
-      <button id="btn-back" class="btn-icon" title="Back to worlds">&larr;</button>
+      <button id="btn-back" class="btn-icon" data-i18n-title="editor.topbar.back" title="Back to worlds">&larr;</button>
       <span id="world-title" class="world-title">World</span>
       <div class="topbar-right">
-        <button id="btn-share" class="btn btn-sm">Partager</button>
-        <button id="btn-export-svg" class="btn btn-sm">Export SVG</button>
-        <button id="btn-export-json" class="btn btn-sm">Export JSON</button>
+        <button id="btn-share" class="btn btn-sm" data-i18n="editor.topbar.share">Partager</button>
+        <button id="btn-export-svg" class="btn btn-sm" data-i18n="editor.topbar.exportSvg">Export SVG</button>
+        <button id="btn-export-json" class="btn btn-sm" data-i18n="editor.topbar.exportJson">Export JSON</button>
         <div class="theme-switcher">
-          <button id="btn-toggle-theme" class="btn btn-sm" title="Thème">&#127912; Thème</button>
+          <button id="btn-toggle-theme" class="btn btn-sm" data-i18n-title="editor.topbar.theme" title="Thème"><span>&#127912; </span><span data-i18n="editor.topbar.theme">Thème</span></button>
           <div id="theme-dropdown" class="theme-dropdown" hidden></div>
         </div>
-        <button id="btn-golden-hour" class="btn btn-sm" title="Golden Hour lighting">&#9788; Golden Hour</button>
-        <button id="btn-help" class="btn-icon" title="Aide / Tutoriel">?</button>
+        <button id="btn-golden-hour" class="btn btn-sm" data-i18n-title="editor.topbar.goldenHour" title="Golden Hour lighting"><span>&#9788; </span><span data-i18n="editor.topbar.goldenHour">Golden Hour</span></button>
+        <button id="btn-help" class="btn-icon" data-i18n-title="editor.topbar.help" title="Aide / Tutoriel">?</button>
+        <div class="lang-toggle" role="group" aria-label="Language">
+          <button class="lang-btn" data-lang="fr" aria-pressed="true">FR</button>
+          <span aria-hidden="true">&middot;</span>
+          <button class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+        </div>
       </div>
     </div>
 
@@ -438,46 +472,46 @@
 
         <!-- Floating toolbar -->
         <div id="toolbar" class="toolbar">
-          <button class="tool-btn active" data-tool="select" data-tooltip="Sélection — V">
+          <button class="tool-btn active" data-tool="select" data-i18n-tooltip="editor.toolbar.select" data-tooltip="Sélection — V">
             <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51z" fill="currentColor"/></svg>
           </button>
-          <button class="tool-btn" data-tool="territory" data-tooltip="Territoire — T">
+          <button class="tool-btn" data-tool="territory" data-i18n-tooltip="editor.toolbar.territory" data-tooltip="Territoire — T">
             <svg viewBox="0 0 24 24" width="20" height="20"><polygon points="12,2 22,20 2,20" fill="none" stroke="currentColor" stroke-width="2"/></svg>
           </button>
-          <button class="tool-btn" data-tool="city" data-tooltip="Ville — C">
+          <button class="tool-btn" data-tool="city" data-i18n-tooltip="editor.toolbar.city" data-tooltip="Ville — C">
             <svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="6" fill="currentColor"/></svg>
           </button>
-          <button class="tool-btn" data-tool="route" data-tooltip="Route — R">
+          <button class="tool-btn" data-tool="route" data-i18n-tooltip="editor.toolbar.route" data-tooltip="Route — R">
             <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 17c4-6 14-6 18 0" fill="none" stroke="currentColor" stroke-width="2"/></svg>
           </button>
-          <button class="tool-btn" data-tool="region" data-tooltip="Région — N">
+          <button class="tool-btn" data-tool="region" data-i18n-tooltip="editor.toolbar.region" data-tooltip="Région — N">
             <svg viewBox="0 0 24 24" width="20" height="20"><path d="M2 20 L7 8 L12 14 L17 6 L22 20Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
           </button>
-          <button class="tool-btn" data-tool="river" data-tooltip="Rivière — W">
+          <button class="tool-btn" data-tool="river" data-i18n-tooltip="editor.toolbar.river" data-tooltip="Rivière — W">
             <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 2c-1 4-4 6-4 10s2 6 0 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M16 4c-1 3-3 5-3 8s1 5 0 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/></svg>
           </button>
-          <button class="tool-btn" data-tool="text" data-tooltip="Texte — X">
+          <button class="tool-btn" data-tool="text" data-i18n-tooltip="editor.toolbar.text" data-tooltip="Texte — X">
             <svg viewBox="0 0 24 24" width="20" height="20"><text x="6" y="18" font-size="18" font-weight="bold" fill="currentColor">A</text></svg>
           </button>
-          <button class="tool-btn" data-tool="symbol" data-tooltip="Symboles — S">
+          <button class="tool-btn" data-tool="symbol" data-i18n-tooltip="editor.toolbar.symbol" data-tooltip="Symboles — S">
             <svg viewBox="0 0 24 24" width="20" height="20"><polygon points="12,2 15,9 23,9 17,14 19,22 12,18 5,22 7,14 1,9 9,9" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
           </button>
           <div class="tool-separator"></div>
-          <button id="btn-snap" class="tool-btn active" title="Snap to elements (on)">
+          <button id="btn-snap" class="tool-btn active" data-i18n-title="editor.toolbar.snapOn" title="Snap to elements (on)">
             <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 3h6v2H5v4H3V3zm12 0h6v6h-2V5h-4V3zM3 15h2v4h4v2H3v-6zm16 4h-4v2h6v-6h-2v4z" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>
           </button>
-          <button id="btn-grid-snap" class="tool-btn" title="Snap to grid (off)">
+          <button id="btn-grid-snap" class="tool-btn" data-i18n-title="editor.toolbar.gridSnapOff" title="Snap to grid (off)">
             <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 3h2v18H3V3zm16 0h2v18h-2V3zM3 3v2h18V3H3zm0 16v2h18v-2H3zm8-8h2v2h-2v-2z" fill="currentColor" opacity="0.6"/></svg>
           </button>
           <div class="tool-separator"></div>
-          <button id="btn-undo" class="tool-btn" title="Undo (Ctrl+Z)" disabled>
+          <button id="btn-undo" class="tool-btn" data-i18n-title="editor.toolbar.undo" title="Undo (Ctrl+Z)" disabled>
             <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12.5 8C9.85 8 7.45 8.99 5.6 10.6L2 7v10h10l-3.6-3.6C9.68 12.05 11.05 11.5 12.5 11.5c3.31 0 6.13 2.13 7.14 5.1l2.86-.93C21.08 11.48 17.19 8 12.5 8z" fill="currentColor"/></svg>
           </button>
-          <button id="btn-redo" class="tool-btn" title="Redo (Ctrl+Shift+Z)" disabled>
+          <button id="btn-redo" class="tool-btn" data-i18n-title="editor.toolbar.redo" title="Redo (Ctrl+Shift+Z)" disabled>
             <svg viewBox="0 0 24 24" width="20" height="20"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.69 0-8.58 3.48-9.14 7.67l2.86.93C6.37 13.63 9.19 11.5 12.5 11.5c1.45 0 2.82.55 4.1 1.4L13 16.5h10V6.5l-4.6 4.1z" fill="currentColor"/></svg>
           </button>
           <div class="tool-separator"></div>
-          <input type="color" id="tool-color" value="#8B2635" title="Color">
+          <input type="color" id="tool-color" value="#8B2635" data-i18n-title="editor.toolbar.color" title="Color">
         </div>
 
         <!-- Tool options bar (contextual) -->
@@ -490,7 +524,7 @@
       <div id="sidebar" class="sidebar" hidden>
         <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
         <div class="sidebar-header">
-          <h3 id="sidebar-title">Entity</h3>
+          <h3 id="sidebar-title" data-i18n="editor.sidebar.entity">Entity</h3>
           <button id="sidebar-close" class="btn-icon">&times;</button>
         </div>
         <div id="sidebar-content" class="sidebar-body"></div>
@@ -500,37 +534,14 @@
     <!-- Timeline -->
     <div id="timeline" class="timeline collapsed">
       <div class="timeline-resize-handle" id="timeline-resize-handle"></div>
-      <button id="timeline-toggle" class="timeline-toggle" title="Toggle timeline">&#9650; Timeline</button>
+      <button id="timeline-toggle" class="timeline-toggle" data-i18n-title="editor.timeline.toggle" title="Toggle timeline"><span>&#9650; </span><span data-i18n="editor.timeline.title">Timeline</span></button>
       <div id="timeline-body" class="timeline-body">
         <canvas id="timeline-canvas"></canvas>
-        <button id="btn-add-event" class="btn btn-sm timeline-add">+ Event</button>
+        <button id="btn-add-event" class="btn btn-sm timeline-add" data-i18n="editor.timeline.addEvent">+ Event</button>
       </div>
     </div>
   </div>
 
-  <script src="local-db.js"></script>
-  <script src="noise.js"></script>
-  <script src="terrain-renderer.js"></script>
-  <script src="hill-shading.js"></script>
-  <script src="coastlines.js"></script>
-  <script src="rivers.js"></script>
-  <script src="vegetation.js"></script>
-  <script src="atmosphere.js"></script>
-  <script src="performance.js"></script>
-  <script src="responsive.js"></script>
-  <script src="svg-export.js"></script>
-  <script src="mode-toggle.js"></script>
-  <script src="templates.js"></script>
-  <script src="onboarding.js"></script>
-  <script src="snap.js"></script>
-  <script src="minimap.js"></script>
-  <script src="themes.js"></script>
-  <script src="undo.js"></script>
-  <script src="layers.js"></script>
-  <script src="symbols.js"></script>
-  <script src="canvas.js"></script>
-  <script src="sidebar.js"></script>
-  <script src="timeline.js"></script>
-  <script src="app.js"></script>
+  <script type="module" src="/app.js"></script>
 </body>
 </html>

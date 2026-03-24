@@ -14,7 +14,7 @@
  * Zero dependencies beyond noise.js (SimplexNoise).
  */
 
-/* global SimplexNoise */
+import { SimplexNoise } from './noise.js';
 
 class Coastlines {
   constructor() {
@@ -370,4 +370,4 @@ class Coastlines {
   }
 }
 
-window.Coastlines = Coastlines;
+export { Coastlines };

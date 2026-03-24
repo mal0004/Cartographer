@@ -547,6 +547,4 @@ class HeightMap extends NoiseMap {
 
 // ─── Exports ─────────────────────────────────────────────────────
 
-window.SimplexNoise = SimplexNoise;
-window.NoiseMap = NoiseMap;
-window.HeightMap = HeightMap;
+export { SimplexNoise, NoiseMap, HeightMap };

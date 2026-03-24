@@ -5,9 +5,11 @@
  * Each entity belongs to the layer that was active when it was created.
  */
 
+import { t } from './i18n.js';
+
 const DEFAULT_LAYERS = [
   { id: 'relief', name: 'Relief', visible: true, opacity: 1 },
-  { id: 'political', name: 'Politique', visible: true, opacity: 1 },
+  { id: 'political', name: 'Political', visible: true, opacity: 1 },
   { id: 'routes', name: 'Routes', visible: true, opacity: 1 },
   { id: 'annotations', name: 'Annotations', visible: true, opacity: 1 },
 ];
@@ -29,14 +31,14 @@ class LayersPanel {
     this.el.id = 'layers-panel';
     this.el.className = 'layers-panel collapsed';
     this.el.innerHTML = `
-      <button id="layers-toggle" class="layers-toggle" title="Calques">
+      <button id="layers-toggle" class="layers-toggle" title="${t('editor.layers.title')}">
         <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2L2 7l10 5 10-5-10-5zm0 7.5L4 5l8 4 8-4-8 4zm-10 3L12 17l10-4.5-2-1-8 3.5-8-3.5-2 1z" fill="currentColor"/><path d="M2 16.5L12 21l10-4.5-2-1-8 3.5-8-3.5-2 1z" fill="currentColor" opacity="0.6"/></svg>
-        <span class="layers-toggle-label">Calques</span>
+        <span class="layers-toggle-label">${t('editor.layers.title')}</span>
       </button>
       <div class="layers-content">
         <div class="layers-header">
-          <h4>Calques</h4>
-          <button class="btn-icon layers-add" title="Nouveau calque">+</button>
+          <h4>${t('editor.layers.title')}</h4>
+          <button class="btn-icon layers-add" title="${t('editor.layers.newLayer')}">+</button>
         </div>
         <div class="layers-list" id="layers-list"></div>
         <div class="layers-active-indicator" id="layers-active-indicator"></div>
@@ -102,7 +104,7 @@ class LayersPanel {
       item.dataset.index = i;
 
       item.innerHTML = `
-        <button class="layer-visibility ${layer.visible ? 'visible' : ''}" title="Visibilité">
+        <button class="layer-visibility ${layer.visible ? 'visible' : ''}" title="${t('editor.layers.visibility')}">
           <svg viewBox="0 0 24 24" width="16" height="16">
             ${layer.visible
               ? '<path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" fill="currentColor"/>'
@@ -111,8 +113,8 @@ class LayersPanel {
           </svg>
         </button>
         <span class="layer-name" data-layer-id="${layer.id}">${this._escapeHtml(layer.name)}</span>
-        <input type="range" class="layer-opacity" min="0" max="1" step="0.05" value="${layer.opacity}" title="Opacité: ${Math.round(layer.opacity * 100)}%">
-        <button class="layer-delete btn-icon" title="Supprimer">&times;</button>
+        <input type="range" class="layer-opacity" min="0" max="1" step="0.05" value="${layer.opacity}" title="${t('editor.layers.opacity').replace('{n}', Math.round(layer.opacity * 100))}">
+        <button class="layer-delete btn-icon" title="${t('editor.layers.delete')}">&times;</button>
       `;
 
       // Activate layer on click
@@ -133,7 +135,7 @@ class LayersPanel {
       // Opacity slider
       item.querySelector('.layer-opacity').addEventListener('input', (e) => {
         layer.opacity = parseFloat(e.target.value);
-        e.target.title = `Opacité: ${Math.round(layer.opacity * 100)}%`;
+        e.target.title = t('editor.layers.opacity').replace('{n}', Math.round(layer.opacity * 100));
         this._notify();
       });
 
@@ -201,11 +203,11 @@ class LayersPanel {
     // Active layer indicator
     const indicator = this.el.querySelector('#layers-active-indicator');
     const activeLayer = this.layers.find(l => l.id === this.activeLayerId);
-    indicator.textContent = activeLayer ? `Calque actif: ${activeLayer.name}` : '';
+    indicator.textContent = activeLayer ? t('editor.layers.activeLayer').replace('{name}', activeLayer.name) : '';
   }
 
   _addLayer() {
-    const name = prompt('Nom du calque :');
+    const name = prompt(t('editor.layers.layerNamePrompt'));
     if (!name) return;
     const id = 'layer_' + Date.now();
     this.layers.push({ id, name, visible: true, opacity: 1 });
@@ -225,4 +227,4 @@ class LayersPanel {
   }
 }
 
-window.LayersPanel = LayersPanel;
+export { LayersPanel, DEFAULT_LAYERS };

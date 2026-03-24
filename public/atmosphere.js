@@ -280,4 +280,4 @@ class Atmosphere {
   }
 }
 
-window.Atmosphere = Atmosphere;
+export { Atmosphere };

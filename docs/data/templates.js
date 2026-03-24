@@ -119,4 +119,4 @@ const WORLD_TEMPLATES = [
   },
 ];
 
-window.WORLD_TEMPLATES = WORLD_TEMPLATES;
+export { WORLD_TEMPLATES };

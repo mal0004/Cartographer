@@ -142,5 +142,4 @@ class SymbolLibrary {
   }
 }
 
-window.SymbolLibrary = SymbolLibrary;
-window.ALL_SYMBOLS = ALL_SYMBOLS;
+export { SymbolLibrary, ALL_SYMBOLS, SYMBOL_CATEGORIES };

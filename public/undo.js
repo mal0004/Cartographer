@@ -166,8 +166,4 @@ class ModifyEntityCommand {
   }
 }
 
-window.UndoManager = UndoManager;
-window.AddEntityCommand = AddEntityCommand;
-window.DeleteEntityCommand = DeleteEntityCommand;
-window.MoveEntityCommand = MoveEntityCommand;
-window.ModifyEntityCommand = ModifyEntityCommand;
+export { UndoManager, AddEntityCommand, DeleteEntityCommand, MoveEntityCommand, ModifyEntityCommand };
