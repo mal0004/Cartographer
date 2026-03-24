@@ -6,6 +6,7 @@
  */
 
 import { api, escapeHtml, showToast } from './storage.js';
+import { t, getLang } from '../i18n.js';
 
 // ─── World list ──────────────────────────────────────────
 
@@ -26,7 +27,7 @@ export async function loadWorlds(app) {
       <line x1="2" y1="9" x2="22" y2="9" stroke="currentColor" stroke-width="0.6"/>
       <line x1="2" y1="15" x2="22" y2="15" stroke="currentColor" stroke-width="0.6"/>
     </svg>
-    <span>Nouveau monde</span>
+    <span>${t('landing.worlds.newWorld')}</span>
   </div>`;
   newCard.addEventListener('click', () => {
     document.getElementById('modal-new-world').hidden = false;
@@ -39,26 +40,26 @@ export async function loadWorlds(app) {
     card.className = 'world-card';
     const entities = await api('GET', `/api/worlds/${w.id}/entities`);
     const events = await api('GET', `/api/worlds/${w.id}/events`);
-    const date = w.updated_at ? new Date(w.updated_at).toLocaleDateString('fr-FR') : '';
+    const date = w.updated_at ? new Date(w.updated_at).toLocaleDateString(getLang() === 'fr' ? 'fr-FR' : 'en-GB') : '';
 
     card.innerHTML = `
       <div class="world-card-thumb">
         <canvas class="world-card-preview" width="640" height="360"></canvas>
         <div class="world-card-overlay">
-          <button class="btn btn-sm card-open" aria-label="Ouvrir ${escapeHtml(w.name)}">Ouvrir</button>
-          <button class="btn btn-sm card-export" aria-label="Exporter ${escapeHtml(w.name)}">Exporter</button>
-          <button class="btn-icon delete-world" data-id="${w.id}" title="Supprimer" aria-label="Supprimer ${escapeHtml(w.name)}">
+          <button class="btn btn-sm card-open" aria-label="${t('landing.worlds.open')} ${escapeHtml(w.name)}">${t('landing.worlds.open')}</button>
+          <button class="btn btn-sm card-export" aria-label="${t('common.export')} ${escapeHtml(w.name)}">${t('common.export')}</button>
+          <button class="btn-icon delete-world" data-id="${w.id}" title="${t('common.delete')}" aria-label="${t('common.delete')} ${escapeHtml(w.name)}">
             <svg viewBox="0 0 24 24" width="16" height="16"><path d="M3 6h18M8 6V4h8v2m1 0v14H7V6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
       </div>
       <div class="world-card-body">
         <h3>${escapeHtml(w.name)}</h3>
-        <p>${escapeHtml(w.description || 'Aucune description')}</p>
+        <p>${escapeHtml(w.description || t('landing.worlds.noDescription'))}</p>
         <div class="world-card-meta">
-          <span><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.3"><polygon points="8,1 10,6 15,6 11,9 12.5,14 8,11 3.5,14 5,9 1,6 6,6"/></svg> ${entities.length} entité${entities.length !== 1 ? 's' : ''}</span>
-          <span><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"/><path d="M8 4.5v4l2.5 2" stroke-linecap="round"/></svg> ${events.length} événement${events.length !== 1 ? 's' : ''}</span>
-          ${date ? `<span>modifié le ${date}</span>` : ''}
+          <span><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.3"><polygon points="8,1 10,6 15,6 11,9 12.5,14 8,11 3.5,14 5,9 1,6 6,6"/></svg> ${t('landing.worlds.entityCount').replace('{n}', entities.length).replace('{s}', entities.length !== 1 ? 's' : '')}</span>
+          <span><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"/><path d="M8 4.5v4l2.5 2" stroke-linecap="round"/></svg> ${t('landing.worlds.eventCount').replace('{n}', events.length).replace('{s}', events.length !== 1 ? 's' : '')}</span>
+          ${date ? `<span>${t('landing.worlds.modifiedOn').replace('{date}', date)}</span>` : ''}
         </div>
       </div>
     `;
@@ -82,7 +83,7 @@ export async function loadWorlds(app) {
     });
     card.querySelector('.delete-world').addEventListener('click', async (e) => {
       e.stopPropagation();
-      if (confirm(`Supprimer "${w.name}" ? Action irréversible.`)) {
+      if (confirm(t('landing.worlds.deleteConfirm').replace('{name}', w.name))) {
         await api('DELETE', `/api/worlds/${w.id}`);
         loadWorlds(app);
       }
@@ -117,7 +118,7 @@ export async function importWorld(app, e) {
   await api('POST', '/api/worlds/import', data);
   e.target.value = '';
   loadWorlds(app);
-  showToast('Monde importé avec succès', 'success');
+  showToast(t('toasts.worldImported'), 'success');
 }
 
 // ─── Preview rendering ───────────────────────────────────
@@ -128,7 +129,7 @@ export function drawWorldPreview(canvas, entities) {
   ctx.fillStyle = '#1A1208'; ctx.fillRect(0, 0, w, h);
   if (entities.length === 0) {
     ctx.fillStyle = '#5A4A3A'; ctx.font = '14px sans-serif';
-    ctx.textAlign = 'center'; ctx.fillText('Monde vide', w / 2, h / 2);
+    ctx.textAlign = 'center'; ctx.fillText(t('landing.worlds.emptyWorld'), w / 2, h / 2);
     return;
   }
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
