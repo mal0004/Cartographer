@@ -5,6 +5,7 @@
  */
 
 import { api, escapeHtml } from '../data/storage.js';
+import { t } from '../i18n.js';
 
 export function showNewWorldModal() {
   document.getElementById('modal-new-world').hidden = false;
@@ -39,28 +40,28 @@ export function showAddEventModal(currentWorld, entities, onCreated) {
   modal.className = 'modal';
   modal.innerHTML = `
     <div class="modal-content">
-      <h2>Add Event</h2>
+      <h2>${t('editor.modals.addEvent')}</h2>
       <div class="event-modal-fields">
-        <label>Title<input type="text" id="evt-title" placeholder="Battle of the Plains"></label>
-        <label>Year<input type="number" id="evt-date" value="${currentWorld.time_start}"></label>
-        <label>Category
+        <label>${t('editor.modals.eventTitle')}<input type="text" id="evt-title" placeholder="${t('editor.modals.eventTitlePlaceholder')}"></label>
+        <label>${t('editor.modals.eventYear')}<input type="number" id="evt-date" value="${currentWorld.time_start}"></label>
+        <label>${t('editor.modals.eventCategory')}
           <select id="evt-category">
-            <option value="political">Political</option>
-            <option value="war">War</option>
-            <option value="natural">Natural</option>
-            <option value="cultural">Cultural</option>
+            <option value="political">${t('editor.modals.categoryPolitical')}</option>
+            <option value="war">${t('editor.modals.categoryWar')}</option>
+            <option value="natural">${t('editor.modals.categoryNatural')}</option>
+            <option value="cultural">${t('editor.modals.categoryCultural')}</option>
           </select>
         </label>
-        <label>Description<textarea id="evt-desc" rows="3"></textarea></label>
-        <label>Linked entities
+        <label>${t('editor.modals.eventDescription')}<textarea id="evt-desc" rows="3"></textarea></label>
+        <label>${t('editor.modals.eventLinkedEntities')}
           <select id="evt-entities" multiple style="height:80px">
             ${entities.filter(e => e.name).map(e => `<option value="${e.id}">${escapeHtml(e.name)} (${e.type})</option>`).join('')}
           </select>
         </label>
       </div>
       <div class="modal-actions">
-        <button class="btn btn-secondary" id="evt-cancel">Cancel</button>
-        <button class="btn btn-primary" id="evt-create">Add</button>
+        <button class="btn btn-secondary" id="evt-cancel">${t('common.cancel')}</button>
+        <button class="btn btn-primary" id="evt-create">${t('editor.modals.add')}</button>
       </div>
     </div>`;
 
@@ -92,28 +93,28 @@ export function showShareModal(currentWorld) {
   modal.className = 'modal';
   modal.innerHTML = `
     <div class="modal-content" style="max-width:480px;">
-      <h2>Partager ce monde</h2>
+      <h2>${t('editor.modals.share')}</h2>
       <div class="share-options">
         <label class="export-field">
-          <span>Expiration</span>
+          <span>${t('editor.modals.shareExpiration')}</span>
           <select id="share-expires">
-            <option value="">Jamais</option>
-            <option value="24h">24 heures</option>
-            <option value="7d">7 jours</option>
-            <option value="30d">30 jours</option>
+            <option value="">${t('editor.modals.shareNever')}</option>
+            <option value="24h">${t('editor.modals.share24h')}</option>
+            <option value="7d">${t('editor.modals.share7d')}</option>
+            <option value="30d">${t('editor.modals.share30d')}</option>
           </select>
         </label>
       </div>
       <div class="modal-actions">
-        <button class="btn btn-secondary" id="share-cancel">Annuler</button>
-        <button class="btn btn-primary" id="share-generate">Générer le lien</button>
+        <button class="btn btn-secondary" id="share-cancel">${t('common.cancel')}</button>
+        <button class="btn btn-primary" id="share-generate">${t('editor.modals.shareGenerate')}</button>
       </div>
       <div id="share-result" hidden>
         <label class="export-field" style="margin-top:12px;">
-          <span>Lien de partage (lecture seule)</span>
+          <span>${t('editor.modals.shareLink')}</span>
           <div style="display:flex;gap:6px;">
             <input type="text" id="share-url" readonly style="flex:1;font-size:0.85rem;">
-            <button class="btn btn-sm" id="share-copy">Copier</button>
+            <button class="btn btn-sm" id="share-copy">${t('editor.modals.shareCopy')}</button>
           </div>
         </label>
       </div>
@@ -134,8 +135,8 @@ export function showShareModal(currentWorld) {
   document.getElementById('share-copy').addEventListener('click', () => {
     const input = document.getElementById('share-url');
     navigator.clipboard.writeText(input.value).then(() => {
-      document.getElementById('share-copy').textContent = 'Copié !';
-      setTimeout(() => document.getElementById('share-copy').textContent = 'Copier', 2000);
+      document.getElementById('share-copy').textContent = t('editor.modals.shareCopied');
+      setTimeout(() => document.getElementById('share-copy').textContent = t('editor.modals.shareCopy'), 2000);
     });
   });
 }

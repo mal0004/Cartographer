@@ -8,6 +8,7 @@
 import { WORLD_TEMPLATES } from '../data/templates.js';
 import { api, escapeHtml } from '../data/storage.js';
 import { drawWorldPreview, observeCards } from '../data/worlds.js';
+import { t } from '../i18n.js';
 
 // ─── Hero procedural SVG map ─────────────────────────────
 
@@ -147,7 +148,7 @@ export function renderTemplates(app) {
         <h4 class="lp-tpl-name">${escapeHtml(tpl.name)}</h4>
         <p class="lp-tpl-desc">${escapeHtml(tpl.description)}</p>
         <div class="lp-tpl-tags">${tags}</div>
-        <button class="lp-tpl-use">Utiliser ce template</button>
+        <button class="lp-tpl-use">${t('landing.templates.useTemplate')}</button>
       </div>`;
     card.addEventListener('click', async () => {
       const importData = {

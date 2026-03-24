@@ -2721,3 +2721,39 @@ body, .editor-topbar, .sidebar, .timeline, .toolbar, .tool-options, .modal-conte
   margin: 0;
   letter-spacing: 0.5px;
 }
+
+/* ─── Language toggle ───────────────────────────────────── */
+.lang-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.lang-toggle-landing {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  z-index: 100;
+}
+.lang-toggle span[aria-hidden] {
+  color: #5A4A3A;
+  font-size: 10px;
+  user-select: none;
+}
+.lang-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: #5A4A3A;
+  padding: 2px 4px;
+  transition: color 150ms, opacity 150ms;
+}
+.lang-btn:hover {
+  color: #C4A882;
+}
+.lang-btn[aria-pressed="true"] {
+  color: #F5F0E8;
+}

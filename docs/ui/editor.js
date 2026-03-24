@@ -13,6 +13,7 @@ import { Onboarding } from '../onboarding.js';
 import { SvgExportPanel } from '../svg-export.js';
 import { AddEntityCommand, DeleteEntityCommand, MoveEntityCommand, ModifyEntityCommand } from '../undo.js';
 import { api, showToast } from '../data/storage.js';
+import { t } from '../i18n.js';
 
 // ─── Open world ──────────────────────────────────────────
 
@@ -152,7 +153,7 @@ export function exportSVG(app) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `${app.currentWorld.name}.svg`; a.click();
     URL.revokeObjectURL(url);
-    showToast('Export SVG téléchargé', 'success');
+    showToast(t('toasts.svgExported'), 'success');
   });
 }
 
@@ -163,5 +164,5 @@ export async function exportJSON(app) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = `${app.currentWorld.name}.json`; a.click();
   URL.revokeObjectURL(url);
-  showToast('Export JSON téléchargé', 'success');
+  showToast(t('toasts.jsonExported'), 'success');
 }
