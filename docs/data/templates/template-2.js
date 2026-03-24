@@ -7,7 +7,7 @@ const TEMPLATE_ARCHIPEL_AMBRE = {
   id: 'archipel-ambre',
   name: "L'Archipel d'Ambre",
   seed: 3291,
-  theme: 'night-gold',
+  theme: 'nightgold',
   description: "Sept îles mystérieuses baignées d'or",
   tags: ['Archipel', 'Maritime', 'Volcanique'],
 
