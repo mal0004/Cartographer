@@ -6,6 +6,7 @@
  */
 
 import { ALL_SYMBOLS } from './symbols.js';
+import { t } from './i18n.js';
 
 const SVG_EXPORT_DEFAULTS = {
   vignette: true,
@@ -35,38 +36,38 @@ class SvgExportPanel {
     modal.className = 'modal';
     modal.innerHTML = `
       <div class="modal-content" style="max-width:520px;max-height:80vh;overflow-y:auto;">
-        <h2>Export SVG Premium</h2>
+        <h2>${t('editor.svgExport.title')}</h2>
         <div class="svg-export-options">
-          <label class="export-check"><input type="checkbox" id="exp-vignette" ${this.options.vignette ? 'checked' : ''}> Vignette (bords assombris)</label>
-          <label class="export-check"><input type="checkbox" id="exp-grain" ${this.options.paperGrain ? 'checked' : ''}> Grain de papier</label>
-          <label class="export-check"><input type="checkbox" id="exp-rotation" ${this.options.labelRotation ? 'checked' : ''}> Labels inclinés (±2°)</label>
-          <label class="export-check"><input type="checkbox" id="exp-corners" ${this.options.cornerDecorations ? 'checked' : ''}> Décorations de coins</label>
-          <label class="export-check"><input type="checkbox" id="exp-cartouche" ${this.options.cartouche ? 'checked' : ''}> Cartouche titre</label>
+          <label class="export-check"><input type="checkbox" id="exp-vignette" ${this.options.vignette ? 'checked' : ''}> ${t('editor.svgExport.vignette')}</label>
+          <label class="export-check"><input type="checkbox" id="exp-grain" ${this.options.paperGrain ? 'checked' : ''}> ${t('editor.svgExport.paperGrain')}</label>
+          <label class="export-check"><input type="checkbox" id="exp-rotation" ${this.options.labelRotation ? 'checked' : ''}> ${t('editor.svgExport.labelRotation')}</label>
+          <label class="export-check"><input type="checkbox" id="exp-corners" ${this.options.cornerDecorations ? 'checked' : ''}> ${t('editor.svgExport.cornerDecorations')}</label>
+          <label class="export-check"><input type="checkbox" id="exp-cartouche" ${this.options.cartouche ? 'checked' : ''}> ${t('editor.svgExport.cartoucheTitle')}</label>
           <div class="export-field">
-            <label>Rose des vents</label>
+            <label>${t('editor.svgExport.compass')}</label>
             <select id="exp-compass">
-              <option value="simple" ${this.options.compassStyle==='simple'?'selected':''}>Simple</option>
-              <option value="ornate" ${this.options.compassStyle==='ornate'?'selected':''}>Ornée</option>
-              <option value="military" ${this.options.compassStyle==='military'?'selected':''}>Militaire</option>
+              <option value="simple" ${this.options.compassStyle==='simple'?'selected':''}>${t('editor.svgExport.compassSimple')}</option>
+              <option value="ornate" ${this.options.compassStyle==='ornate'?'selected':''}>${t('editor.svgExport.compassOrnate')}</option>
+              <option value="military" ${this.options.compassStyle==='military'?'selected':''}>${t('editor.svgExport.compassMilitary')}</option>
             </select>
           </div>
-          <label class="export-check"><input type="checkbox" id="exp-scale" ${this.options.scaleBar ? 'checked' : ''}> Échelle fictive</label>
+          <label class="export-check"><input type="checkbox" id="exp-scale" ${this.options.scaleBar ? 'checked' : ''}> ${t('editor.svgExport.scaleBar')}</label>
           <div class="export-field-row">
             <input type="text" id="exp-scale-value" value="${this.options.scaleValue}" placeholder="100" style="width:60px">
-            <input type="text" id="exp-scale-unit" value="${this.options.scaleUnit}" placeholder="lieues" style="width:100px">
+            <input type="text" id="exp-scale-unit" value="${this.options.scaleUnit}" placeholder="${t('editor.svgExport.scaleUnit')}" style="width:100px">
           </div>
           <div class="export-field">
-            <label>Auteur</label>
-            <input type="text" id="exp-author" value="${this.options.cartoucheAuthor}" placeholder="Cartographe inconnu">
+            <label>${t('editor.svgExport.author')}</label>
+            <input type="text" id="exp-author" value="${this.options.cartoucheAuthor}" placeholder="${t('editor.svgExport.authorPlaceholder')}">
           </div>
           <div class="export-field">
-            <label>Date fictive</label>
-            <input type="text" id="exp-date" value="${this.options.cartoucheDate}" placeholder="An 1200 du Troisième Âge">
+            <label>${t('editor.svgExport.fictionalDate')}</label>
+            <input type="text" id="exp-date" value="${this.options.cartoucheDate}" placeholder="${t('editor.svgExport.datePlaceholder')}">
           </div>
         </div>
         <div class="modal-actions">
-          <button class="btn btn-secondary" id="exp-cancel">Annuler</button>
-          <button class="btn btn-primary" id="exp-download">Exporter</button>
+          <button class="btn btn-secondary" id="exp-cancel">${t('common.cancel')}</button>
+          <button class="btn btn-primary" id="exp-download">${t('common.export')}</button>
         </div>
       </div>
     `;
