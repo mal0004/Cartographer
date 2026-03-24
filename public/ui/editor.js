@@ -6,7 +6,7 @@
  */
 
 import { CanvasEngine } from '../canvas/engine.js';
-import { SymbolLibrary } from '../symbols.js';
+import { SymbolLibrary } from '../symbols/index.js';
 import { SnapGuides } from '../snap.js';
 import { Minimap } from '../minimap.js';
 import { Onboarding } from '../onboarding.js';

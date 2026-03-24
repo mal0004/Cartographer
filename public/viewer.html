@@ -31,8 +31,8 @@
   </div>
   <canvas id="viewer-canvas" class="viewer-canvas"></canvas>
 
-  <script src="/symbols.js"></script>
-  <script>
+  <script type="module">
+    import { ALL_SYMBOLS } from '/symbols/index.js';
     (async () => {
       const token = location.pathname.split('/share/')[1];
       if (!token) { document.getElementById('viewer-title').textContent = 'Invalid link'; return; }
@@ -171,7 +171,7 @@
             ctx.fillStyle = '#2C1810'; ctx.textAlign = 'left';
             ctx.fillText(e.name||d.text||'', d.x, d.y);
           } else if (e.type === 'symbol' && d.symbolId) {
-            const allSyms = window.ALL_SYMBOLS || [];
+            const allSyms = ALL_SYMBOLS || [];
             const sym = allSyms.find(s => s.id === d.symbolId);
             if (sym) {
               const sz = d.size || 32;
