@@ -8,6 +8,7 @@
 import { renderHeroMap, initLandingAnimations, renderTemplates } from './ui/landing.js';
 import { openWorld, showScreen, loadEvents, updateEntity, deleteEntity, navigateToEntity, exportSVG, exportJSON } from './ui/editor.js';
 import { showNewWorldModal, hideNewWorldModal, showAddEventModal, showShareModal } from './ui/modals.js';
+import { api } from './data/storage.js';
 import { loadWorlds, createWorld, importWorld } from './data/worlds.js';
 import { Sidebar } from './ui/sidebar.js';
 import { Timeline } from './ui/timeline.js';
@@ -34,6 +35,10 @@ const App = {
   minimap: null,
 
   // ─── Convenience wrappers used by child modules ────────
+
+  _api(method, url, body) {
+    return api(method, url, body);
+  },
 
   openWorld(worldId) {
     this._pendingWorldId = worldId;
