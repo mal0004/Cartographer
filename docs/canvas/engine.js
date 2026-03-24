@@ -61,8 +61,8 @@ class CanvasEngine {
 
     // Event listeners
     this.canvas.addEventListener('mousedown', (e) => this._onMouseDown(e));
-    this.canvas.addEventListener('mousemove', (e) => this._onMouseMove(e));
-    this.canvas.addEventListener('mouseup', (e) => this._onMouseUp(e));
+    window.addEventListener('mousemove', (e) => this._onMouseMove(e));
+    window.addEventListener('mouseup', (e) => this._onMouseUp(e));
     this.canvas.addEventListener('wheel', (e) => this._onWheel(e), { passive: false });
     this.canvas.addEventListener('contextmenu', (e) => this._onContextMenu(e));
     document.addEventListener('keydown', (e) => this._onKeyDown(e));
