@@ -155,6 +155,12 @@ const App = {
     renderTemplates(this);
     initLandingAnimations();
 
+    // Re-render dynamic sections on language switch
+    document.addEventListener('langchange', () => {
+      renderTemplates(this);
+      loadWorlds(this);
+    });
+
     // Saved theme
     const savedTheme = localStorage.getItem('cartographer-theme');
     if (savedTheme && MAP_THEMES[savedTheme]) this.themeManager.applyTheme(savedTheme);

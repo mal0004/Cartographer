@@ -125,11 +125,17 @@ export function showShareModal(currentWorld) {
   document.getElementById('share-cancel').addEventListener('click', () => modal.remove());
   document.getElementById('share-generate').addEventListener('click', async () => {
     const expires = document.getElementById('share-expires').value;
-    const share = await api('POST', `/api/worlds/${currentWorld.id}/share`, { expires });
-    if (share && share.token) {
-      const url = `${location.origin}/share/${share.token}`;
-      document.getElementById('share-url').value = url;
-      document.getElementById('share-result').hidden = false;
+    try {
+      const share = await api('POST', `/api/worlds/${currentWorld.id}/share`, { expires });
+      if (share && share.token) {
+        const url = `${location.origin}/share/${share.token}`;
+        document.getElementById('share-url').value = url;
+        document.getElementById('share-result').hidden = false;
+      }
+    } catch (err) {
+      const resultEl = document.getElementById('share-result');
+      resultEl.hidden = false;
+      resultEl.innerHTML = `<p style="color:var(--accent);margin-top:12px;font-size:0.9rem;">${escapeHtml(err.message)}</p>`;
     }
   });
   document.getElementById('share-copy').addEventListener('click', () => {
