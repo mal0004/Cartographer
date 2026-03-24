@@ -9,8 +9,13 @@ import { renderHeroMap, initLandingAnimations, renderTemplates } from './ui/land
 import { openWorld, showScreen, loadEvents, updateEntity, deleteEntity, navigateToEntity, exportSVG, exportJSON } from './ui/editor.js';
 import { showNewWorldModal, hideNewWorldModal, showAddEventModal, showShareModal } from './ui/modals.js';
 import { loadWorlds, createWorld, importWorld } from './data/worlds.js';
-
-/* global Sidebar, Timeline, UndoManager, LayersPanel, ThemeManager, ModeToggle, Onboarding, MAP_THEMES */
+import { Sidebar } from './ui/sidebar.js';
+import { Timeline } from './ui/timeline.js';
+import { UndoManager } from './undo.js';
+import { LayersPanel } from './layers.js';
+import { ThemeManager, MAP_THEMES } from './themes.js';
+import { ModeToggle } from './mode-toggle.js';
+import { Onboarding } from './onboarding.js';
 
 // ─── Shared application state ────────────────────────────
 
@@ -37,7 +42,7 @@ const App = {
   // ─── Initialization ────────────────────────────────────
 
   init() {
-    // Subsystems (globals loaded via <script> tags)
+    // Subsystems
     this.sidebar = new Sidebar();
     this.timeline = new Timeline();
     this.undoManager = new UndoManager();
