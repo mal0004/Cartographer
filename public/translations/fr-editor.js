@@ -139,5 +139,25 @@ export const frEditor = {
       settings: 'Paramètres',
       advancedMode: 'Mode avancé',
     },
+    symbols: {
+      title: 'Symboles',
+      search: 'Rechercher...',
+      categories: {
+        cities: 'Villes',
+        nature: 'Nature',
+        fantasy: 'Fantastique',
+        postapoc: 'Post-Apo',
+      },
+      names: {
+        capital: 'Capitale', city: 'Ville', village: 'Village', port: 'Port',
+        fortress: 'Forteresse', temple: 'Temple', ruins: 'Ruines', mine: 'Mine',
+        lighthouse: 'Phare', bridge: 'Pont', inn: 'Auberge', market: 'Marché',
+        mountain: 'Montagne', volcano: 'Volcan', tree: 'Arbre', conifer: 'Conifère',
+        swamp: 'Marais', desert: 'Désert', cave: 'Grotte', waterfall: 'Cascade', reef: 'Récif',
+        dragon: 'Dragon', mystic: 'Œil mystique', magic: 'Cristal magique',
+        skull: 'Crâne maudit', treasure: 'Trésor',
+        radiation: 'Radiation', bunker: 'Bunker', antenna: 'Antenne',
+      },
+    },
   },
 };

@@ -1,60 +1,65 @@
 /**
- * Cartographer — Data Storage (Static Demo)
+ * Cartographer — Data Storage (Static / GitHub Pages)
  *
- * LocalStorage-backed API shim for GitHub Pages.
- * Same interface as public/data/storage.js but no server needed.
+ * Routes API calls to the LocalDB localStorage shim so the
+ * static docs/ build works without an Express backend.
  */
 
 import { LocalDB } from '../local-db.js';
 
 export async function api(method, url, body) {
-  const db = LocalDB;
   const m = method.toUpperCase();
 
-  // Worlds
-  if (url === '/api/worlds' && m === 'GET') return db.getWorlds();
-  if (url === '/api/worlds' && m === 'POST') return db.createWorld(body);
-  if (url === '/api/worlds/import' && m === 'POST') return db.importWorld(body);
+  // POST /api/worlds/import
+  if (m === 'POST' && url === '/api/worlds/import') return LocalDB.importWorld(body);
 
-  let match;
-  if ((match = url.match(/^\/api\/worlds\/(\d+)\/entities$/))) {
-    const wid = Number(match[1]);
-    if (m === 'GET') return db.getEntities(wid);
-    if (m === 'POST') return db.createEntity(wid, body);
-  }
-  if ((match = url.match(/^\/api\/worlds\/(\d+)\/events$/))) {
-    const wid = Number(match[1]);
-    if (m === 'GET') return db.getEvents(wid);
-    if (m === 'POST') return db.createEvent(wid, body);
-  }
-  if ((match = url.match(/^\/api\/worlds\/(\d+)\/export$/))) {
-    return db.exportWorld(Number(match[1]));
-  }
-  if ((match = url.match(/^\/api\/worlds\/(\d+)\/share$/))) {
-    // Share not supported in static demo — return a fake token
-    return { token: 'demo-' + Date.now() };
-  }
-  if ((match = url.match(/^\/api\/worlds\/(\d+)$/))) {
-    const id = Number(match[1]);
-    if (m === 'GET') return db.getWorld(id);
-    if (m === 'PUT') return db.updateWorld(id, body);
-    if (m === 'DELETE') { db.deleteWorld(id); return { ok: true }; }
-  }
-  if ((match = url.match(/^\/api\/entities\/(\d+)$/))) {
-    const id = Number(match[1]);
-    if (m === 'GET') return db.getEntity(id);
-    if (m === 'PUT') return db.updateEntity(id, body);
-    if (m === 'DELETE') { db.deleteEntity(id); return { ok: true }; }
-  }
-  if ((match = url.match(/^\/api\/events\/(\d+)$/))) {
-    const id = Number(match[1]);
-    if (m === 'GET') return db.getEvent(id);
-    if (m === 'PUT') return db.updateEvent(id, body);
-    if (m === 'DELETE') { db.deleteEvent(id); return { ok: true }; }
+  // POST /api/worlds
+  if (m === 'POST' && url === '/api/worlds') return LocalDB.createWorld(body);
+
+  // GET /api/worlds
+  if (m === 'GET' && url === '/api/worlds') return LocalDB.getWorlds();
+
+  // /api/worlds/:id/entities
+  const worldEntities = url.match(/^\/api\/worlds\/(\d+)\/entities$/);
+  if (worldEntities) {
+    const id = Number(worldEntities[1]);
+    if (m === 'GET') return LocalDB.getEntities(id);
+    if (m === 'POST') return LocalDB.createEntity(id, body);
   }
 
-  console.warn('Unhandled API call:', method, url);
-  return null;
+  // /api/worlds/:id/events
+  const worldEvents = url.match(/^\/api\/worlds\/(\d+)\/events$/);
+  if (worldEvents) {
+    const id = Number(worldEvents[1]);
+    if (m === 'GET') return LocalDB.getEvents(id);
+    if (m === 'POST') return LocalDB.createEvent(id, body);
+  }
+
+  // /api/worlds/:id/export
+  const worldExport = url.match(/^\/api\/worlds\/(\d+)\/export$/);
+  if (worldExport) return LocalDB.exportWorld(Number(worldExport[1]));
+
+  // /api/worlds/:id/share  — sharing unsupported in static build
+  const worldShare = url.match(/^\/api\/worlds\/(\d+)\/share$/);
+  if (worldShare) throw new Error('Sharing is not available in the static demo');
+
+  // /api/worlds/:id
+  const worldById = url.match(/^\/api\/worlds\/(\d+)$/);
+  if (worldById) {
+    const id = Number(worldById[1]);
+    if (m === 'GET') return LocalDB.getWorld(id);
+    if (m === 'DELETE') { LocalDB.deleteWorld(id); return {}; }
+  }
+
+  // /api/entities/:id
+  const entityById = url.match(/^\/api\/entities\/(\d+)$/);
+  if (entityById) {
+    const id = Number(entityById[1]);
+    if (m === 'PUT') return LocalDB.updateEntity(id, body);
+    if (m === 'DELETE') { LocalDB.deleteEntity(id); return {}; }
+  }
+
+  throw new Error(`Unhandled static API: ${method} ${url}`);
 }
 
 export function escapeHtml(str) {

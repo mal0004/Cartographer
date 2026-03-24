@@ -5,7 +5,7 @@
  * Handles grid drawing, entity rendering, drawing preview, and symbol caching.
  */
 
-import { ALL_SYMBOLS } from '../symbols.js';
+import { ALL_SYMBOLS } from '../symbols/index.js';
 
 // ─── SVG texture patterns for regions (drawn onto offscreen canvases) ────
 

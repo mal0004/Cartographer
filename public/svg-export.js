@@ -5,7 +5,7 @@
  * compass rose styles, title cartouche, and custom scale.
  */
 
-import { ALL_SYMBOLS } from './symbols.js';
+import { ALL_SYMBOLS } from './symbols/index.js';
 import { t } from './i18n.js';
 
 const SVG_EXPORT_DEFAULTS = {

@@ -7,8 +7,9 @@
 
 import { WORLD_TEMPLATES } from '../data/templates.js';
 import { api, escapeHtml } from '../data/storage.js';
-import { drawWorldPreview, observeCards } from '../data/worlds.js';
-import { t } from '../i18n.js';
+import { observeCards } from '../data/worlds.js';
+import { WorldThumbnail } from './thumbnail.js';
+import { t, getLang } from '../i18n.js';
 
 // ─── Hero procedural SVG map ─────────────────────────────
 
@@ -123,6 +124,12 @@ export function initLandingAnimations() {
     }).catch(() => {});
 }
 
+// ─── Template import helpers ─────────────────────────────
+
+const VALID_ENTITY_TYPES = new Set(['territory', 'city', 'route', 'region', 'text', 'symbol']);
+const ENTITY_TYPE_MAP = { capital: 'city', village: 'city', fortress: 'city', ruins: 'symbol', lighthouse: 'symbol', port: 'city', town: 'city' };
+const TERRITORY_TYPE_MAP = { plains: 'territory', mountains: 'territory', swamp: 'region', ocean: 'territory', desert: 'territory', forest: 'region', tundra: 'territory', jungle: 'region' };
+
 // ─── Template carousel ───────────────────────────────────
 
 export function renderTemplates(app) {
@@ -130,37 +137,75 @@ export function renderTemplates(app) {
   if (!grid || !WORLD_TEMPLATES) return;
   grid.innerHTML = '';
 
-  const tagMap = {
-    'fantasy-continent': ['Fantasy', 'Royaumes', 'Villes'],
-    'mysterious-archipelago': ['Îles', 'Maritime', 'Mystère'],
-    'desert-empire': ['Désert', 'Empire', 'Antique'],
-    'medieval-region': ['Médiéval', 'Régional', 'Comté'],
-    'post-apocalyptic': ['Sci-Fi', 'Ruines', 'Survie'],
-  };
-
   for (const tpl of WORLD_TEMPLATES) {
     const card = document.createElement('div');
     card.className = 'lp-tpl-card';
-    const tags = (tagMap[tpl.id] || []).map(t => `<span class="lp-tpl-tag">${t}</span>`).join('');
+    const nameKey = `landing.templates.names.${tpl.id}`;
+    const translatedName = t(nameKey);
+    const tplName = translatedName !== nameKey ? translatedName : tpl.name;
+    const descKey = `landing.templates.descriptions.${tpl.id}`;
+    const translatedDesc = t(descKey);
+    const tplDesc = translatedDesc !== descKey ? translatedDesc : tpl.description;
+    const tags = (tpl.tags || []).map(tag => {
+      const translated = t(`landing.templates.tags.${tag}`);
+      return `<span class="lp-tpl-tag">${translated !== `landing.templates.tags.${tag}` ? translated : tag}</span>`;
+    }).join('');
     card.innerHTML = `
       <canvas class="lp-tpl-preview" width="280" height="160"></canvas>
       <div class="lp-tpl-info">
-        <h4 class="lp-tpl-name">${escapeHtml(tpl.name)}</h4>
-        <p class="lp-tpl-desc">${escapeHtml(tpl.description)}</p>
+        <h4 class="lp-tpl-name">${escapeHtml(tplName)}</h4>
+        <p class="lp-tpl-desc">${escapeHtml(tplDesc)}</p>
         <div class="lp-tpl-tags">${tags}</div>
         <button class="lp-tpl-use">${t('landing.templates.useTemplate')}</button>
       </div>`;
     card.addEventListener('click', async () => {
+      const lang = getLang();
+      const resolveText = (val) => typeof val === 'object' && val !== null ? (val[lang] || val.fr || val.en || '') : (val || '');
+
+      const importEntities = [
+        ...(tpl.territories || []).map(ter => ({
+          id: ter.id,
+          type: TERRITORY_TYPE_MAP[ter.type] || 'territory',
+          name: ter.name || '',
+          data: { points: ter.points, color: ter.color, relief: ter.relief },
+        })),
+        ...(tpl.entities || []).map(e => {
+          const { id, type, name, description, ...rest } = e;
+          return {
+            id,
+            type: VALID_ENTITY_TYPES.has(type) ? type : (ENTITY_TYPE_MAP[type] || 'symbol'),
+            name: name || '',
+            data: rest,
+          };
+        }),
+        ...(tpl.routes || []).map((r, i) => ({
+          id: `route_${i}`,
+          type: 'route',
+          name: '',
+          data: { from: r.from, to: r.to, routeType: r.type },
+        })),
+      ];
+
+      const importEvents = (tpl.timeline || []).map(ev => ({
+        title: resolveText(ev.title) || tplName,
+        date: ev.year ?? ev.date ?? 0,
+        category: ev.category || 'political',
+        description: resolveText(ev.description),
+        entity_ids: ev.entityId ? [ev.entityId] : [],
+      }));
+
       const importData = {
-        world: { ...tpl.world },
-        entities: tpl.entities.map(e => ({ ...e, data: { ...e.data } })),
-        events: (tpl.events || []).map(ev => ({ ...ev })),
+        world: { name: tplName, description: tplDesc },
+        entities: importEntities,
+        events: importEvents,
       };
       const world = await api('POST', '/api/worlds/import', importData);
       app.openWorld(world.id);
     });
     grid.appendChild(card);
-    drawWorldPreview(card.querySelector('.lp-tpl-preview'), tpl.entities);
+    const canvas = card.querySelector('.lp-tpl-preview');
+    const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 16));
+    idle(() => new WorldThumbnail(canvas, tpl).render());
   }
 
   const prev = document.querySelector('.lp-carousel-prev');
