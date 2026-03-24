@@ -429,14 +429,14 @@
     <!-- New world modal -->
     <div id="modal-new-world" class="modal" hidden>
       <div class="modal-content">
-        <h2>Nouveau Monde</h2>
-        <label>Nom<input type="text" id="new-world-name" placeholder="Middle-earth"></label>
-        <label>Description<textarea id="new-world-desc" rows="3" placeholder="Une brève description..."></textarea></label>
-        <label>Début de la timeline<input type="number" id="new-world-tstart" value="0"></label>
-        <label>Fin de la timeline<input type="number" id="new-world-tend" value="1000"></label>
+        <h2 data-i18n="editor.modals.newWorld">Nouveau Monde</h2>
+        <label><span data-i18n="editor.modals.name">Nom</span><input type="text" id="new-world-name" data-i18n-placeholder="editor.modals.namePlaceholder" placeholder="Middle-earth"></label>
+        <label><span data-i18n="editor.modals.description">Description</span><textarea id="new-world-desc" rows="3" data-i18n-placeholder="editor.modals.descPlaceholder" placeholder="Une brève description..."></textarea></label>
+        <label><span data-i18n="editor.modals.timelineStart">Début de la timeline</span><input type="number" id="new-world-tstart" value="0"></label>
+        <label><span data-i18n="editor.modals.timelineEnd">Fin de la timeline</span><input type="number" id="new-world-tend" value="1000"></label>
         <div class="modal-actions">
-          <button id="modal-cancel" class="btn btn-secondary">Annuler</button>
-          <button id="modal-create" class="btn btn-primary">Créer</button>
+          <button id="modal-cancel" class="btn btn-secondary" data-i18n="common.cancel">Annuler</button>
+          <button id="modal-create" class="btn btn-primary" data-i18n="common.create">Créer</button>
         </div>
       </div>
     </div>
@@ -534,10 +534,10 @@
     <!-- Timeline -->
     <div id="timeline" class="timeline collapsed">
       <div class="timeline-resize-handle" id="timeline-resize-handle"></div>
-      <button id="timeline-toggle" class="timeline-toggle" title="Toggle timeline">&#9650; Timeline</button>
+      <button id="timeline-toggle" class="timeline-toggle" data-i18n-title="editor.timeline.toggle" title="Toggle timeline"><span>&#9650; </span><span data-i18n="editor.timeline.title">Timeline</span></button>
       <div id="timeline-body" class="timeline-body">
         <canvas id="timeline-canvas"></canvas>
-        <button id="btn-add-event" class="btn btn-sm timeline-add">+ Event</button>
+        <button id="btn-add-event" class="btn btn-sm timeline-add" data-i18n="editor.timeline.addEvent">+ Event</button>
       </div>
     </div>
   </div>
