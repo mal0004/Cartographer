@@ -139,5 +139,25 @@ export const enEditor = {
       settings: 'Settings',
       advancedMode: 'Advanced mode',
     },
+    symbols: {
+      title: 'Symbols',
+      search: 'Search...',
+      categories: {
+        cities: 'Cities',
+        nature: 'Nature',
+        fantasy: 'Fantasy',
+        postapoc: 'Post-Apo',
+      },
+      names: {
+        capital: 'Capital', city: 'City', village: 'Village', port: 'Port',
+        fortress: 'Fortress', temple: 'Temple', ruins: 'Ruins', mine: 'Mine',
+        lighthouse: 'Lighthouse', bridge: 'Bridge', inn: 'Inn', market: 'Market',
+        mountain: 'Mountain', volcano: 'Volcano', tree: 'Tree', conifer: 'Conifer',
+        swamp: 'Swamp', desert: 'Desert', cave: 'Cave', waterfall: 'Waterfall', reef: 'Reef',
+        dragon: 'Dragon', mystic: 'Mystic Eye', magic: 'Magic Crystal',
+        skull: 'Cursed Skull', treasure: 'Treasure',
+        radiation: 'Radiation', bunker: 'Bunker', antenna: 'Antenna',
+      },
+    },
   },
 };

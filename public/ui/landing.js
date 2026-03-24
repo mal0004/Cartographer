@@ -134,18 +134,23 @@ export function renderTemplates(app) {
   for (const tpl of WORLD_TEMPLATES) {
     const card = document.createElement('div');
     card.className = 'lp-tpl-card';
-    const tags = (tpl.tags || []).map(t => `<span class="lp-tpl-tag">${t}</span>`).join('');
+    const tplName = t(`landing.templates.names.${tpl.id}`) || tpl.name;
+    const tplDesc = t(`landing.templates.descriptions.${tpl.id}`) || tpl.description;
+    const tags = (tpl.tags || []).map(tag => {
+      const translated = t(`landing.templates.tags.${tag}`);
+      return `<span class="lp-tpl-tag">${translated !== `landing.templates.tags.${tag}` ? translated : tag}</span>`;
+    }).join('');
     card.innerHTML = `
       <canvas class="lp-tpl-preview" width="280" height="160"></canvas>
       <div class="lp-tpl-info">
-        <h4 class="lp-tpl-name">${escapeHtml(tpl.name)}</h4>
-        <p class="lp-tpl-desc">${escapeHtml(tpl.description)}</p>
+        <h4 class="lp-tpl-name">${escapeHtml(tplName)}</h4>
+        <p class="lp-tpl-desc">${escapeHtml(tplDesc)}</p>
         <div class="lp-tpl-tags">${tags}</div>
         <button class="lp-tpl-use">${t('landing.templates.useTemplate')}</button>
       </div>`;
     card.addEventListener('click', async () => {
       const importData = {
-        world: { name: tpl.name, description: tpl.description },
+        world: { name: tplName, description: tplDesc },
         entities: (tpl.entities || []).map(e => ({ ...e })),
         events: (tpl.timeline || []).map(ev => ({ ...ev })),
       };

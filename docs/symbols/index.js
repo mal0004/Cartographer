@@ -9,20 +9,33 @@ import { CITY_SYMBOLS, drawCitySymbol } from './cities.js';
 import { NATURE_SYMBOLS, drawNatureSymbol } from './nature.js';
 import { FANTASY_SYMBOLS, drawFantasySymbol } from './fantasy.js';
 import { POSTAPOC_SYMBOLS, drawPostapocSymbol } from './postapoc.js';
+import { t } from '../i18n.js';
 
-const SYMBOL_CATEGORIES = {
-  'Villes': CITY_SYMBOLS,
-  'Nature': NATURE_SYMBOLS,
-  'Fantastique': FANTASY_SYMBOLS,
-  'Post-Apo': POSTAPOC_SYMBOLS,
-};
+const SYMBOL_CATEGORY_KEYS = [
+  { key: 'cities', symbols: CITY_SYMBOLS },
+  { key: 'nature', symbols: NATURE_SYMBOLS },
+  { key: 'fantasy', symbols: FANTASY_SYMBOLS },
+  { key: 'postapoc', symbols: POSTAPOC_SYMBOLS },
+];
 
+// Flat list for lookups (category stored as key, not display name)
 const ALL_SYMBOLS = [];
-for (const [cat, syms] of Object.entries(SYMBOL_CATEGORIES)) {
-  for (const sym of syms) ALL_SYMBOLS.push({ ...sym, category: cat });
+for (const cat of SYMBOL_CATEGORY_KEYS) {
+  for (const sym of cat.symbols) ALL_SYMBOLS.push({ ...sym, category: cat.key });
 }
 
-const DRAW_FNS = { ...Object.fromEntries(CITY_SYMBOLS.map(s => [s.id, drawCitySymbol])),
+// Legacy compat: keyed by translated name (rebuilt on lang change)
+let SYMBOL_CATEGORIES = {};
+function rebuildCategories() {
+  SYMBOL_CATEGORIES = {};
+  for (const cat of SYMBOL_CATEGORY_KEYS) {
+    const label = t(`editor.symbols.categories.${cat.key}`);
+    SYMBOL_CATEGORIES[label] = cat.symbols;
+  }
+}
+
+const DRAW_FNS = {
+  ...Object.fromEntries(CITY_SYMBOLS.map(s => [s.id, drawCitySymbol])),
   ...Object.fromEntries(NATURE_SYMBOLS.map(s => [s.id, drawNatureSymbol])),
   ...Object.fromEntries(FANTASY_SYMBOLS.map(s => [s.id, drawFantasySymbol])),
   ...Object.fromEntries(POSTAPOC_SYMBOLS.map(s => [s.id, drawPostapocSymbol])),
@@ -33,12 +46,19 @@ function drawSymbol(ctx, id, x, y, size, color) {
   if (fn) fn(ctx, x, y, size, color, id);
 }
 
+function symName(id) {
+  const key = `editor.symbols.names.${id}`;
+  const val = t(key);
+  return val !== key ? val : id;
+}
+
 class SymbolLibrary {
   constructor() {
     this.selectedSymbol = null;
     this.visible = false;
     this.onSymbolSelected = null;
     this._buildPalette();
+    document.addEventListener('langchange', () => this._rebuildContent());
   }
 
   _buildPalette() {
@@ -46,32 +66,34 @@ class SymbolLibrary {
     this.el.id = 'symbol-palette';
     this.el.className = 'symbol-palette';
     this.el.hidden = true;
+    this._rebuildContent();
+    const container = document.getElementById('canvas-container');
+    container.appendChild(this.el);
+  }
 
+  _rebuildContent() {
+    rebuildCategories();
     let html = `
       <div class="symbol-palette-header">
-        <h4>Symboles</h4>
-        <input type="text" id="symbol-search" placeholder="Rechercher..." class="symbol-search">
-        <button class="btn-icon symbol-close" title="Fermer">&times;</button>
+        <h4>${t('editor.symbols.title')}</h4>
+        <input type="text" id="symbol-search" placeholder="${t('editor.symbols.search')}" class="symbol-search">
+        <button class="btn-icon symbol-close" title="${t('common.close')}">&times;</button>
       </div>
       <div class="symbol-palette-body" id="symbol-palette-body">`;
-
-    for (const [cat, syms] of Object.entries(SYMBOL_CATEGORIES)) {
-      html += `<div class="symbol-category"><h5>${cat}</h5><div class="symbol-grid">`;
-      for (const sym of syms) {
-        html += `<button class="symbol-item" data-symbol-id="${sym.id}" title="${sym.name}">
+    for (const cat of SYMBOL_CATEGORY_KEYS) {
+      const catLabel = t(`editor.symbols.categories.${cat.key}`);
+      html += `<div class="symbol-category"><h5>${catLabel}</h5><div class="symbol-grid">`;
+      for (const sym of cat.symbols) {
+        const name = symName(sym.id);
+        html += `<button class="symbol-item" data-symbol-id="${sym.id}" title="${name}">
           <svg viewBox="0 0 24 24" width="28" height="28">${sym.svg}</svg>
-          <span>${sym.name}</span>
+          <span>${name}</span>
         </button>`;
       }
       html += `</div></div>`;
     }
-
     html += `</div>`;
     this.el.innerHTML = html;
-
-    const container = document.getElementById('canvas-container');
-    container.appendChild(this.el);
-
     this.el.querySelector('.symbol-close').addEventListener('click', () => this.hide());
     this.el.querySelector('#symbol-search').addEventListener('input', (e) => {
       this._filterSymbols(e.target.value.toLowerCase());
