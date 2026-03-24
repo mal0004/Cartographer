@@ -66,4 +66,4 @@ class ModeToggle {
   }
 }
 
-window.ModeToggle = ModeToggle;
+export { ModeToggle };

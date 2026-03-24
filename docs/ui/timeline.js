@@ -5,8 +5,6 @@
  * click events to navigate on the map.
  */
 
-/* global app */
-
 const EVENT_COLORS = {
   war: '#c0392b',
   political: '#8B2635',
@@ -265,4 +263,4 @@ class Timeline {
   }
 }
 
-window.Timeline = Timeline;
+export { Timeline, EVENT_COLORS };

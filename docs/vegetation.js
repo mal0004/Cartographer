@@ -13,7 +13,7 @@
  * Zero dependencies beyond noise.js (SimplexNoise).
  */
 
-/* global SimplexNoise */
+import { SimplexNoise } from './noise.js';
 
 class VegetationRenderer {
   constructor() {
@@ -520,4 +520,4 @@ class VegetationRenderer {
   }
 }
 
-window.VegetationRenderer = VegetationRenderer;
+export { VegetationRenderer };

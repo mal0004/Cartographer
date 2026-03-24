@@ -5,8 +5,6 @@
  * relations tab, and events tab.
  */
 
-/* global app */
-
 class Sidebar {
   constructor() {
     this.el = document.getElementById('sidebar');
@@ -576,4 +574,4 @@ class Sidebar {
   }
 }
 
-window.Sidebar = Sidebar;
+export { Sidebar };

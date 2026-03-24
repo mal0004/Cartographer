@@ -225,4 +225,4 @@ class LayersPanel {
   }
 }
 
-window.LayersPanel = LayersPanel;
+export { LayersPanel, DEFAULT_LAYERS };

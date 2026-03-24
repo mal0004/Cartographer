@@ -162,5 +162,4 @@ class ThemeManager {
   }
 }
 
-window.ThemeManager = ThemeManager;
-window.MAP_THEMES = MAP_THEMES;
+export { ThemeManager, MAP_THEMES };

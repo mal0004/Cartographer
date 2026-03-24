@@ -173,4 +173,4 @@ const LocalDB = {
   },
 };
 
-window.LocalDB = LocalDB;
+export { LocalDB };

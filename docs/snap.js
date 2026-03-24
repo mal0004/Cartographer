@@ -201,4 +201,4 @@ class SnapGuides {
   }
 }
 
-window.SnapGuides = SnapGuides;
+export { SnapGuides };

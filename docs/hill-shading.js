@@ -11,7 +11,7 @@
  * sampling combined elevation data from all territory HeightMaps.
  */
 
-/* global HeightMap, TerrainRenderer */
+import { HeightMap } from './noise.js';
 
 class HillShading {
   constructor() {
@@ -269,4 +269,4 @@ class HillShading {
   }
 }
 
-window.HillShading = HillShading;
+export { HillShading };

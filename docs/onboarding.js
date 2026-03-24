@@ -181,4 +181,4 @@ class Onboarding {
   }
 }
 
-window.Onboarding = Onboarding;
+export { Onboarding };
