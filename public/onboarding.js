@@ -5,47 +5,19 @@
  * Shows at first world launch, skip-able, re-launchable from Help.
  */
 
+import { t } from './i18n.js';
+
 class Onboarding {
   constructor() {
     this.currentStep = 0;
     this.active = false;
     this.steps = [
-      {
-        target: '#main-canvas',
-        title: 'Bienvenue sur Cartographer !',
-        text: 'Voici votre canvas — pincez pour zoomer, glissez pour naviguer.',
-        position: 'center',
-      },
-      {
-        target: '[data-tool="territory"]',
-        title: 'Dessinez un territoire',
-        text: 'Cliquez sur cet outil, puis cliquez pour placer des points sur la carte. Clic droit pour fermer le polygone.',
-        position: 'right',
-      },
-      {
-        target: '[data-tool="city"]',
-        title: 'Placez une ville',
-        text: 'Sélectionnez l\'outil Ville et cliquez sur la carte pour poser votre première cité.',
-        position: 'right',
-      },
-      {
-        target: '#sidebar',
-        title: 'Donnez-lui un nom',
-        text: 'Cliquez sur une entité pour ouvrir sa fiche. Vous pouvez modifier son nom, ses propriétés et sa description.',
-        position: 'left',
-      },
-      {
-        target: '#timeline-toggle',
-        title: 'La Timeline',
-        text: 'Ajoutez des événements historiques à votre monde. Cliquez sur un événement pour naviguer vers l\'entité liée.',
-        position: 'top',
-      },
-      {
-        target: '#btn-export-svg',
-        title: 'Exportez votre carte',
-        text: 'Exportez en SVG pour l\'impression ou en JSON pour sauvegarder et partager votre monde.',
-        position: 'bottom',
-      },
+      { target: '#main-canvas', titleKey: 'editor.onboarding.step1Title', textKey: 'editor.onboarding.step1Text', position: 'center' },
+      { target: '[data-tool="territory"]', titleKey: 'editor.onboarding.step2Title', textKey: 'editor.onboarding.step2Text', position: 'right' },
+      { target: '[data-tool="city"]', titleKey: 'editor.onboarding.step3Title', textKey: 'editor.onboarding.step3Text', position: 'right' },
+      { target: '#sidebar', titleKey: 'editor.onboarding.step4Title', textKey: 'editor.onboarding.step4Text', position: 'left' },
+      { target: '#timeline-toggle', titleKey: 'editor.onboarding.step5Title', textKey: 'editor.onboarding.step5Text', position: 'top' },
+      { target: '#btn-export-svg', titleKey: 'editor.onboarding.step6Title', textKey: 'editor.onboarding.step6Text', position: 'bottom' },
     ];
   }
 
@@ -82,8 +54,8 @@ class Onboarding {
         <h3 id="onboarding-title"></h3>
         <p id="onboarding-text"></p>
         <div class="onboarding-actions">
-          <button class="btn btn-secondary btn-sm" id="onboarding-skip">Passer</button>
-          <button class="btn btn-primary btn-sm" id="onboarding-next">Suivant</button>
+          <button class="btn btn-secondary btn-sm" id="onboarding-skip">${t('editor.onboarding.skip')}</button>
+          <button class="btn btn-primary btn-sm" id="onboarding-next">${t('editor.onboarding.next')}</button>
         </div>
       </div>
     `;
@@ -107,12 +79,12 @@ class Onboarding {
     // Step counter
     document.getElementById('onboarding-step-count').textContent =
       `${this.currentStep + 1} / ${this.steps.length}`;
-    document.getElementById('onboarding-title').textContent = step.title;
-    document.getElementById('onboarding-text').textContent = step.text;
+    document.getElementById('onboarding-title').textContent = t(step.titleKey);
+    document.getElementById('onboarding-text').textContent = t(step.textKey);
 
     // Update button text
     const nextBtn = document.getElementById('onboarding-next');
-    nextBtn.textContent = this.currentStep === this.steps.length - 1 ? 'Terminer' : 'Suivant';
+    nextBtn.textContent = this.currentStep === this.steps.length - 1 ? t('editor.onboarding.finish') : t('editor.onboarding.next');
 
     if (target) {
       const rect = target.getBoundingClientRect();
