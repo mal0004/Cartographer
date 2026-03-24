@@ -158,7 +158,7 @@ class Sidebar {
     }
 
     // Delete button
-    html += `<div class="sidebar-delete"><button class="btn btn-danger btn-sm" id="btn-delete-entity">Delete Entity</button></div>`;
+    html += `<div class="sidebar-delete"><button class="btn btn-danger btn-sm" id="btn-delete-entity">${t('common.delete')}</button></div>`;
 
     return html;
   }
