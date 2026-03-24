@@ -7,7 +7,8 @@
 
 import { WORLD_TEMPLATES } from '../data/templates.js';
 import { api, escapeHtml } from '../data/storage.js';
-import { drawWorldPreview, observeCards } from '../data/worlds.js';
+import { observeCards } from '../data/worlds.js';
+import { WorldThumbnail } from './thumbnail.js';
 import { t } from '../i18n.js';
 
 // ─── Hero procedural SVG map ─────────────────────────────
@@ -130,18 +131,10 @@ export function renderTemplates(app) {
   if (!grid || !WORLD_TEMPLATES) return;
   grid.innerHTML = '';
 
-  const tagMap = {
-    'fantasy-continent': ['Fantasy', 'Royaumes', 'Villes'],
-    'mysterious-archipelago': ['Îles', 'Maritime', 'Mystère'],
-    'desert-empire': ['Désert', 'Empire', 'Antique'],
-    'medieval-region': ['Médiéval', 'Régional', 'Comté'],
-    'post-apocalyptic': ['Sci-Fi', 'Ruines', 'Survie'],
-  };
-
   for (const tpl of WORLD_TEMPLATES) {
     const card = document.createElement('div');
     card.className = 'lp-tpl-card';
-    const tags = (tagMap[tpl.id] || []).map(t => `<span class="lp-tpl-tag">${t}</span>`).join('');
+    const tags = (tpl.tags || []).map(t => `<span class="lp-tpl-tag">${t}</span>`).join('');
     card.innerHTML = `
       <canvas class="lp-tpl-preview" width="280" height="160"></canvas>
       <div class="lp-tpl-info">
@@ -152,15 +145,17 @@ export function renderTemplates(app) {
       </div>`;
     card.addEventListener('click', async () => {
       const importData = {
-        world: { ...tpl.world },
-        entities: tpl.entities.map(e => ({ ...e, data: { ...e.data } })),
-        events: (tpl.events || []).map(ev => ({ ...ev })),
+        world: { name: tpl.name, description: tpl.description },
+        entities: (tpl.entities || []).map(e => ({ ...e })),
+        events: (tpl.timeline || []).map(ev => ({ ...ev })),
       };
       const world = await api('POST', '/api/worlds/import', importData);
       app.openWorld(world.id);
     });
     grid.appendChild(card);
-    drawWorldPreview(card.querySelector('.lp-tpl-preview'), tpl.entities);
+    const canvas = card.querySelector('.lp-tpl-preview');
+    const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 16));
+    idle(() => new WorldThumbnail(canvas, tpl).render());
   }
 
   const prev = document.querySelector('.lp-carousel-prev');
