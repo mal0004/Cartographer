@@ -126,9 +126,11 @@ export function initLandingAnimations() {
 
 // ─── Template import helpers ─────────────────────────────
 
-const VALID_ENTITY_TYPES = new Set(['territory', 'city', 'route', 'region', 'text', 'symbol']);
+const MAP_W = 1200, MAP_H = 800;
 const ENTITY_TYPE_MAP = { capital: 'city', village: 'city', fortress: 'city', ruins: 'symbol', lighthouse: 'symbol', port: 'city', town: 'city' };
 const TERRITORY_TYPE_MAP = { plains: 'territory', mountains: 'territory', swamp: 'region', ocean: 'territory', desert: 'territory', forest: 'region', tundra: 'territory', jungle: 'region' };
+const TERRAIN_TYPE_MAP = { plains: 'plains', mountains: 'mountain', swamp: 'swamp', desert: 'desert', ocean: 'ocean' };
+const REGION_TERRAIN_MAP = { swamp: 'swamp', forest: 'forest', jungle: 'forest', tundra: 'forest' };
 
 // ─── Template carousel ───────────────────────────────────
 
@@ -162,28 +164,64 @@ export function renderTemplates(app) {
       const lang = getLang();
       const resolveText = (val) => typeof val === 'object' && val !== null ? (val[lang] || val.fr || val.en || '') : (val || '');
 
+      // Build a lookup of entity positions (in world px) for route resolution
+      const entityPos = {};
+      for (const e of (tpl.entities || [])) {
+        if (e.x !== undefined) entityPos[e.id] = { x: e.x * MAP_W, y: e.y * MAP_H };
+      }
+
+      // Territories → territory or region entities
       const importEntities = [
-        ...(tpl.territories || []).map(ter => ({
-          id: ter.id,
-          type: TERRITORY_TYPE_MAP[ter.type] || 'territory',
-          name: ter.name || '',
-          data: { points: ter.points, color: ter.color, relief: ter.relief },
-        })),
+        ...(tpl.territories || []).map(ter => {
+          const dbType = TERRITORY_TYPE_MAP[ter.type] || 'territory';
+          const data = {
+            points: ter.points.map(p => ({ x: p.x * MAP_W, y: p.y * MAP_H })),
+            color: ter.color,
+          };
+          if (dbType === 'territory') {
+            data.terrainType = TERRAIN_TYPE_MAP[ter.type] || '';
+            data.terrainSeed = Math.floor(Math.random() * 100000);
+            data.terrainIntensity = Math.round((ter.relief?.intensity ?? 0.5) * 100);
+          } else {
+            data.terrain = REGION_TERRAIN_MAP[ter.type] || 'forest';
+          }
+          return { id: ter.id, type: dbType, name: ter.name || '', data };
+        }),
+
+        // Point entities → city or symbol
         ...(tpl.entities || []).map(e => {
-          const { id, type, name, description, ...rest } = e;
+          const dbType = ENTITY_TYPE_MAP[e.type] || e.type;
+          const data = {
+            x: e.x * MAP_W,
+            y: e.y * MAP_H,
+            importance: e.importance || 'village',
+            color: '#2C1810',
+            labelOffsetX: 12,
+            labelOffsetY: -8,
+            population: e.population || 0,
+            description: resolveText(e.description),
+          };
+          return { id: e.id, type: dbType, name: e.name || '', data };
+        }),
+
+        // Routes → resolved from entity positions
+        ...(tpl.routes || []).map((r, i) => {
+          const p1 = entityPos[r.from] || { x: MAP_W / 2, y: MAP_H / 2 };
+          const p2 = entityPos[r.to] || { x: MAP_W / 2, y: MAP_H / 2 };
+          const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
+          const dx = p2.x - p1.x, dy = p2.y - p1.y;
           return {
-            id,
-            type: VALID_ENTITY_TYPES.has(type) ? type : (ENTITY_TYPE_MAP[type] || 'symbol'),
-            name: name || '',
-            data: rest,
+            id: `route_${i}`,
+            type: 'route',
+            name: '',
+            data: {
+              x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
+              cx1: mx - dy * 0.15, cy1: my + dx * 0.15,
+              cx2: mx + dy * 0.15, cy2: my - dx * 0.15,
+              style: r.type || 'road',
+            },
           };
         }),
-        ...(tpl.routes || []).map((r, i) => ({
-          id: `route_${i}`,
-          type: 'route',
-          name: '',
-          data: { from: r.from, to: r.to, routeType: r.type },
-        })),
       ];
 
       const importEvents = (tpl.timeline || []).map(ev => ({
