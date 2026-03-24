@@ -26,9 +26,9 @@ export async function openWorld(app) {
   if (!app.canvasEngine) {
     app.canvasEngine = new CanvasEngine(document.getElementById('main-canvas'));
     app.canvasEngine.onEntitySelected = (entity) => onEntitySelected(app, entity);
-    app.canvasEngine.onEntityCreated = (entity) => createEntity(app, entity);
-    app.canvasEngine.onEntityUpdated = (entity) => updateEntity(app, entity);
-    app.canvasEngine.onEntityDeleted = (entity) => deleteEntity(app, entity);
+    app.canvasEngine.onEntityCreated = (entity) => createEntity(app, entity).catch(err => { console.error('Entity creation failed:', err); showToast(err.message, 'error'); });
+    app.canvasEngine.onEntityUpdated = (entity) => updateEntity(app, entity).catch(err => { console.error('Entity update failed:', err); showToast(err.message, 'error'); });
+    app.canvasEngine.onEntityDeleted = (entity) => deleteEntity(app, entity).catch(err => { console.error('Entity delete failed:', err); showToast(err.message, 'error'); });
     app.canvasEngine.onEntityMoved = (entity, oldData) => moveEntityWithUndo(app, entity, oldData);
     app.canvasEngine.layersPanel = app.layersPanel;
 

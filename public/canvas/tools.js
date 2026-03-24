@@ -122,7 +122,9 @@ export const ToolsMixin = {
       btn.classList.toggle('active', btn.dataset.tool === tool);
     });
     const container = this.canvas.parentElement;
-    container.className = 'canvas-container cursor-' + tool;
+    // Remove any existing cursor-* class and set the new one
+    container.className = container.className.replace(/\bcursor-\S+/g, '').trim();
+    container.classList.add('cursor-' + tool);
     this._updateToolOptions();
     if (this.symbolLibrary) {
       if (tool === 'symbol') this.symbolLibrary.show();
