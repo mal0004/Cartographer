@@ -28,7 +28,7 @@
   </script>
 </head>
 <body>
-  <a href="#lp-main" class="skip-link">Aller au contenu</a>
+  <a href="#lp-main" class="skip-link" data-i18n="common.skipToContent">Aller au contenu</a>
 
   <!-- ─── Home screen ─────────────────────────────────── -->
   <div id="home-screen" class="screen active">
@@ -41,14 +41,14 @@
     </div>
 
     <!-- 1. HERO -->
-    <section class="lp-hero" aria-label="Présentation">
+    <section class="lp-hero" data-i18n-aria="landing.hero.ariaPresentation" aria-label="Présentation">
       <div class="lp-hero-map" id="lp-hero-map" aria-hidden="true">
-        <svg id="hero-map-bg" viewBox="0 0 1400 700" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Carte générée procéduralement"></svg>
+        <svg id="hero-map-bg" viewBox="0 0 1400 700" preserveAspectRatio="xMidYMid slice" role="img" data-i18n-aria="landing.hero.ariaMap" aria-label="Carte générée procéduralement"></svg>
       </div>
       <div class="lp-hero-overlay" aria-hidden="true"></div>
       <div class="lp-hero-content" id="lp-main">
         <!-- Ornament -->
-        <svg class="lp-ornament" width="200" height="20" viewBox="0 0 200 20" role="img" aria-label="Ornement décoratif">
+        <svg class="lp-ornament" width="200" height="20" viewBox="0 0 200 20" role="img" data-i18n-aria="landing.hero.ariaOrnament" aria-label="Ornement décoratif">
           <line x1="0" y1="10" x2="82" y2="10" stroke="#C4A882" stroke-width="0.75" opacity="0.6"/>
           <circle cx="88" cy="10" r="1.5" fill="#C4A882" opacity="0.5"/>
           <path d="M95,10 L100,4 L105,10 L100,16Z" fill="none" stroke="#C4A882" stroke-width="0.75" opacity="0.8"/>
@@ -57,21 +57,21 @@
           <line x1="118" y1="10" x2="200" y2="10" stroke="#C4A882" stroke-width="0.75" opacity="0.6"/>
         </svg>
 
-        <h1 class="lp-hero-title">CARTOGRAPHER</h1>
-        <p class="lp-hero-tagline">Donnez vie à vos mondes imaginaires</p>
-        <p class="lp-hero-sub">Dessinez, annotez, exportez. Open source et gratuit.</p>
+        <h1 class="lp-hero-title" data-i18n="landing.hero.title">CARTOGRAPHER</h1>
+        <p class="lp-hero-tagline" data-i18n="landing.hero.tagline">Donnez vie à vos mondes imaginaires</p>
+        <p class="lp-hero-sub" data-i18n="landing.hero.sub">Dessinez, annotez, exportez. Open source et gratuit.</p>
 
         <div class="lp-hero-ctas">
-          <button id="btn-new-world" class="lp-cta-primary" aria-label="Créer un nouveau monde">Créer un monde</button>
-          <a href="#templates-section" class="lp-cta-outline" aria-label="Voir la démo">Voir la démo</a>
+          <button id="btn-new-world" class="lp-cta-primary" data-i18n="landing.hero.ctaCreate" data-i18n-aria="landing.hero.ctaCreateAria" aria-label="Créer un nouveau monde">Créer un monde</button>
+          <a href="#templates-section" class="lp-cta-outline" data-i18n="landing.hero.ctaDemo" data-i18n-aria="landing.hero.ctaDemo" aria-label="Voir la démo">Voir la démo</a>
         </div>
-        <label class="lp-import-link" aria-label="Importer un fichier JSON">
-          Importer JSON
+        <label class="lp-import-link" data-i18n-aria="landing.hero.ctaImportAria" aria-label="Importer un fichier JSON">
+          <span data-i18n="landing.hero.ctaImport">Importer JSON</span>
           <input type="file" id="import-file" accept=".json" hidden>
         </label>
       </div>
       <div class="lp-scroll-indicator" aria-hidden="true">
-        <span class="lp-scroll-text">Explorer</span>
+        <span class="lp-scroll-text" data-i18n="landing.hero.scroll">Explorer</span>
         <svg class="lp-scroll-chevron" viewBox="0 0 24 24" width="16" height="16">
           <path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
