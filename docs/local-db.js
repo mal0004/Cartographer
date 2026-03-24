@@ -146,6 +146,32 @@ const LocalDB = {
     this._write('events', this._read('events').filter(e => e.id !== id));
   },
 
+  // ─── Shares ─────────────────────────────────────────────
+
+  createShare(worldId, opts) {
+    const shares = this._read('shares');
+    const token = Math.random().toString(36).slice(2, 14);
+    const expiresVal = opts && opts.expires;
+    let expiresAt = null;
+    if (expiresVal === '24h') expiresAt = new Date(Date.now() + 86400000).toISOString();
+    else if (expiresVal === '7d') expiresAt = new Date(Date.now() + 604800000).toISOString();
+    else if (expiresVal === '30d') expiresAt = new Date(Date.now() + 2592000000).toISOString();
+    const share = {
+      id: this._nextId('shares'),
+      token,
+      world_id: worldId,
+      expires_at: expiresAt,
+      created_at: new Date().toISOString(),
+    };
+    shares.push(share);
+    this._write('shares', shares);
+    return share;
+  },
+
+  getShares(worldId) {
+    return this._read('shares').filter(s => s.world_id === worldId);
+  },
+
   // ─── Import / Export ──────────────────────────────────────
 
   exportWorld(worldId) {

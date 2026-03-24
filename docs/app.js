@@ -156,9 +156,14 @@ const App = {
     initLandingAnimations();
 
     // Re-render dynamic sections on language switch
-    document.addEventListener('langchange', () => {
+    document.addEventListener('langchange', async () => {
       renderTemplates(this);
-      loadWorlds(this);
+      await loadWorlds(this);
+      // Cards are recreated with opacity:0 and need .visible to appear.
+      // Force-add .visible immediately since they are already in viewport.
+      document.querySelectorAll('.world-card, .world-card-new, .lp-tpl-card').forEach(c => {
+        c.classList.add('visible');
+      });
     });
 
     // Saved theme

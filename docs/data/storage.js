@@ -39,15 +39,23 @@ export async function api(method, url, body) {
   const worldExport = url.match(/^\/api\/worlds\/(\d+)\/export$/);
   if (worldExport) return LocalDB.exportWorld(Number(worldExport[1]));
 
-  // /api/worlds/:id/share  — sharing unsupported in static build
+  // /api/worlds/:id/share — generate a local share token stored in localStorage
   const worldShare = url.match(/^\/api\/worlds\/(\d+)\/share$/);
-  if (worldShare) throw new Error('Sharing is not available in the static demo');
+  if (worldShare) {
+    const worldId = Number(worldShare[1]);
+    return LocalDB.createShare(worldId, body);
+  }
+
+  // /api/worlds/:id/shares
+  const worldShares = url.match(/^\/api\/worlds\/(\d+)\/shares$/);
+  if (worldShares) return LocalDB.getShares(Number(worldShares[1]));
 
   // /api/worlds/:id
   const worldById = url.match(/^\/api\/worlds\/(\d+)$/);
   if (worldById) {
     const id = Number(worldById[1]);
     if (m === 'GET') return LocalDB.getWorld(id);
+    if (m === 'PUT') return LocalDB.updateWorld(id, body);
     if (m === 'DELETE') { LocalDB.deleteWorld(id); return {}; }
   }
 
@@ -59,7 +67,16 @@ export async function api(method, url, body) {
     if (m === 'DELETE') { LocalDB.deleteEntity(id); return {}; }
   }
 
-  throw new Error(`Unhandled static API: ${method} ${url}`);
+  // /api/events/:id
+  const eventById = url.match(/^\/api\/events\/(\d+)$/);
+  if (eventById) {
+    const id = Number(eventById[1]);
+    if (m === 'PUT') return LocalDB.updateEvent(id, body);
+    if (m === 'DELETE') { LocalDB.deleteEvent(id); return {}; }
+  }
+
+  console.warn(`Unhandled static API: ${method} ${url}`);
+  return {};
 }
 
 export function escapeHtml(str) {
