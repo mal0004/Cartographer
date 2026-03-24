@@ -5,6 +5,8 @@
  * relations tab, and events tab.
  */
 
+import { t } from '../i18n.js';
+
 class Sidebar {
   constructor() {
     this.el = document.getElementById('sidebar');
@@ -59,10 +61,10 @@ class Sidebar {
     const showTerrainTab = (e.type === 'territory' || e.type === 'region');
     const tabs = `
       <div class="sidebar-tabs">
-        <button class="sidebar-tab ${this.activeTab === 'details' ? 'active' : ''}" data-tab="details">Details</button>
-        ${showTerrainTab ? `<button class="sidebar-tab ${this.activeTab === 'terrain' ? 'active' : ''}" data-tab="terrain">Terrain</button>` : ''}
-        <button class="sidebar-tab ${this.activeTab === 'relations' ? 'active' : ''}" data-tab="relations">Relations</button>
-        <button class="sidebar-tab ${this.activeTab === 'events' ? 'active' : ''}" data-tab="events">Events</button>
+        <button class="sidebar-tab ${this.activeTab === 'details' ? 'active' : ''}" data-tab="details">${t('editor.sidebar.details')}</button>
+        ${showTerrainTab ? `<button class="sidebar-tab ${this.activeTab === 'terrain' ? 'active' : ''}" data-tab="terrain">${t('editor.sidebar.terrain')}</button>` : ''}
+        <button class="sidebar-tab ${this.activeTab === 'relations' ? 'active' : ''}" data-tab="relations">${t('editor.sidebar.relations')}</button>
+        <button class="sidebar-tab ${this.activeTab === 'events' ? 'active' : ''}" data-tab="events">${t('editor.sidebar.events')}</button>
       </div>`;
 
     let body = '';
@@ -230,7 +232,7 @@ class Sidebar {
     // Preview canvas
     html += `<div class="terrain-preview-wrap">
       <canvas id="terrain-preview" width="200" height="150"></canvas>
-      <div class="terrain-preview-label">Preview</div>
+      <div class="terrain-preview-label">${t('editor.sidebar.preview')}</div>
     </div>`;
 
     // Terrain type
@@ -241,29 +243,29 @@ class Sidebar {
 
     // Seed + regenerate button
     html += `<div class="sidebar-field terrain-seed-row">
-      <label>Seed</label>
+      <label>${t('editor.sidebar.seed')}</label>
       <div class="seed-controls">
         <input type="number" data-key="terrainSeed" value="${seed}" />
-        <button id="btn-regen-seed" class="btn btn-sm" title="Random seed">&#x21BB;</button>
+        <button id="btn-regen-seed" class="btn btn-sm" title="${t('editor.sidebar.randomSeed')}">&#x21BB;</button>
       </div>
     </div>`;
 
     // Intensity
-    html += this._rangeField('terrainIntensity', 'Relief Intensity', intensity, 0, 100);
+    html += this._rangeField('terrainIntensity', t('editor.sidebar.reliefIntensity'), intensity, 0, 100);
 
     // Coast roughness (maps to coastStyle internally but as a slider)
     const coastRoughness = coastStyle === 'fjords' ? 100 : coastStyle === 'rugged' ? 60 : 20;
-    html += this._rangeField('coastRoughness', 'Coast Roughness', coastRoughness, 0, 100);
+    html += this._rangeField('coastRoughness', t('editor.sidebar.coastRoughness'), coastRoughness, 0, 100);
 
     // Vegetation density
-    html += this._rangeField('vegetationDensity', 'Vegetation Density', vegDensity, 0, 100);
+    html += this._rangeField('vegetationDensity', t('editor.sidebar.vegetationDensity'), vegDensity, 0, 100);
 
     // Base color override
-    html += this._colorField('terrainColor', 'Base Color Override', terrainColor || '#C8D8A0');
+    html += this._colorField('terrainColor', t('editor.sidebar.baseColorOverride'), terrainColor || '#C8D8A0');
 
     // Reset color button
     html += `<div class="sidebar-field">
-      <button id="btn-reset-terrain-color" class="btn btn-sm btn-secondary">Reset to Default Color</button>
+      <button id="btn-reset-terrain-color" class="btn btn-sm btn-secondary">${t('editor.sidebar.resetColor')}</button>
     </div>`;
 
     html += '</div>';
@@ -284,7 +286,7 @@ class Sidebar {
     }
 
     if (related.length === 0) {
-      return '<p style="color:var(--ink-light);font-size:13px;">No related entities found. Mention entity names in the description to create relations.</p>';
+      return `<p style="color:var(--ink-light);font-size:13px;">${t('editor.sidebar.noRelations')}</p>`;
     }
 
     return related.map(r => `
@@ -303,7 +305,7 @@ class Sidebar {
     );
 
     if (linked.length === 0) {
-      return '<p style="color:var(--ink-light);font-size:13px;">No events linked to this entity. Add events from the timeline.</p>';
+      return `<p style="color:var(--ink-light);font-size:13px;">${t('editor.sidebar.noEvents')}</p>`;
     }
 
     return linked.map(ev => `
