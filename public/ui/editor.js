@@ -108,7 +108,7 @@ export async function updateEntity(app, entity) {
   app.canvasEngine.render();
 }
 
-async function deleteEntity(app, entity) {
+export async function deleteEntity(app, entity) {
   const cmd = new DeleteEntityCommand(app, entity);
   await cmd.execute();
   app.undoManager.push(cmd);
