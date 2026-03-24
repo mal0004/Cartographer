@@ -16,6 +16,7 @@ import { LayersPanel } from './layers.js';
 import { ThemeManager, MAP_THEMES } from './themes.js';
 import { ModeToggle } from './mode-toggle.js';
 import { Onboarding } from './onboarding.js';
+import { initI18n, t } from './i18n.js';
 
 // ─── Shared application state ────────────────────────────
 
@@ -42,6 +43,9 @@ const App = {
   // ─── Initialization ────────────────────────────────────
 
   init() {
+    // i18n — must run before any UI renders
+    initI18n();
+
     // Subsystems
     this.sidebar = new Sidebar();
     this.timeline = new Timeline();
@@ -58,11 +62,11 @@ const App = {
       btnUndo.disabled = !this.undoManager.canUndo();
       btnRedo.disabled = !this.undoManager.canRedo();
       btnUndo.title = this.undoManager.canUndo()
-        ? `Undo (Ctrl+Z) — ${this.undoManager.undoCount()} action${this.undoManager.undoCount() > 1 ? 's' : ''}`
-        : 'Nothing to undo';
+        ? t('editor.toolbar.undoCount').replace('{n}', this.undoManager.undoCount()).replace('{s}', this.undoManager.undoCount() > 1 ? 's' : '')
+        : t('editor.toolbar.nothingToUndo');
       btnRedo.title = this.undoManager.canRedo()
-        ? `Redo (Ctrl+Shift+Z) — ${this.undoManager.redoCount()} action${this.undoManager.redoCount() > 1 ? 's' : ''}`
-        : 'Nothing to redo';
+        ? t('editor.toolbar.redoCount').replace('{n}', this.undoManager.redoCount()).replace('{s}', this.undoManager.redoCount() > 1 ? 's' : '')
+        : t('editor.toolbar.nothingToRedo');
     };
     document.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
