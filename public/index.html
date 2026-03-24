@@ -33,6 +33,13 @@
   <!-- ─── Home screen ─────────────────────────────────── -->
   <div id="home-screen" class="screen active">
 
+    <!-- Language toggle (landing) -->
+    <div class="lang-toggle lang-toggle-landing" role="group" aria-label="Language">
+      <button class="lang-btn" data-lang="fr" aria-pressed="true">FR</button>
+      <span aria-hidden="true">&middot;</span>
+      <button class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+
     <!-- 1. HERO -->
     <section class="lp-hero" aria-label="Présentation">
       <div class="lp-hero-map" id="lp-hero-map" aria-hidden="true">
@@ -411,6 +418,11 @@
           </g>
         </svg>
         <p class="lp-footer-copy">&copy; 2025 Cartographer &mdash; MIT License</p>
+        <div class="lang-toggle" role="group" aria-label="Language">
+          <button class="lang-btn" data-lang="fr" aria-pressed="true">FR</button>
+          <span aria-hidden="true">&middot;</span>
+          <button class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+        </div>
       </div>
     </footer>
 
@@ -445,6 +457,11 @@
         </div>
         <button id="btn-golden-hour" class="btn btn-sm" title="Golden Hour lighting">&#9788; Golden Hour</button>
         <button id="btn-help" class="btn-icon" title="Aide / Tutoriel">?</button>
+        <div class="lang-toggle" role="group" aria-label="Language">
+          <button class="lang-btn" data-lang="fr" aria-pressed="true">FR</button>
+          <span aria-hidden="true">&middot;</span>
+          <button class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+        </div>
       </div>
     </div>
 
