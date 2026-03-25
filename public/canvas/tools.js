@@ -211,19 +211,19 @@ export const ToolsMixin = {
     } else if (this.tool === 'brush') {
       optionsEl.hidden = false;
       optionsEl.innerHTML = `
-        <label data-i18n="editor.brush.radius">Radius:
+        <label><span data-i18n="editor.brush.radius">Radius</span>:
           <input type="range" id="opt-brush-radius" min="20" max="120"
             value="${this.brush ? this.brush.radius : 40}" style="width:100px">
           <span id="brush-radius-val">${this.brush ? this.brush.radius : 40}</span>
         </label>
-        <label data-i18n="editor.brush.biome">Biome:
+        <label><span data-i18n="editor.brush.biome">Biome</span>:
           <select id="opt-brush-biome">
-            <option value="plains">Plains</option>
+            <option value="plain">Plains</option>
             <option value="forest">Forest</option>
             <option value="hills">Hills</option>
-            <option value="mountains">Mountains</option>
+            <option value="mountain">Mountains</option>
             <option value="desert">Desert</option>
-            <option value="swamp">Swamp</option>
+            <option value="marsh">Marsh</option>
           </select>
         </label>`;
       optionsEl.querySelector('#opt-brush-radius').addEventListener('input', (e) => {
@@ -232,7 +232,7 @@ export const ToolsMixin = {
         optionsEl.querySelector('#brush-radius-val').textContent = v;
       });
       const biomeSelect = optionsEl.querySelector('#opt-brush-biome');
-      biomeSelect.value = this.brush ? this.brush.currentBiome : 'plains';
+      biomeSelect.value = this.brush ? this.brush.currentBiome : 'plain';
       biomeSelect.addEventListener('change', (e) => {
         if (this.brush) this.brush.setBiome(e.target.value);
       });

@@ -5,7 +5,7 @@
  * Each entity belongs to the layer that was active when it was created.
  */
 
-import { t } from './i18n.js';
+import { t } from '../i18n.js';
 
 const DEFAULT_LAYERS = [
   { id: 'relief', name: 'Relief', visible: true, opacity: 1 },

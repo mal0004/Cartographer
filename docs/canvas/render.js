@@ -140,9 +140,23 @@ export const RenderMixin = {
 
     // Terrain transitions between adjacent biomes
     const territories = this.entities.filter(e => e.type === 'territory');
-    if (territories.length > 1) _transitions.renderAll(ctx, territories);
 
-    // Per-territory shading (mountains, deserts)
+    // Compute a lightweight hash to detect territory changes
+    const tHash = territories.map(t => `${t.id}:${t.data.terrainType || ''}:${(t.data.points || []).length}`).join('|');
+    if (tHash !== this._terrainHash) {
+      this._terrainHash = tHash;
+      this._cachedAdjacentPairs = territories.length > 1 ? _transitions.detectAdjacentPairs(territories) : [];
+      _transitions.invalidate();
+      _shading.invalidate();
+    }
+
+    if (this._cachedAdjacentPairs && this._cachedAdjacentPairs.length > 0) {
+      for (const [t1, t2] of this._cachedAdjacentPairs) {
+        _transitions.renderTransition(ctx, t1, t2);
+      }
+    }
+
+    // Per-territory shading (mountains, deserts) — drawn from offscreen cache
     for (const t of territories) {
       _shading.renderShading(ctx, t, null);
     }
