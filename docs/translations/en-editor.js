@@ -164,6 +164,13 @@ export const enEditor = {
       seedPlaceholder: 'Leave empty = random',
       confirm: 'Generate',
       confirmReplace: 'Replace current content?',
+      progress: {
+        heightmap: 'Generating heightmap...',
+        landmasses: 'Extracting landmasses...',
+        biomes: 'Assigning biomes...',
+        rivers: 'Tracing rivers...',
+        entities: 'Placing cities...',
+      },
     },
     symbols: {
       title: 'Symbols',

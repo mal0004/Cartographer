@@ -164,6 +164,13 @@ export const frEditor = {
       seedPlaceholder: 'Laisser vide = aléatoire',
       confirm: 'Générer',
       confirmReplace: 'Remplacer le contenu actuel ?',
+      progress: {
+        heightmap: 'Génération du relief...',
+        landmasses: 'Extraction des continents...',
+        biomes: 'Attribution des biomes...',
+        rivers: 'Tracé des rivières...',
+        entities: 'Placement des cités...',
+      },
     },
     symbols: {
       title: 'Symboles',
