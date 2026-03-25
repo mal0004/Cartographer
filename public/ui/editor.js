@@ -15,6 +15,7 @@ import { AddEntityCommand, DeleteEntityCommand, MoveEntityCommand, ModifyEntityC
 import { api, showToast } from '../data/storage.js';
 import { t } from '../i18n.js';
 import { EmptyState } from './empty-state.js';
+import { HintSystem } from './hints.js';
 import { WorldGenerator } from '../terrain/generator.js';
 
 // ─── Open world ──────────────────────────────────────────
@@ -75,6 +76,12 @@ export async function openWorld(app) {
     });
   }
   app._emptyState.check(app.entities);
+
+  if (!app._hintSystem) {
+    const canvasContainer = document.getElementById('main-canvas').parentElement;
+    app._hintSystem = new HintSystem(canvasContainer);
+  }
+  app._hintSystem.checkContext({ tool: app.canvasEngine.tool, entities: app.entities });
 
   if (!app._onboarding) app._onboarding = new Onboarding();
   if (app._onboarding.shouldShow(app.currentWorld.id)) {
@@ -152,6 +159,7 @@ async function createEntity(app, entityData) {
   await cmd.execute();
   app.undoManager.push(cmd);
   if (app._emptyState) app._emptyState.check(app.entities);
+  if (app._hintSystem) app._hintSystem.checkContext({ tool: app.canvasEngine.tool, entities: app.entities });
 }
 
 export async function updateEntity(app, entity) {
