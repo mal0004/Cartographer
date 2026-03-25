@@ -55,6 +55,14 @@ class CanvasEngine {
     this.dragStartY = 0;
     this.dragEntityOrigData = null;
 
+    // Dirty / layer caching
+    this._needsRedraw = true;
+    this._bgLayer = null;
+    this._terrainLayer = null;
+    this._entityLayer = null;
+    this._terrainDirty = true;
+    this._entityDirty = true;
+
     // Resize observer
     this._resizeObserver = new ResizeObserver(() => this._resize());
     this._resizeObserver.observe(this.canvas.parentElement);
@@ -137,6 +145,8 @@ class CanvasEngine {
   setEntities(entities) {
     this.entities = entities;
     this._textureCache = {};
+    this._terrainDirty = true;
+    this._entityDirty = true;
     if (this.terrainRenderer) this.terrainRenderer.clearCache();
     if (this.hillShading) this.hillShading.invalidate();
     if (this.coastlines) this.coastlines.invalidate();
