@@ -72,7 +72,6 @@ export class TerrainTransitions {
     if (biome1 === biome2) return;
 
     const key = [biome1, biome2].sort().join('_');
-    const cacheKey = `${t1.id || 0}_${t2.id || 0}_${key}`;
     const width = TRANSITION_WIDTHS[key] || 30;
     const colors = TRANSITION_COLORS[key] || [t1.data.color, t2.data.color];
 

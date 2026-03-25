@@ -113,14 +113,14 @@ async function generateWorld(app, seed) {
   }
   const gen = new WorldGenerator(seed);
   const result = gen.generate();
-  for (const t of result.territories) {
-    await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, t);
+  for (const territory of result.territories) {
+    await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, territory);
   }
-  for (const r of result.rivers) {
-    await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, r);
+  for (const river of result.rivers) {
+    await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, river);
   }
-  for (const e of result.entities) {
-    await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, e);
+  for (const entity of result.entities) {
+    await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, entity);
   }
   await loadEntities(app);
   if (app._emptyState) app._emptyState.check(app.entities);
