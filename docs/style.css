@@ -2872,3 +2872,53 @@ body, .editor-topbar, .sidebar, .timeline, .toolbar, .tool-options, .modal-conte
   pointer-events: none;
   transition: opacity 0.3s;
 }
+
+/* ─── Tutorial ──────────────────────────────────────────── */
+.tutorial-overlay {
+  position: fixed; inset: 0; z-index: 9998;
+  pointer-events: auto; transition: opacity 0.2s;
+}
+.tutorial-tooltip {
+  position: fixed; z-index: 9999;
+  background: rgba(13, 10, 7, 0.95);
+  border: 1px solid #2E2416;
+  border-radius: 6px;
+  padding: 20px 24px;
+  max-width: 300px;
+  color: #C4A882;
+  transition: opacity 0.2s;
+  pointer-events: auto;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+}
+.tutorial-step-num {
+  font-size: 11px; color: #5A4A3A;
+  display: block; margin-bottom: 8px;
+}
+.tutorial-tooltip p {
+  font-family: 'Source Serif Pro', 'Georgia', serif;
+  font-size: 14px; color: #C4A882;
+  line-height: 1.6; margin: 0 0 16px;
+}
+.tutorial-dots {
+  display: flex; gap: 6px; margin-bottom: 12px;
+}
+.tutorial-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #2E2416;
+}
+.tutorial-dot.active { background: #8B2635; }
+.tutorial-skip, .tutorial-finish {
+  background: transparent; border: 1px solid #2E2416;
+  color: #8A7A6A; padding: 6px 16px; border-radius: 2px;
+  cursor: pointer; font-family: 'Cinzel', serif;
+  font-size: 12px; letter-spacing: 0.08em;
+  transition: border-color 150ms, color 150ms;
+}
+.tutorial-skip:hover, .tutorial-finish:hover {
+  border-color: #C4A882; color: #C4A882;
+}
+.tutorial-finish {
+  background: #8B2635; border-color: #8B2635;
+  color: #F5F0E8; width: 100%;
+}
+.tutorial-finish:hover { background: #A33040; }
