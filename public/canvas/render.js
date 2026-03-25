@@ -6,6 +6,11 @@
  */
 
 import { ALL_SYMBOLS } from '../symbols/index.js';
+import { TerrainTransitions } from '../terrain/transitions.js';
+import { TerrainShading } from '../terrain/shading.js';
+
+const _transitions = new TerrainTransitions();
+const _shading = new TerrainShading();
 
 // ─── SVG texture patterns for regions (drawn onto offscreen canvases) ────
 
@@ -131,6 +136,29 @@ export const RenderMixin = {
       if (layerOpacity < 1) ctx.globalAlpha = layerOpacity;
       this._renderEntity(ctx, entity, lodSettings);
       if (layerOpacity < 1) ctx.globalAlpha = 1;
+    }
+
+    // Terrain transitions between adjacent biomes
+    const territories = this.entities.filter(e => e.type === 'territory');
+
+    // Compute a lightweight hash to detect territory changes
+    const tHash = territories.map(t => `${t.id}:${t.data.terrainType || ''}:${(t.data.points || []).length}`).join('|');
+    if (tHash !== this._terrainHash) {
+      this._terrainHash = tHash;
+      this._cachedAdjacentPairs = territories.length > 1 ? _transitions.detectAdjacentPairs(territories) : [];
+      _transitions.invalidate();
+      _shading.invalidate();
+    }
+
+    if (this._cachedAdjacentPairs && this._cachedAdjacentPairs.length > 0) {
+      for (const [t1, t2] of this._cachedAdjacentPairs) {
+        _transitions.renderTransition(ctx, t1, t2);
+      }
+    }
+
+    // Per-territory shading (mountains, deserts) — drawn from offscreen cache
+    for (const t of territories) {
+      _shading.renderShading(ctx, t, null);
     }
 
     if (this.hillShading) this.hillShading.render(ctx, this);
@@ -372,6 +400,14 @@ export const RenderMixin = {
     if (this.tool === 'route' && this.routeStart) {
       ctx.fillStyle = this.toolColor; ctx.beginPath();
       ctx.arc(this.routeStart.x, this.routeStart.y, 4, 0, Math.PI * 2); ctx.fill();
+    }
+    if (this.tool === 'brush' && this.brush) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      const dpr = window.devicePixelRatio || 1;
+      ctx.scale(dpr, dpr);
+      this.brush.drawPreview(ctx, this.zoom, this.offsetX, this.offsetY);
+      ctx.restore();
     }
   },
 

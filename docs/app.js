@@ -6,7 +6,7 @@
  */
 
 import { renderHeroMap, initLandingAnimations, renderTemplates } from './ui/landing.js';
-import { openWorld, showScreen, loadEvents, updateEntity, deleteEntity, navigateToEntity, exportSVG, exportJSON } from './ui/editor.js';
+import { openWorld, showScreen, loadEvents, updateEntity, deleteEntity, navigateToEntity, exportSVG, exportJSON, generateWorld } from './ui/editor.js';
 import { showNewWorldModal, hideNewWorldModal, showAddEventModal, showShareModal } from './ui/modals.js';
 import { api } from './data/storage.js';
 import { loadWorlds, createWorld, importWorld } from './data/worlds.js';
@@ -130,8 +130,14 @@ const App = {
       btn.addEventListener('click', () => { if (this.canvasEngine) this.canvasEngine.setTool(btn.dataset.tool); });
     });
     document.getElementById('tool-color').addEventListener('input', (e) => {
-      if (this.canvasEngine) this.canvasEngine.toolColor = e.target.value;
+      if (this.canvasEngine) {
+        this.canvasEngine.toolColor = e.target.value;
+        if (this.canvasEngine.brush) this.canvasEngine.brush.setColor(e.target.value);
+      }
     });
+
+    // Generate button
+    document.getElementById('btn-generate').addEventListener('click', () => generateWorld(this));
 
     // Layers panel
     this.layersPanel.onChange = () => { if (this.canvasEngine) this.canvasEngine.render(); };

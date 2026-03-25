@@ -2760,3 +2760,81 @@ body, .editor-topbar, .sidebar, .timeline, .toolbar, .tool-options, .modal-conte
 .lang-btn[aria-pressed="true"] {
   color: #F5F0E8;
 }
+
+/* ─── Empty State ───────────────────────────────────────── */
+#canvas-empty-state h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.5rem;
+  margin: 1rem 0 0.5rem;
+  color: #C4A882;
+}
+#canvas-empty-state p {
+  font-size: 0.9rem;
+  opacity: 0.7;
+  max-width: 350px;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.empty-state-actions {
+  display: flex;
+  gap: 1rem;
+}
+.empty-state-actions .btn-primary {
+  background: #8B2635;
+  color: #F5F0E8;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+}
+.empty-state-actions .btn-primary:hover { background: #A52D3F; }
+.empty-state-actions .btn-secondary {
+  background: transparent;
+  color: #C4A882;
+  border: 1px solid #C4A882;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+}
+.empty-state-actions .btn-secondary:hover { background: rgba(196,168,130,0.1); }
+.empty-state-compass {
+  animation: compass-spin 20s linear infinite;
+  color: #C4A882;
+  opacity: 0.6;
+}
+@keyframes compass-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Brush Cursor ──────────────────────────────────────── */
+#brush-cursor {
+  position: absolute;
+  pointer-events: none;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  z-index: 999;
+  transform: translate(-50%, -50%);
+}
+
+/* ─── Hints ─────────────────────────────────────────────── */
+.hint-toast {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.6);
+  color: #C4A882;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  padding: 8px 16px;
+  border: 1px solid #2E2416;
+  border-radius: 4px;
+  z-index: 100;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}

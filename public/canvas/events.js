@@ -57,10 +57,20 @@ export const EventsMixin = {
       this._createSymbol(wx, wy);
     } else if (this.tool === 'river') {
       this._createRiver(wx, wy);
+    } else if (this.tool === 'brush' && this.brush) {
+      this.brush.onMouseDown(wx, wy, e.clientX, e.clientY);
     }
   },
 
   _onMouseMove(e) {
+    if (this.tool === 'brush' && this.brush) {
+      const rect = this.canvas.getBoundingClientRect();
+      const sx = e.clientX - rect.left;
+      const sy = e.clientY - rect.top;
+      const { x: bwx, y: bwy } = this.screenToWorld(sx, sy);
+      this.brush.onMouseMove(bwx, bwy, e.clientX, e.clientY);
+      if (this.brush.isDrawing) this.render();
+    }
     if (this.isPanning) {
       this.offsetX = e.clientX - this.panStartX;
       this.offsetY = e.clientY - this.panStartY;
@@ -91,6 +101,10 @@ export const EventsMixin = {
   },
 
   _onMouseUp() {
+    if (this.tool === 'brush' && this.brush && this.brush.isDrawing) {
+      this.brush.onMouseUp();
+      return;
+    }
     if (this.isPanning) {
       this.isPanning = false;
       this.canvas.classList.remove('cursor-grabbing');
@@ -149,7 +163,7 @@ export const EventsMixin = {
     }
 
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    const shortcuts = { v: 'select', t: 'territory', c: 'city', r: 'route', n: 'region', x: 'text', s: 'symbol', w: 'river' };
+    const shortcuts = { v: 'select', t: 'territory', c: 'city', r: 'route', n: 'region', x: 'text', s: 'symbol', w: 'river', b: 'brush' };
     if (shortcuts[e.key]) this.setTool(shortcuts[e.key]);
   },
 

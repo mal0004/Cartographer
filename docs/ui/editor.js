@@ -14,6 +14,9 @@ import { SvgExportPanel } from '../svg-export.js';
 import { AddEntityCommand, DeleteEntityCommand, MoveEntityCommand, ModifyEntityCommand } from '../undo.js';
 import { api, showToast } from '../data/storage.js';
 import { t } from '../i18n.js';
+import { EmptyState } from './empty-state.js';
+import { HintSystem } from './hints.js';
+import { WorldGenerator } from '../terrain/generator.js';
 
 // ─── Open world ──────────────────────────────────────────
 
@@ -62,6 +65,24 @@ export async function openWorld(app) {
   await loadEvents(app);
   app.undoManager.clear();
 
+  if (!app._emptyState) {
+    const canvasContainer = document.getElementById('main-canvas').parentElement;
+    app._emptyState = new EmptyState(canvasContainer, {
+      onGenerate: () => generateWorld(app),
+      onStartDrawing: () => {
+        app._emptyState.hide();
+        app.canvasEngine.setTool('brush');
+      },
+    });
+  }
+  app._emptyState.check(app.entities);
+
+  if (!app._hintSystem) {
+    const canvasContainer = document.getElementById('main-canvas').parentElement;
+    app._hintSystem = new HintSystem(canvasContainer);
+  }
+  app._hintSystem.checkContext({ tool: app.canvasEngine.tool, entities: app.entities });
+
   if (!app._onboarding) app._onboarding = new Onboarding();
   if (app._onboarding.shouldShow(app.currentWorld.id)) {
     setTimeout(() => app._onboarding.start(app.currentWorld.id), 500);
@@ -80,6 +101,41 @@ export function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
+
+// ─── World Generation ────────────────────────────────────
+
+async function generateWorld(app, seed) {
+  if (app.entities && app.entities.length > 0) {
+    if (!confirm(t('editor.generate.confirmReplace'))) return;
+    for (const e of [...app.entities]) {
+      await api('DELETE', `/api/entities/${e.id}`);
+    }
+  }
+  const gen = new WorldGenerator(seed);
+  const result = gen.generate();
+  for (const territory of result.territories) {
+    await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, territory);
+  }
+  for (const river of result.rivers) {
+    await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, river);
+  }
+  for (const entity of result.entities) {
+    await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, entity);
+  }
+  await loadEntities(app);
+  if (app._emptyState) app._emptyState.check(app.entities);
+  if (app.entities.length > 0) {
+    const first = app.entities.find(e => e.type === 'territory');
+    if (first && first.data.points && first.data.points.length > 0) {
+      const cx = first.data.points.reduce((s, p) => s + p.x, 0) / first.data.points.length;
+      const cy = first.data.points.reduce((s, p) => s + p.y, 0) / first.data.points.length;
+      app.canvasEngine.centerOn(cx, cy, 0.8);
+    }
+  }
+  showToast(t('editor.generate.title') + ' — seed: ' + result.seed, 'success');
+}
+
+export { generateWorld };
 
 // ─── Entity CRUD ─────────────────────────────────────────
 
@@ -102,6 +158,8 @@ async function createEntity(app, entityData) {
   const cmd = new AddEntityCommand(app, entityData);
   await cmd.execute();
   app.undoManager.push(cmd);
+  if (app._emptyState) app._emptyState.check(app.entities);
+  if (app._hintSystem) app._hintSystem.checkContext({ tool: app.canvasEngine.tool, entities: app.entities });
 }
 
 export async function updateEntity(app, entity) {
@@ -113,6 +171,7 @@ export async function deleteEntity(app, entity) {
   const cmd = new DeleteEntityCommand(app, entity);
   await cmd.execute();
   app.undoManager.push(cmd);
+  if (app._emptyState) app._emptyState.check(app.entities);
 }
 
 function moveEntityWithUndo(app, entity, oldData) {

@@ -8,6 +8,7 @@ export const enEditor = {
       region: 'Region — N',
       river: 'River — W',
       text: 'Text — X',
+      brush: 'Brush — B',
       symbol: 'Symbols — S',
       snapOn: 'Snap to elements (on)',
       snapOff: 'Snap to elements (off)',
@@ -19,6 +20,7 @@ export const enEditor = {
       nothingToRedo: 'Nothing to redo',
       undoCount: 'Undo (Ctrl+Z) — {n} action{s}',
       redoCount: 'Redo (Ctrl+Shift+Z) — {n} action{s}',
+      generate: 'Generate continent',
       color: 'Color',
       enterLabel: 'Enter label text:',
     },
@@ -138,6 +140,30 @@ export const enEditor = {
     modeToggle: {
       settings: 'Settings',
       advancedMode: 'Advanced mode',
+    },
+    brush: {
+      radius: 'Radius',
+      biome: 'Biome',
+      tooltip: 'Territory brush — B',
+    },
+    emptyState: {
+      title: 'Your world awaits',
+      subtitle: 'Start by drawing a territory or generate a continent automatically.',
+      generate: 'Generate a continent',
+      startDrawing: 'Draw manually',
+    },
+    hints: {
+      emptyBrush: 'Click and drag on the canvas to paint a territory.',
+      emptyPolygon: 'Click to place points. Right-click to close the polygon.',
+      addCity: 'Place a city in your territory with the City tool (C).',
+      addRiver: 'Add a river to bring your map to life (W).',
+    },
+    generate: {
+      title: 'Generate a continent',
+      seed: 'Seed (optional)',
+      seedPlaceholder: 'Leave empty = random',
+      confirm: 'Generate',
+      confirmReplace: 'Replace current content?',
     },
     symbols: {
       title: 'Symbols',

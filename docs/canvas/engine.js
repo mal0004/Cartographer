@@ -16,6 +16,7 @@ import { PerformanceManager } from '../performance.js';
 import { RenderMixin } from './render.js';
 import { ToolsMixin } from './tools.js';
 import { EventsMixin } from './events.js';
+import { TerritoryBrush } from './brush.js';
 
 class CanvasEngine {
   constructor(canvasEl) {
@@ -79,6 +80,14 @@ class CanvasEngine {
     this.snapGuides = null;
 
     this._textureCache = {};
+
+    // Brush tool
+    this.brush = new TerritoryBrush(canvasEl, {
+      onEntityCreated: (entity) => {
+        if (this.onEntityCreated) this.onEntityCreated(entity);
+      },
+      stampLayer: (data) => this._stampLayer ? this._stampLayer(data) : data,
+    });
 
     // Procedural sub-systems
     this.terrainRenderer = new TerrainRenderer();
