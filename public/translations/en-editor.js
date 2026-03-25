@@ -20,6 +20,7 @@ export const enEditor = {
       nothingToRedo: 'Nothing to redo',
       undoCount: 'Undo (Ctrl+Z) — {n} action{s}',
       redoCount: 'Redo (Ctrl+Shift+Z) — {n} action{s}',
+      generate: 'Generate continent',
       color: 'Color',
       enterLabel: 'Enter label text:',
     },

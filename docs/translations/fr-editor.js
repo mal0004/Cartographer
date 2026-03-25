@@ -20,6 +20,7 @@ export const frEditor = {
       nothingToRedo: 'Rien à rétablir',
       undoCount: 'Annuler (Ctrl+Z) — {n} action{s}',
       redoCount: 'Rétablir (Ctrl+Shift+Z) — {n} action{s}',
+      generate: 'Générer un continent',
       color: 'Couleur',
       enterLabel: 'Texte du label :',
     },
