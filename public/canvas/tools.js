@@ -115,9 +115,15 @@ export const ToolsMixin = {
   },
 
   setTool(tool) {
+    if (this.brush && this.tool === 'brush' && tool !== 'brush') {
+      this.brush.deactivate();
+    }
     this.tool = tool;
     this.drawingPoints = [];
     this.routeStart = null;
+    if (this.brush && tool === 'brush') {
+      this.brush.activate();
+    }
     document.querySelectorAll('.tool-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tool === tool);
     });
@@ -201,6 +207,34 @@ export const ToolsMixin = {
       optionsEl.querySelector('#opt-terrain').value = this.toolOptions.terrain || 'forest';
       optionsEl.querySelector('#opt-terrain').addEventListener('change', (e) => {
         this.toolOptions.terrain = e.target.value;
+      });
+    } else if (this.tool === 'brush') {
+      optionsEl.hidden = false;
+      optionsEl.innerHTML = `
+        <label data-i18n="editor.brush.radius">Radius:
+          <input type="range" id="opt-brush-radius" min="20" max="120"
+            value="${this.brush ? this.brush.radius : 40}" style="width:100px">
+          <span id="brush-radius-val">${this.brush ? this.brush.radius : 40}</span>
+        </label>
+        <label data-i18n="editor.brush.biome">Biome:
+          <select id="opt-brush-biome">
+            <option value="plains">Plains</option>
+            <option value="forest">Forest</option>
+            <option value="hills">Hills</option>
+            <option value="mountains">Mountains</option>
+            <option value="desert">Desert</option>
+            <option value="swamp">Swamp</option>
+          </select>
+        </label>`;
+      optionsEl.querySelector('#opt-brush-radius').addEventListener('input', (e) => {
+        const v = Number(e.target.value);
+        if (this.brush) this.brush.setRadius(v);
+        optionsEl.querySelector('#brush-radius-val').textContent = v;
+      });
+      const biomeSelect = optionsEl.querySelector('#opt-brush-biome');
+      biomeSelect.value = this.brush ? this.brush.currentBiome : 'plains';
+      biomeSelect.addEventListener('change', (e) => {
+        if (this.brush) this.brush.setBiome(e.target.value);
       });
     } else if (this.tool === 'text') {
       optionsEl.hidden = false;

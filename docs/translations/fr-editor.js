@@ -8,6 +8,7 @@ export const frEditor = {
       region: 'Région — N',
       river: 'Rivière — W',
       text: 'Texte — X',
+      brush: 'Pinceau — B',
       symbol: 'Symboles — S',
       snapOn: 'Snap aux éléments (activé)',
       snapOff: 'Snap aux éléments (désactivé)',
@@ -138,6 +139,30 @@ export const frEditor = {
     modeToggle: {
       settings: 'Paramètres',
       advancedMode: 'Mode avancé',
+    },
+    brush: {
+      radius: 'Rayon',
+      biome: 'Biome',
+      tooltip: 'Pinceau de territoire — B',
+    },
+    emptyState: {
+      title: 'Votre monde vous attend',
+      subtitle: 'Commencez par dessiner un territoire ou générez un continent automatiquement.',
+      generate: 'Générer un continent',
+      startDrawing: 'Dessiner manuellement',
+    },
+    hints: {
+      emptyBrush: 'Cliquez et glissez sur le canvas pour peindre un territoire.',
+      emptyPolygon: 'Cliquez pour placer des points. Clic droit pour fermer le polygone.',
+      addCity: 'Placez une ville dans votre territoire avec l\'outil Ville (C).',
+      addRiver: 'Ajoutez une rivière pour donner vie à votre carte (W).',
+    },
+    generate: {
+      title: 'Générer un continent',
+      seed: 'Graine (optionnel)',
+      seedPlaceholder: 'Laisser vide = aléatoire',
+      confirm: 'Générer',
+      confirmReplace: 'Remplacer le contenu actuel ?',
     },
     symbols: {
       title: 'Symboles',

@@ -130,7 +130,10 @@ const App = {
       btn.addEventListener('click', () => { if (this.canvasEngine) this.canvasEngine.setTool(btn.dataset.tool); });
     });
     document.getElementById('tool-color').addEventListener('input', (e) => {
-      if (this.canvasEngine) this.canvasEngine.toolColor = e.target.value;
+      if (this.canvasEngine) {
+        this.canvasEngine.toolColor = e.target.value;
+        if (this.canvasEngine.brush) this.canvasEngine.brush.setColor(e.target.value);
+      }
     });
 
     // Layers panel

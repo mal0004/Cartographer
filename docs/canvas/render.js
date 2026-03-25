@@ -373,6 +373,14 @@ export const RenderMixin = {
       ctx.fillStyle = this.toolColor; ctx.beginPath();
       ctx.arc(this.routeStart.x, this.routeStart.y, 4, 0, Math.PI * 2); ctx.fill();
     }
+    if (this.tool === 'brush' && this.brush) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      const dpr = window.devicePixelRatio || 1;
+      ctx.scale(dpr, dpr);
+      this.brush.drawPreview(ctx, this.zoom, this.offsetX, this.offsetY);
+      ctx.restore();
+    }
   },
 
   _drawSymbol(ctx, symbolId, x, y, size, color) {
