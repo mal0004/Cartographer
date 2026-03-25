@@ -23,7 +23,7 @@ export class TerritoryBrush {
     this.minDistance = DEFAULTS.minDistance;
     this.rawPoints = [];
     this.isDrawing = false;
-    this.currentBiome = 'plains';
+    this.currentBiome = 'plain';
     this.color = '#8B2635';
     this.noise = new SimplexNoise(Date.now() & 0xffff);
     this._cursorEl = null;

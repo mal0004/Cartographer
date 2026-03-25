@@ -13,18 +13,50 @@ const LIGHT_ELEV = Math.tan(35 * Math.PI / 180);
 export class TerrainShading {
   constructor() {
     this.noise = new SimplexNoise(42);
+    this._cache = new Map(); // entityId → { hash, canvas }
+  }
+
+  invalidate(entityId) {
+    if (entityId) this._cache.delete(entityId);
+    else this._cache.clear();
   }
 
   renderShading(ctx, territory, heightmap) {
     if (!territory.data.points || territory.data.points.length < 3) return;
     const terrainType = territory.data.terrainType || '';
-    if (terrainType === 'mountain' || terrainType === 'hills') {
-      this.renderMountainFaces(ctx, territory);
+    if (!terrainType) return;
+
+    const hash = `${terrainType}_${territory.data.terrainSeed || 0}_${territory.data.terrainIntensity || 50}_${territory.data.points.length}`;
+    const id = territory.id;
+    let cached = this._cache.get(id);
+
+    if (!cached || cached.hash !== hash) {
+      // Compute bounding box so we can size the offscreen canvas
+      const pts = territory.data.points;
+      const bbox = this._bbox(pts);
+      const w = Math.ceil(bbox.maxX - bbox.minX) || 1;
+      const h = Math.ceil(bbox.maxY - bbox.minY) || 1;
+
+      const offscreen = document.createElement('canvas');
+      offscreen.width = w;
+      offscreen.height = h;
+      const offCtx = offscreen.getContext('2d');
+      // Translate so that drawing at world coords lands on the offscreen canvas
+      offCtx.translate(-bbox.minX, -bbox.minY);
+
+      if (terrainType === 'mountain' || terrainType === 'hills') {
+        this.renderMountainFaces(offCtx, territory);
+      }
+      if (terrainType === 'desert') {
+        this.renderDesertShading(offCtx, territory);
+      }
+      this._renderGeneralShading(offCtx, territory);
+
+      cached = { hash, canvas: offscreen, bbox };
+      this._cache.set(id, cached);
     }
-    if (terrainType === 'desert') {
-      this.renderDesertShading(ctx, territory);
-    }
-    this._renderGeneralShading(ctx, territory);
+
+    ctx.drawImage(cached.canvas, cached.bbox.minX, cached.bbox.minY);
   }
 
   _renderGeneralShading(ctx, territory) {
