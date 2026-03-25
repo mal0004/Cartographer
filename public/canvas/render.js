@@ -6,6 +6,11 @@
  */
 
 import { ALL_SYMBOLS } from '../symbols/index.js';
+import { TerrainTransitions } from '../terrain/transitions.js';
+import { TerrainShading } from '../terrain/shading.js';
+
+const _transitions = new TerrainTransitions();
+const _shading = new TerrainShading();
 
 // ─── SVG texture patterns for regions (drawn onto offscreen canvases) ────
 
@@ -131,6 +136,15 @@ export const RenderMixin = {
       if (layerOpacity < 1) ctx.globalAlpha = layerOpacity;
       this._renderEntity(ctx, entity, lodSettings);
       if (layerOpacity < 1) ctx.globalAlpha = 1;
+    }
+
+    // Terrain transitions between adjacent biomes
+    const territories = this.entities.filter(e => e.type === 'territory');
+    if (territories.length > 1) _transitions.renderAll(ctx, territories);
+
+    // Per-territory shading (mountains, deserts)
+    for (const t of territories) {
+      _shading.renderShading(ctx, t, null);
     }
 
     if (this.hillShading) this.hillShading.render(ctx, this);
