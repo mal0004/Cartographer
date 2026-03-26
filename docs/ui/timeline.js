@@ -242,9 +242,25 @@ class Timeline {
     this._hideTooltip();
     const tip = document.createElement('div');
     tip.className = 'timeline-event-tooltip';
-    tip.innerHTML = `<strong>${ev.title}</strong><br>
-      <span style="color:var(--ink-light)">Year ${ev.date}</span><br>
-      ${ev.description || ''}`;
+
+    const strong = document.createElement('strong');
+    strong.textContent = ev.title;
+    tip.appendChild(strong);
+
+    tip.appendChild(document.createElement('br'));
+
+    const year = document.createElement('span');
+    year.style.color = 'var(--ink-light)';
+    year.textContent = `Year ${ev.date}`;
+    tip.appendChild(year);
+
+    if (ev.description) {
+      tip.appendChild(document.createElement('br'));
+      const desc = document.createElement('span');
+      desc.textContent = ev.description;
+      tip.appendChild(desc);
+    }
+
     tip.style.left = (e.clientX + 12) + 'px';
     tip.style.top = (e.clientY - 60) + 'px';
     document.body.appendChild(tip);

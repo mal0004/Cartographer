@@ -25,6 +25,9 @@ export const enCommon = {
     svgExported: 'SVG export downloaded',
     jsonExported: 'JSON export downloaded',
     worldImported: 'World imported successfully',
+    importInvalidFile: 'Import failed: file must be a .json file',
+    importFileTooLarge: 'Import failed: file is too large (max 10 MB)',
+    importInvalidJSON: 'Import failed: file does not contain valid JSON',
   },
   errors: {
     apiError: 'API error',
