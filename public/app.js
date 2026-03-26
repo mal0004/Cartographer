@@ -16,7 +16,6 @@ import { UndoManager } from './undo.js';
 import { LayersPanel } from './layers.js';
 import { ThemeManager, MAP_THEMES } from './themes.js';
 import { ModeToggle } from './mode-toggle.js';
-import { Onboarding } from './onboarding.js';
 import { initI18n, t } from './i18n.js';
 
 // ─── Shared application state ────────────────────────────
@@ -118,9 +117,6 @@ const App = {
           this._tutorial.constructor.reset();
           this._tutorial.destroy();
           this._tutorial.start(0);
-        } else {
-          if (!this._onboarding) this._onboarding = new Onboarding();
-          this._onboarding.start(this.currentWorld.id);
         }
       }
     });

@@ -9,7 +9,6 @@ import { CanvasEngine } from '../canvas/engine.js';
 import { SymbolLibrary } from '../symbols/index.js';
 import { SnapGuides } from '../snap.js';
 import { Minimap } from '../minimap.js';
-import { Onboarding } from '../onboarding.js';
 import { Tutorial } from './tutorial.js';
 import { SvgExportPanel } from '../svg-export.js';
 import { AddEntityCommand, DeleteEntityCommand, MoveEntityCommand, ModifyEntityCommand } from '../undo.js';
@@ -82,11 +81,6 @@ export async function openWorld(app) {
     app._hintSystem = new HintSystem(canvasContainer);
   }
   app._hintSystem.checkContext({ tool: app.canvasEngine.tool, entities: app.entities });
-
-  if (!app._onboarding) app._onboarding = new Onboarding();
-  if (app._onboarding.shouldShow(app.currentWorld.id)) {
-    setTimeout(() => app._onboarding.start(app.currentWorld.id), 500);
-  }
 
   if (!app._tutorial) app._tutorial = new Tutorial(app);
   if (app._tutorial.shouldStart() && !(app._emptyState && app._emptyState.visible)) {

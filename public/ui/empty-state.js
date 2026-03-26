@@ -80,7 +80,7 @@ export class EmptyState {
   }
 
   check(entities) {
-    const has = entities && entities.some(e => e.type === 'territory');
+    const has = entities && entities.length > 0;
     if (has) this.hide(); else this.show();
   }
 
