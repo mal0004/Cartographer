@@ -25,6 +25,9 @@ export const frCommon = {
     svgExported: 'Export SVG téléchargé',
     jsonExported: 'Export JSON téléchargé',
     worldImported: 'Monde importé avec succès',
+    importInvalidFile: 'Importation échouée : le fichier doit être un fichier .json',
+    importFileTooLarge: 'Importation échouée : le fichier est trop volumineux (max 10 Mo)',
+    importInvalidJSON: 'Importation échouée : le fichier ne contient pas un JSON valide',
   },
   errors: {
     apiError: 'Erreur API',
