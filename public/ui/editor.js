@@ -10,13 +10,13 @@ import { SymbolLibrary } from '../symbols/index.js';
 import { SnapGuides } from '../snap.js';
 import { Minimap } from '../minimap.js';
 import { Onboarding } from '../onboarding.js';
+import { Tutorial } from './tutorial.js';
 import { SvgExportPanel } from '../svg-export.js';
 import { AddEntityCommand, DeleteEntityCommand, MoveEntityCommand, ModifyEntityCommand } from '../undo.js';
 import { api, showToast } from '../data/storage.js';
 import { t } from '../i18n.js';
 import { EmptyState } from './empty-state.js';
 import { HintSystem } from './hints.js';
-import { WorldGenerator } from '../terrain/generator.js';
 
 // ─── Open world ──────────────────────────────────────────
 
@@ -88,6 +88,13 @@ export async function openWorld(app) {
     setTimeout(() => app._onboarding.start(app.currentWorld.id), 500);
   }
 
+  if (!app._tutorial) app._tutorial = new Tutorial(app);
+  if (app._tutorial.shouldStart() && !(app._emptyState && app._emptyState.visible)) {
+    setTimeout(() => {
+      if (!(app._emptyState && app._emptyState.visible)) app._tutorial.start();
+    }, 2000);
+  }
+
   app.canvasEngine.offsetX = app.canvasEngine.width / 2;
   app.canvasEngine.offsetY = app.canvasEngine.height / 2;
   app.canvasEngine.zoom = 1;
@@ -111,28 +118,42 @@ async function generateWorld(app, seed) {
       await api('DELETE', `/api/entities/${e.id}`);
     }
   }
-  const gen = new WorldGenerator(seed);
-  const result = gen.generate();
-  for (const territory of result.territories) {
-    await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, territory);
-  }
-  for (const river of result.rivers) {
-    await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, river);
-  }
-  for (const entity of result.entities) {
-    await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, entity);
-  }
-  await loadEntities(app);
-  if (app._emptyState) app._emptyState.check(app.entities);
-  if (app.entities.length > 0) {
-    const first = app.entities.find(e => e.type === 'territory');
-    if (first && first.data.points && first.data.points.length > 0) {
-      const cx = first.data.points.reduce((s, p) => s + p.x, 0) / first.data.points.length;
-      const cy = first.data.points.reduce((s, p) => s + p.y, 0) / first.data.points.length;
-      app.canvasEngine.centerOn(cx, cy, 0.8);
+  if (app._emptyState) app._emptyState.showProgress(0, 'heightmap');
+  const worker = new Worker('./worker-generator.js');
+  const canvasW = app.canvasEngine ? app.canvasEngine.width : 1200;
+  const hmW = canvasW < 1000 ? 75 : 100;
+  const hmH = Math.round(hmW * 0.75);
+  worker.postMessage({ type: 'generate', seed: seed ?? undefined, w: hmW, h: hmH });
+  worker.onmessage = async (ev) => {
+    const msg = ev.data;
+    if (msg.type === 'progress') {
+      if (app._emptyState) app._emptyState.showProgress(msg.step / msg.total, msg.key);
+    } else if (msg.type === 'done') {
+      worker.terminate();
+      const result = msg.world;
+      for (const territory of result.territories)
+        await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, territory);
+      for (const river of result.rivers)
+        await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, river);
+      for (const entity of result.entities)
+        await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, entity);
+      await loadEntities(app);
+      if (app._emptyState) { app._emptyState.hideProgress(); app._emptyState.check(app.entities); }
+      if (app.entities.length > 0) {
+        const first = app.entities.find(e => e.type === 'territory');
+        if (first && first.data.points && first.data.points.length > 0) {
+          const cx = first.data.points.reduce((s, p) => s + p.x, 0) / first.data.points.length;
+          const cy = first.data.points.reduce((s, p) => s + p.y, 0) / first.data.points.length;
+          app.canvasEngine.centerOn(cx, cy, 0.8);
+        }
+      }
+      showToast(t('editor.generate.title') + ' — seed: ' + result.seed, 'success');
+    } else if (msg.type === 'error') {
+      worker.terminate();
+      if (app._emptyState) app._emptyState.hideProgress();
+      showToast(msg.message, 'error');
     }
-  }
-  showToast(t('editor.generate.title') + ' — seed: ' + result.seed, 'success');
+  };
 }
 
 export { generateWorld };

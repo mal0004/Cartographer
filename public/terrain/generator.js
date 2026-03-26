@@ -19,8 +19,8 @@ const SUFFIXES = [
 export class WorldGenerator {
   constructor(seed, w, h) {
     this.seed = seed ?? Math.floor(Math.random() * 100000);
-    this.w = w || 200;
-    this.h = h || 150;
+    this.w = w || 100;
+    this.h = h || 75;
     this.noise = new SimplexNoise(this.seed);
     this._rng = this.seed;
   }
@@ -119,7 +119,10 @@ export class WorldGenerator {
       y: Math.floor(ci / w) * scale + 100,
     }));
     const simplified = this._simplifyPoints(scaled, 8);
-    const smooth = this._chaikin(simplified, 3);
+    const limited = simplified.length > 800
+      ? simplified.filter((_, i) => i % Math.ceil(simplified.length / 800) === 0)
+      : simplified;
+    const smooth = this._chaikin(limited, 3);
 
     let elevSum = 0;
     for (const ci of cells) elevSum += heightmap[ci];
@@ -323,7 +326,7 @@ export class WorldGenerator {
       });
     }
 
-    return entities;
+    return entities.slice(0, 8);
   }
 
   _centroid(pts) {

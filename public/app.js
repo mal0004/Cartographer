@@ -111,11 +111,17 @@ const App = {
       }
     });
 
-    // Help (re-launch onboarding)
+    // Help (re-launch tutorial)
     document.getElementById('btn-help').addEventListener('click', () => {
       if (this.currentWorld) {
-        if (!this._onboarding) this._onboarding = new Onboarding();
-        this._onboarding.start(this.currentWorld.id);
+        if (this._tutorial) {
+          this._tutorial.constructor.reset();
+          this._tutorial.destroy();
+          this._tutorial.start(0);
+        } else {
+          if (!this._onboarding) this._onboarding = new Onboarding();
+          this._onboarding.start(this.currentWorld.id);
+        }
       }
     });
 
