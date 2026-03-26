@@ -22,13 +22,32 @@ app.get('/api/worlds/:id', (req, res) => {
 });
 
 app.post('/api/worlds', (req, res) => {
-  const world = Worlds.create(req.body);
+  const name = String(req.body.name || '').trim();
+  if (!name) return res.status(400).json({ error: 'World name is required' });
+  const time_start = Number(req.body.time_start) || 0;
+  const time_end = Number(req.body.time_end) || 1000;
+  if (time_end <= time_start) return res.status(400).json({ error: 'time_end must be greater than time_start' });
+  const world = Worlds.create({ ...req.body, name, time_start, time_end });
   res.status(201).json(world);
 });
 
 app.put('/api/worlds/:id', (req, res) => {
-  const world = Worlds.update(Number(req.params.id), req.body);
-  if (!world) return res.status(404).json({ error: 'World not found' });
+  const update = { ...req.body };
+  if (update.name !== undefined) {
+    update.name = String(update.name).trim();
+    if (!update.name) return res.status(400).json({ error: 'World name cannot be empty' });
+  }
+  if (update.time_start !== undefined) update.time_start = Number(update.time_start);
+  if (update.time_end !== undefined) update.time_end = Number(update.time_end);
+
+  // Enforce time_end > time_start using existing values as fallback
+  const existing = Worlds.get(Number(req.params.id));
+  if (!existing) return res.status(404).json({ error: 'World not found' });
+  const finalStart = update.time_start ?? existing.time_start;
+  const finalEnd = update.time_end ?? existing.time_end;
+  if (finalEnd <= finalStart) return res.status(400).json({ error: 'time_end must be greater than time_start' });
+
+  const world = Worlds.update(Number(req.params.id), update);
   res.json(world);
 });
 
@@ -95,10 +114,15 @@ app.delete('/api/events/:id', (req, res) => {
 
 // ─── Import / Export ─────────────────────────────────────────────
 
+function sanitizeFilename(name) {
+  return String(name).replace(/[^\w\- ]/g, '_').trim() || 'export';
+}
+
 app.get('/api/worlds/:id/export', (req, res) => {
   const dump = importExport.exportWorld(Number(req.params.id));
   if (!dump) return res.status(404).json({ error: 'World not found' });
-  res.setHeader('Content-Disposition', `attachment; filename="${dump.world.name}.json"`);
+  const filename = sanitizeFilename(dump.world.name) + '.json';
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.json(dump);
 });
 
@@ -114,8 +138,8 @@ app.get('/api/worlds/:id/svg', (req, res) => {
   if (!world) return res.status(404).json({ error: 'World not found' });
   const entities = Entities.allForWorld(world.id);
 
-  const width = Number(req.query.width) || 1587;   // A3 landscape mm→px ~
-  const height = Number(req.query.height) || 1123;
+  const width = Math.min(Math.max(Number(req.query.width) || 1587, 100), 10000);   // A3 landscape mm→px ~
+  const height = Math.min(Math.max(Number(req.query.height) || 1123, 100), 10000);
 
   // Compute bounds from entities
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -220,7 +244,7 @@ app.get('/api/worlds/:id/svg', (req, res) => {
 </svg>`;
 
   res.setHeader('Content-Type', 'image/svg+xml');
-  res.setHeader('Content-Disposition', `attachment; filename="${world.name}.svg"`);
+  res.setHeader('Content-Disposition', `attachment; filename="${sanitizeFilename(world.name)}.svg"`);
   res.send(svg);
 });
 
@@ -301,6 +325,14 @@ app.get('/api/share/:token', (req, res) => {
 
 app.get('*', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ─── Global error handler ─────────────────────────────────────────
+
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
+  console.error(`[${new Date().toISOString()}] Unhandled error: ${err.message}`);
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 app.listen(PORT, () => {

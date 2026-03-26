@@ -55,7 +55,7 @@ export function showAddEventModal(currentWorld, entities, onCreated) {
         <label>${t('editor.modals.eventDescription')}<textarea id="evt-desc" rows="3"></textarea></label>
         <label>${t('editor.modals.eventLinkedEntities')}
           <select id="evt-entities" multiple style="height:80px">
-            ${entities.filter(e => e.name).map(e => `<option value="${e.id}">${escapeHtml(e.name)} (${e.type})</option>`).join('')}
+            ${entities.filter(e => e.name).map(e => `<option value="${e.id}">${escapeHtml(e.name)} (${escapeHtml(e.type)})</option>`).join('')}
           </select>
         </label>
       </div>
