@@ -17,6 +17,8 @@ import { LayersPanel } from './layers.js';
 import { ThemeManager, MAP_THEMES } from './themes.js';
 import { ModeToggle } from './mode-toggle.js';
 import { initI18n, t } from './i18n.js';
+import { AnalysisPanel } from './ui/analysis-panel.js';
+import { LorebookPanel } from './ui/lorebook-panel.js';
 
 // ─── Shared application state ────────────────────────────
 
@@ -76,6 +78,8 @@ const App = {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); this.undoManager.undo(); }
       else if ((e.ctrlKey || e.metaKey) && (e.key === 'Z' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); this.undoManager.redo(); }
+      else if (e.shiftKey && e.key === 'A') { e.preventDefault(); if (this._lorebookPanel.open) this._lorebookPanel.hide(); this._analysisPanel.toggle(); }
+      else if (e.shiftKey && e.key === 'L') { e.preventDefault(); if (this._analysisPanel.open) this._analysisPanel.hide(); this._lorebookPanel.toggle(); }
     });
 
     // Home screen
@@ -141,12 +145,40 @@ const App = {
     // Generate button
     document.getElementById('btn-generate').addEventListener('click', () => generateWorld(this));
 
+    // Analysis & Lorebook panels
+    this._analysisPanel = new AnalysisPanel(this);
+    this._lorebookPanel = new LorebookPanel(this);
+    document.getElementById('btn-analyze').addEventListener('click', () => {
+      if (this._lorebookPanel.open) this._lorebookPanel.hide();
+      this._analysisPanel.toggle();
+    });
+    document.getElementById('btn-lorebook').addEventListener('click', () => {
+      if (this._analysisPanel.open) this._analysisPanel.hide();
+      this._lorebookPanel.toggle();
+    });
+
     // Layers panel
     this.layersPanel.onChange = () => { if (this.canvasEngine) this.canvasEngine.render(); };
 
+    // Auto-analyse debounced (2s after last change)
+    this._analyzeTimer = null;
+    this._scheduleAnalysis = () => {
+      clearTimeout(this._analyzeTimer);
+      this._analyzeTimer = setTimeout(() => {
+        if (this._analysisPanel && this.entities && this.entities.length > 0) {
+          const result = this._analysisPanel.run();
+          const btn = document.getElementById('btn-analyze');
+          let badge = btn.querySelector('.analysis-badge');
+          if (!badge) { badge = document.createElement('span'); badge.className = 'analysis-badge'; btn.style.position = 'relative'; btn.appendChild(badge); }
+          const colors = { A: '#4A9A5A', B: '#8B8B2E', C: '#C4742A', D: '#8B2635' };
+          badge.style.background = colors[result.grade] || '#888';
+        }
+      }, 2000);
+    };
+
     // Sidebar callbacks
-    this.sidebar.onEntityUpdated = (entity) => updateEntity(this, entity);
-    this.sidebar.onEntityDeleted = (entity) => deleteEntity(this, entity);
+    this.sidebar.onEntityUpdated = (entity) => { updateEntity(this, entity); this._scheduleAnalysis(); };
+    this.sidebar.onEntityDeleted = (entity) => { deleteEntity(this, entity); this._scheduleAnalysis(); };
     this.sidebar.onNavigateTo = (entityId) => navigateToEntity(this, entityId);
 
     // Timeline callbacks
