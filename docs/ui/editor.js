@@ -82,7 +82,17 @@ export async function openWorld(app) {
   }
   app._hintSystem.checkContext({ tool: app.canvasEngine.tool, entities: app.entities });
 
-  if (!app._tutorial) app._tutorial = new Tutorial(app);
+  // Clean up legacy onboarding (removed, but localStorage keys may linger)
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('cartographer_onboarding_')) localStorage.removeItem(k);
+  }
+  const oldOverlay = document.getElementById('onboarding-overlay');
+  if (oldOverlay) oldOverlay.remove();
+
+  // Destroy previous tutorial instance when re-opening a world
+  if (app._tutorial) { app._tutorial.destroy(); app._tutorial = null; }
+  app._tutorial = new Tutorial(app);
   if (app._tutorial.shouldStart() && !(app._emptyState && app._emptyState.visible)) {
     setTimeout(() => {
       if (!(app._emptyState && app._emptyState.visible)) app._tutorial.start();
