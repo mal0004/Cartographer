@@ -10,6 +10,8 @@ export const frEditor = {
       text: 'Texte — X',
       brush: 'Pinceau — B',
       symbol: 'Symboles — S',
+      analyze: 'Analyse', analyzeTooltip: 'Analyser la cohérence du monde (Shift+A)',
+      lorebook: 'Lorebook', lorebookTooltip: 'Générer du lore (Shift+L)',
       snapOn: 'Snap aux éléments (activé)',
       snapOff: 'Snap aux éléments (désactivé)',
       gridSnapOn: 'Snap à la grille (activé)',
@@ -293,12 +295,6 @@ export const frEditor = {
       forest: '{name} vit au rythme des saisons. Ses habitants connaissent chaque arbre alentour.',
       desert: '{name} est une oasis de vie dans l\'immensité du désert.',
       swamp: '{name} s\'accroche aux terres fermes du marais, défiant la nature hostile.',
-    },
-  },
-  editor: {
-    toolbar: {
-      analyze: 'Analyse', analyzeTooltip: 'Analyser la cohérence du monde (Shift+A)',
-      lorebook: 'Lorebook', lorebookTooltip: 'Générer du lore (Shift+L)',
     },
   },
 };

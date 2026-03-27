@@ -10,6 +10,8 @@ export const enEditor = {
       text: 'Text — X',
       brush: 'Brush — B',
       symbol: 'Symbols — S',
+      analyze: 'Analysis', analyzeTooltip: 'Analyze world coherence (Shift+A)',
+      lorebook: 'Lorebook', lorebookTooltip: 'Generate lore (Shift+L)',
       snapOn: 'Snap to elements (on)',
       snapOff: 'Snap to elements (off)',
       gridSnapOn: 'Snap to grid (on)',
@@ -293,12 +295,6 @@ export const enEditor = {
       forest: '{name} lives to the rhythm of the seasons. Its inhabitants know every tree around.',
       desert: '{name} is an oasis of life in the vastness of the desert.',
       swamp: '{name} clings to the firm ground of the marsh, defying the hostile nature.',
-    },
-  },
-  editor: {
-    toolbar: {
-      analyze: 'Analysis', analyzeTooltip: 'Analyze world coherence (Shift+A)',
-      lorebook: 'Lorebook', lorebookTooltip: 'Generate lore (Shift+L)',
     },
   },
 };
