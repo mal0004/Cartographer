@@ -118,9 +118,12 @@ export class TileSystem {
       if (!cached) {
         cached = this.createTileCanvas();
         const tCtx = cached.getContext('2d');
+        tCtx.save();
+        tCtx.setTransform(1, 0, 0, 1, 0, 0);
+        tCtx.clearRect(0, 0, this.tileSize, this.tileSize);
         tCtx.translate(-tile.x, -tile.y);
         renderFn(tCtx, tile.x, tile.y, this.tileSize, this.tileSize);
-        tCtx.setTransform(1, 0, 0, 1, 0, 0);
+        tCtx.restore();
         this.setTile(tile.col, tile.row, layer, cached);
       }
       mainCtx.drawImage(cached,

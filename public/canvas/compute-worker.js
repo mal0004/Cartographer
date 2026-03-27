@@ -20,7 +20,16 @@ self.onmessage = function(e) {
       default:
         result = null;
     }
-    self.postMessage({ id, type, result, error: null });
+    const message = { id, type, result, error: null };
+    const transferList = [];
+    if (result && result.data instanceof ArrayBuffer) {
+      transferList.push(result.data);
+    }
+    if (transferList.length > 0) {
+      self.postMessage(message, transferList);
+    } else {
+      self.postMessage(message);
+    }
   } catch (err) {
     self.postMessage({ id, type, result: null, error: err.message });
   }

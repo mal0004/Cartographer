@@ -13,7 +13,12 @@ export class WorkerBridge {
       const url = new URL('./compute-worker.js', import.meta.url);
       this._worker = new Worker(url);
       this._worker.onmessage = (e) => this._onMessage(e);
-      this._worker.onerror = () => { this._worker = null; };
+      this._worker.onerror = (err) => {
+        const msg = err && err.message ? err.message : 'Worker error';
+        for (const cb of this._pending.values()) cb.reject(new Error(msg));
+        this._pending.clear();
+        this._worker = null;
+      };
     } catch {
       this._worker = null;
     }
@@ -35,7 +40,12 @@ export class WorkerBridge {
       if (!this._worker) { reject(new Error('Worker unavailable')); return; }
       const id = this._nextId++;
       this._pending.set(id, { resolve, reject });
-      this._worker.postMessage({ type, id, payload }, transfer || []);
+      try {
+        this._worker.postMessage({ type, id, payload }, transfer || []);
+      } catch (err) {
+        this._pending.delete(id);
+        reject(err instanceof Error ? err : new Error(String(err)));
+      }
     });
   }
 

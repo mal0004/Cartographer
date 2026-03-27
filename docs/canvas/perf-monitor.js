@@ -1,4 +1,4 @@
-/** Cartographer — PerfMonitor: dev-mode FPS/frame-time overlay. Toggle with F12+P. */
+/** Cartographer — PerfMonitor: dev-mode FPS/frame-time overlay. Toggle with Alt+P. */
 
 export class PerfMonitor {
   constructor() {
