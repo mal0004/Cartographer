@@ -13,6 +13,10 @@ import { RiverEngine } from '../rivers.js';
 import { VegetationRenderer } from '../vegetation.js';
 import { Atmosphere } from '../atmosphere.js';
 import { PerformanceManager } from '../performance.js';
+import { LayerManager } from './layer-manager.js';
+import { TileSystem } from './tile-system.js';
+import { LODManager } from './lod.js';
+import { SpatialIndex } from './spatial-index.js';
 import { RenderMixin } from './render.js';
 import { ToolsMixin } from './tools.js';
 import { EventsMixin } from './events.js';
@@ -62,6 +66,18 @@ class CanvasEngine {
     this._entityLayer = null;
     this._terrainDirty = true;
     this._entityDirty = true;
+
+    // Cached style values (refreshed once per render, not per entity)
+    this._cachedStyles = { bg: '#F5F0E8', border: '#C8BBAA', accent: '#8B2635' };
+    this._sortedEntities = [];
+    this._entitiesVersion = 0;
+    this._sortedVersion = -1;
+
+    // New perf subsystems
+    this.layerManager = new LayerManager(800, 600);
+    this.tileSystem = new TileSystem(800, 600);
+    this.lod = new LODManager();
+    this.spatialIndex = new SpatialIndex();
 
     // Resize observer
     this._resizeObserver = new ResizeObserver(() => this._resize());
@@ -136,6 +152,8 @@ class CanvasEngine {
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     this.width = parent.clientWidth;
     this.height = parent.clientHeight;
+    if (this.layerManager) this.layerManager.resize(this.width, this.height);
+    if (this.tileSystem) this.tileSystem.resize(this.width, this.height);
     if (this.atmosphere) this.atmosphere.invalidate();
     this.render();
   }
@@ -147,6 +165,10 @@ class CanvasEngine {
     this._textureCache = {};
     this._terrainDirty = true;
     this._entityDirty = true;
+    this._entitiesVersion++;
+    if (this.spatialIndex) this.spatialIndex.buildFromEntities(entities);
+    if (this.tileSystem) this.tileSystem.invalidateAll();
+    if (this.lod) this.lod.invalidateCache();
     if (this.terrainRenderer) this.terrainRenderer.clearCache();
     if (this.hillShading) this.hillShading.invalidate();
     if (this.coastlines) this.coastlines.invalidate();

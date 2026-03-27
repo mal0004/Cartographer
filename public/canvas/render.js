@@ -109,8 +109,14 @@ export const RenderMixin = {
 
     ctx.clearRect(0, 0, w, h);
 
+    // Cache computed styles once per frame instead of per entity
     const style = getComputedStyle(document.documentElement);
-    ctx.fillStyle = style.getPropertyValue('--bg').trim() || '#F5F0E8';
+    this._cachedStyles = {
+      bg: style.getPropertyValue('--bg').trim() || '#F5F0E8',
+      border: style.getPropertyValue('--border').trim() || '#C8BBAA',
+      accent: style.getPropertyValue('--accent').trim() || '#8B2635',
+    };
+    ctx.fillStyle = this._cachedStyles.bg;
     ctx.fillRect(0, 0, w, h);
 
     this._drawGrid(ctx, w, h);
@@ -121,8 +127,13 @@ export const RenderMixin = {
     ctx.translate(this.offsetX, this.offsetY);
     ctx.scale(this.zoom, this.zoom);
 
-    const order = ['region', 'territory', 'river', 'route', 'city', 'symbol', 'text'];
-    const sorted = [...this.entities].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type));
+    // Cache sorted entities — only re-sort when entities change
+    if (this._sortedVersion !== this._entitiesVersion) {
+      const order = ['region', 'territory', 'river', 'route', 'city', 'symbol', 'text'];
+      this._sortedEntities = [...this.entities].sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type));
+      this._sortedVersion = this._entitiesVersion;
+    }
+    const sorted = this._sortedEntities;
 
     for (const entity of sorted) {
       if (this.layersPanel && !this.layersPanel.isEntityVisible(entity)) continue;
@@ -180,7 +191,7 @@ export const RenderMixin = {
     const ox = this.offsetX % spacing;
     const oy = this.offsetY % spacing;
 
-    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#C8BBAA';
+    ctx.strokeStyle = this._cachedStyles.border;
     ctx.globalAlpha = 0.3;
     ctx.lineWidth = 0.5;
     ctx.beginPath();
@@ -229,7 +240,7 @@ export const RenderMixin = {
         ctx.lineWidth = selected ? 4 : 2.5;
         ctx.stroke();
         if (selected) {
-          const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+          const accent = this._cachedStyles.accent;
           ctx.save(); ctx.globalAlpha = pulse; ctx.strokeStyle = accent; ctx.lineWidth = 3;
           ctx.setLineDash([6, 4]); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; ctx.restore();
         }
@@ -247,7 +258,7 @@ export const RenderMixin = {
         drawCityIcon(ctx, d.x, d.y, d.importance || 'village', color);
         ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
         if (selected) {
-          const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+          const accent = this._cachedStyles.accent;
           ctx.save(); ctx.globalAlpha = pulse; ctx.strokeStyle = accent; ctx.lineWidth = 3;
           ctx.beginPath(); ctx.arc(d.x, d.y, 16 + 2 * Math.sin(Date.now() / 400), 0, Math.PI * 2);
           ctx.stroke(); ctx.globalAlpha = 1; ctx.restore();
@@ -271,7 +282,7 @@ export const RenderMixin = {
         else { ctx.moveTo(d.x1, d.y1); ctx.lineTo(d.x2, d.y2); }
         ctx.stroke(); ctx.setLineDash([]);
         if (selected) {
-          const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+          const accent = this._cachedStyles.accent;
           ctx.save(); ctx.globalAlpha = pulse; ctx.strokeStyle = accent; ctx.lineWidth = sw + 3;
           ctx.beginPath();
           if (d.cx1 !== undefined) { ctx.moveTo(d.x1, d.y1); ctx.bezierCurveTo(d.cx1, d.cy1, d.cx2, d.cy2, d.x2, d.y2); }
@@ -325,7 +336,7 @@ export const RenderMixin = {
         this._tracePath(ctx, regionCoastPts);
         ctx.strokeStyle = '#666'; ctx.lineWidth = 1; ctx.stroke();
         if (selected) {
-          const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+          const accent = this._cachedStyles.accent;
           ctx.save(); ctx.globalAlpha = pulse; ctx.strokeStyle = accent; ctx.lineWidth = 3;
           ctx.setLineDash([6, 4]); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; ctx.restore();
         }
@@ -339,7 +350,7 @@ export const RenderMixin = {
         ctx.fillText(entity.name || d.text || '', d.x, d.y);
         if (selected) {
           const metrics = ctx.measureText(entity.name || d.text || '');
-          const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+          const accent = this._cachedStyles.accent;
           ctx.save(); ctx.globalAlpha = pulse; ctx.strokeStyle = accent; ctx.lineWidth = 2;
           ctx.setLineDash([4, 3]); ctx.strokeRect(d.x - 2, d.y - size, metrics.width + 4, size + 4);
           ctx.setLineDash([]); ctx.globalAlpha = 1; ctx.restore();
@@ -357,7 +368,7 @@ export const RenderMixin = {
         this._drawSymbol(ctx, d.symbolId, -symSize / 2, -symSize / 2, symSize, color);
         ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
         if (selected) {
-          const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+          const accent = this._cachedStyles.accent;
           ctx.save(); ctx.globalAlpha = pulse; ctx.strokeStyle = accent; ctx.lineWidth = 2.5;
           ctx.beginPath(); ctx.arc(0, 0, symSize / 2 + 6 + 2 * Math.sin(Date.now() / 400), 0, Math.PI * 2);
           ctx.stroke(); ctx.globalAlpha = 1; ctx.restore();
