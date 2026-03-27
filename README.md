@@ -2,57 +2,70 @@
 
 **Fictional World Map Editor** — Create, annotate, and narrate the maps of your imaginary worlds.
 
-**[Live Demo](https://mal0004.github.io/Cartographer/)**
+**[Live Demo](https://mal0004.github.io/Cartographer/)** • **[GitHub](https://github.com/mal0004/Cartographer)**
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  ← World Name                          [Export SVG] [JSON] [🌙]   │
-├────┬────────────────────────────────────────────────────┬───────────┤
-│ 🔍 │                                                    │ Entity    │
-│ △  │          ·  ·  ·  ·  ·  ·  ·  ·  ·  ·            │ ─────────│
-│ ●  │          ·        ╔══════════╗     ·              │ Name: ... │
-│ ⌇  │          ·        ║ TERRITORY║  ★  ·              │ Type: ... │
-│ ▲  │          ·        ║          ║Capital              │ Pop: ...  │
-│ A  │          ·        ╚══════════╝     ·              │           │
-│────│          ·     ●──────────●        ·              │ [Details] │
-│ 🎨 │          ·   City    Route   City  ·              │ [Related] │
-│    │          ·  ·  ·  ·  ·  ·  ·  ·  ·  ·            │ [Events]  │
-│    │                                                    │           │
-│    │             INFINITE CANVAS                        │ Markdown  │
-│    │             pan · zoom · draw                      │ editor &  │
-│    │                                                    │ preview   │
-├────┴────────────────────────────────────────────────────┴───────────┤
-│  ▲ Timeline    ◆ War   ◆ Treaty     ◆ Flood      ◆ Festival       │
-│  ───────────●──────────●────────────●─────────────●──────────►     │
-│  An 0       An 200     An 450       An 680        An 900   An 1200 │
-└─────────────────────────────────────────────────────────────────────┘
-```
+---
+
+## Overview
+
+Cartographer is a comprehensive web-based tool for world builders, game designers, and fantasy authors to create and manage detailed fictional maps. Draw territories and regions, place cities and landmarks, design trade routes, document historical timelines, and generate world lore using AI-powered analysis.
+
+**Performance-optimized** for 60 FPS rendering on complex maps with 20+ territories and 50+ entities.
 
 ---
 
 ## Features
 
+### Map Editing
 - **Infinite Canvas** — Pan, zoom (0.2x–5x), adaptive grid with theme-aware styling
 - **Drawing Tools** — Territory polygons, cities (capital/city/village), Bezier routes, natural regions (forest/mountain/desert/ocean), free text labels, symbol library
-- **Selection & Drag** — Click to select with animated pulsing halo, drag to move, Delete to remove
-- **Side Panel** — Context-aware fields per entity type, markdown editor with live preview, relations (auto-detected), linked events
-- **Narrative Timeline** — Collapsible horizontal bar, fictional year range, color-coded events (war/political/natural/cultural)
-- **Layers** — Toggle visibility and opacity per entity type
+- **Procedural Generation** — Coastlines, hill shading, river systems, vegetation overlays with deterministic seeding
+- **Selection & Drag** — Click to select with animated halo, drag to move, delete to remove
+- **Layers Panel** — Toggle visibility and opacity per entity type
+
+### World Documentation
+- **Narrative Timeline** — Collapsible horizontal bar with fictional year range, color-coded events (war/political/natural/cultural)
+- **Side Panel** — Context-aware fields per entity type, markdown editor with live preview, relations, linked events
+- **Snap & Guides** — Snap to elements or grid for precise placement
 - **Undo/Redo** — Full command-pattern history (Ctrl+Z / Ctrl+Shift+Z)
-- **Themes** — 6 built-in themes (Parchment, Night Gold, Sepia, Ocean, Forest, Frost)
+
+### AI-Powered Features
+- **Geographic Coherence Engine** — Analyzes map coherence across 5 categories (rivers, biomes, entities, climate, political) with letter grades
+- **Lore Generator** — Deterministic lore generation from geography: world history, territory descriptions, entity narratives
+- **Analysis Panel** — Inspect coherence issues, filter by severity, locate on map
+
+### Themes & Export
+- **6 Built-in Themes** — Parchment, Night Gold, Sepia, Ocean, Forest, Frost
 - **SVG Export** — Premium export with parchment texture, compass rose, old-style typography
 - **JSON Import/Export** — Full world backup & restore
 - **Share** — Generate shareable read-only links
+
+### Additional
 - **Templates** — Start from pre-built world templates
-- **Snap & Guides** — Snap to elements or grid for precise placement
-- **Minimap** — Draggable overview, repositionable on canvas
-- **Responsive** — Fluid layout, resizable sidebar/timeline, toolbar wrapping, touch support
+- **Minimap** — Draggable overview with repositioning
+- **Responsive** — Fluid layout, resizable sidebar/timeline, touch support
+
+---
+
+## Performance
+
+**10-phase optimization pipeline:**
+- LayerManager: 5 offscreen canvas layers with dirty tracking
+- TileSystem: 256×256 tile cache with LRU eviction
+- LOD: 4 detail levels with polygon simplification
+- SpatialIndex: O(1) hit testing via spatial hash grid
+- PathCache: Path2D object reuse
+- Web Worker: Off-thread polygon simplification, shading, vegetation
+- Cached styles & entity sort orders
+- Capped devicePixelRatio (2x max)
+
+**Monitor performance in dev mode:** Press `Alt+P` to toggle FPS overlay.
 
 ---
 
 ## Getting Started
 
-### Full version (Node.js + SQLite)
+### Full Version (Node.js + SQLite)
 
 ```bash
 git clone https://github.com/mal0004/Cartographer.git
@@ -63,12 +76,11 @@ npm start
 ```
 
 For development with auto-reload:
-
 ```bash
 npm run dev
 ```
 
-### Static demo (no server needed)
+### Static Demo (No Server Required)
 
 Open `docs/index.html` directly in your browser, or visit the **[live demo](https://mal0004.github.io/Cartographer/)**.
 
@@ -76,22 +88,22 @@ The demo uses `localStorage` instead of SQLite — same features, data stays in 
 
 ---
 
-## Two Versions
+## Two Deployment Options
 
-| | Full version (`public/`) | Static demo (`docs/`) |
+| | Full Version (`public/`) | Static Demo (`docs/`) |
 |---|---|---|
 | **Backend** | Express + SQLite | None (client-only) |
 | **Storage** | Server-side database | Browser localStorage |
-| **Persistence** | Survives browser changes | Browser-local only |
-| **Share** | Token-based server links | Base64-encoded URL hash |
+| **Persistence** | Survives browser changes | Local storage only |
+| **Share Links** | Token-based server | Base64-encoded URL hash |
 | **Setup** | `npm install && npm start` | Open `index.html` |
 
-### Key differences in `docs/`
+### Key Differences in `docs/`
 
-- `local-db.js` replaces SQLite with a localStorage-backed CRUD interface
+- `local-db.js` replaces SQLite with localStorage CRUD
 - `app.js` routes API calls to `LocalDB` instead of `fetch()`
-- `index.html` uses relative paths and loads `local-db.js`
-- All other files (canvas, sidebar, timeline, styles) are identical copies
+- `index.html` uses relative paths
+- All other files (canvas, sidebar, timeline, styles) are identical
 
 ---
 
@@ -99,35 +111,37 @@ The demo uses `localStorage` instead of SQLite — same features, data stays in 
 
 ```
 Cartographer/
-├── server.js             Express server: REST API + static files
-├── db.js                 SQLite layer (better-sqlite3)
-├── package.json          Node.js dependencies
+├── server.js                    Express server: REST API
+├── db.js                        SQLite layer (better-sqlite3)
+├── package.json
 │
-├── public/               Frontend (served by Express)
-│   ├── index.html        App shell
-│   ├── app.js            Orchestration & API calls
-│   ├── canvas.js         Infinite canvas engine
-│   ├── sidebar.js        Side panel + markdown editor
-│   ├── timeline.js       Narrative timeline
-│   ├── style.css         Theming (CSS custom properties)
-│   ├── responsive.js     Resize handles, minimap drag
-│   ├── layers.js         Layer visibility & opacity
-│   ├── symbols.js        Symbol library
-│   ├── themes.js         Theme manager (6 themes)
-│   ├── undo.js           Undo/redo (command pattern)
-│   ├── snap.js           Snap to elements/grid
-│   ├── minimap.js        Minimap overlay
-│   ├── templates.js      World templates
-│   ├── onboarding.js     First-run tutorial
-│   ├── mode-toggle.js    Simple/advanced mode
-│   ├── svg-export.js     Premium SVG export panel
-│   └── viewer.html       Read-only shared map viewer
+├── public/                      Full version frontend
+│   ├── index.html               App shell
+│   ├── app.js                   Orchestration & API
+│   ├── style.css                Theme system
+│   ├── canvas/
+│   │   ├── engine.js            Canvas rendering core
+│   │   ├── render.js            Render pipeline
+│   │   ├── layer-manager.js     5 offscreen layers
+│   │   ├── tile-system.js       256×256 tile cache
+│   │   ├── lod.js               Level of detail
+│   │   ├── spatial-index.js     Hit testing grid
+│   │   ├── path-cache.js        Path2D reuse
+│   │   ├── compute-worker.js    Web Worker tasks
+│   │   ├── worker-bridge.js     Worker interface
+│   │   ├── perf-monitor.js      FPS overlay
+│   │   └── ...                  Tools, events, brush
+│   ├── ui/                      Sidebar, panels
+│   ├── terrain/                 Procedural generation
+│   ├── analysis/                Coherence, lore
+│   ├── translations/            i18n (FR/EN)
+│   └── ...
 │
-├── docs/                 Static demo (GitHub Pages)
-│   ├── local-db.js       ★ localStorage replacement for SQLite
-│   ├── app.js            ★ Routes to LocalDB instead of fetch
-│   ├── index.html        ★ Relative paths + local-db.js
-│   └── ...               Identical copies of public/ files
+├── docs/                        Static demo (GitHub Pages)
+│   ├── local-db.js              ★ localStorage replacement
+│   ├── app.js                   ★ Routes to LocalDB
+│   ├── index.html               ★ Relative paths
+│   └── ...                      Copies of public/ files
 │
 └── README.md
 ```
@@ -192,11 +206,14 @@ Files marked ★ differ between `public/` and `docs/`.
 | `N` | Natural region tool |
 | `X` | Text label tool |
 | `S` | Symbol tool |
+| `Shift+A` | Analysis panel |
+| `Shift+L` | Lorebook panel |
+| `Alt+P` | Performance monitor (dev) |
 | `Ctrl+Z` | Undo |
 | `Ctrl+Shift+Z` | Redo |
-| `Delete` / `Backspace` | Delete selected entity |
-| `Escape` | Cancel drawing / deselect |
-| `Alt + Click` | Pan the canvas |
+| `Delete` / `Backspace` | Delete selected |
+| `Escape` | Cancel / deselect |
+| `Alt + Click` | Pan canvas |
 | Right-click | Close polygon |
 
 ---
@@ -204,9 +221,38 @@ Files marked ★ differ between `public/` and `docs/`.
 ## Tech Stack
 
 - **Backend**: Node.js, Express, better-sqlite3, nanoid
-- **Frontend**: Vanilla JavaScript, Canvas API, CSS custom properties
+- **Frontend**: Vanilla JavaScript (ES modules), Canvas 2D API, CSS custom properties
+- **Workers**: Web Worker for heavy computations
 - **Fonts**: Cinzel (titles), Source Serif 4 (body) via Google Fonts
-- **Zero frameworks** — no build step, no frontend dependencies
+- **i18n**: French & English with key-based translation system
+- **Zero frameworks** — no build step, no npm dependencies on frontend
+
+---
+
+## Browser Support
+
+- Chrome/Edge 90+
+- Firefox 88+
+- Safari 14+
+- Supports OffscreenCanvas (with fallback to regular canvas)
+
+---
+
+## Development
+
+### Running Tests
+
+```bash
+npm test
+```
+
+### Building for Production
+
+The static demo is always up-to-date via GitHub Pages; the full version runs directly from `public/`.
+
+### Contributing
+
+Feel free to open issues and pull requests on [GitHub](https://github.com/mal0004/Cartographer).
 
 ---
 
