@@ -56,6 +56,12 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_shares_token ON shares(token);
 `);
 
+// ─── Helpers ─────────────────────────────────────────────────────
+
+function safeJsonParse(str, defaultValue) {
+  try { return JSON.parse(str); } catch { return defaultValue; }
+}
+
 // ─── Worlds ──────────────────────────────────────────────────────
 
 const worldStmts = {
@@ -107,13 +113,13 @@ const Entities = {
   allForWorld(worldId) {
     return entityStmts.allForWorld.all(worldId).map(row => ({
       ...row,
-      data: JSON.parse(row.data),
+      data: safeJsonParse(row.data, {}),
     }));
   },
   get(id) {
     const row = entityStmts.get.get(id);
     if (!row) return null;
-    return { ...row, data: JSON.parse(row.data) };
+    return { ...row, data: safeJsonParse(row.data, {}) };
   },
   create(data) {
     const info = entityStmts.insert.run({
@@ -127,7 +133,7 @@ const Entities = {
   update(id, data) {
     const existing = entityStmts.get.get(id);
     if (!existing) return null;
-    const existingData = JSON.parse(existing.data);
+    const existingData = safeJsonParse(existing.data, {});
     entityStmts.update.run({
       id,
       name: data.name ?? existing.name,
@@ -152,13 +158,13 @@ const Events = {
   allForWorld(worldId) {
     return eventStmts.allForWorld.all(worldId).map(row => ({
       ...row,
-      entity_ids: JSON.parse(row.entity_ids),
+      entity_ids: safeJsonParse(row.entity_ids, []),
     }));
   },
   get(id) {
     const row = eventStmts.get.get(id);
     if (!row) return null;
-    return { ...row, entity_ids: JSON.parse(row.entity_ids) };
+    return { ...row, entity_ids: safeJsonParse(row.entity_ids, []) };
   },
   create(data) {
     const info = eventStmts.insert.run({
@@ -180,7 +186,7 @@ const Events = {
       date: data.date ?? existing.date,
       category: data.category ?? existing.category,
       description: data.description ?? existing.description,
-      entity_ids: JSON.stringify(data.entity_ids ?? JSON.parse(existing.entity_ids)),
+      entity_ids: JSON.stringify(data.entity_ids ?? safeJsonParse(existing.entity_ids, [])),
     });
     return this.get(id);
   },

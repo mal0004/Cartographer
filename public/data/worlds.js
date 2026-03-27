@@ -113,8 +113,25 @@ export async function createWorld(app) {
 export async function importWorld(app, e) {
   const file = e.target.files[0];
   if (!file) return;
-  const text = await file.text();
-  const data = JSON.parse(text);
+  if (!file.name.endsWith('.json')) {
+    showToast(t('toasts.importInvalidFile'), 'error');
+    e.target.value = '';
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    showToast(t('toasts.importFileTooLarge'), 'error');
+    e.target.value = '';
+    return;
+  }
+  let data;
+  try {
+    const text = await file.text();
+    data = JSON.parse(text);
+  } catch {
+    showToast(t('toasts.importInvalidJSON'), 'error');
+    e.target.value = '';
+    return;
+  }
   await api('POST', '/api/worlds/import', data);
   e.target.value = '';
   loadWorlds(app);
