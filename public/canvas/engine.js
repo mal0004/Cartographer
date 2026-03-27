@@ -17,6 +17,8 @@ import { LayerManager } from './layer-manager.js';
 import { TileSystem } from './tile-system.js';
 import { LODManager } from './lod.js';
 import { SpatialIndex } from './spatial-index.js';
+import { PathCache, cappedDPR } from './path-cache.js';
+import { WorkerBridge } from './worker-bridge.js';
 import { RenderMixin } from './render.js';
 import { ToolsMixin } from './tools.js';
 import { EventsMixin } from './events.js';
@@ -78,6 +80,8 @@ class CanvasEngine {
     this.tileSystem = new TileSystem(800, 600);
     this.lod = new LODManager();
     this.spatialIndex = new SpatialIndex();
+    this.pathCache = new PathCache();
+    this.workerBridge = new WorkerBridge();
 
     // Resize observer
     this._resizeObserver = new ResizeObserver(() => this._resize());
@@ -146,7 +150,7 @@ class CanvasEngine {
 
   _resize() {
     const parent = this.canvas.parentElement;
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = cappedDPR(2);
     this.canvas.width = parent.clientWidth * dpr;
     this.canvas.height = parent.clientHeight * dpr;
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -169,6 +173,7 @@ class CanvasEngine {
     if (this.spatialIndex) this.spatialIndex.buildFromEntities(entities);
     if (this.tileSystem) this.tileSystem.invalidateAll();
     if (this.lod) this.lod.invalidateCache();
+    if (this.pathCache) this.pathCache.clear();
     if (this.terrainRenderer) this.terrainRenderer.clearCache();
     if (this.hillShading) this.hillShading.invalidate();
     if (this.coastlines) this.coastlines.invalidate();
