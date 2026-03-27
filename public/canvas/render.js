@@ -103,6 +103,7 @@ export const RenderMixin = {
   },
 
   _doRender() {
+    if (this.perfMonitor) this.perfMonitor.beginFrame();
     const ctx = this.ctx;
     const w = this.width;
     const h = this.height;
@@ -180,6 +181,7 @@ export const RenderMixin = {
     ctx.restore();
 
     if (this.perf) this.perf.clearDirty();
+    if (this.perfMonitor) this.perfMonitor.endFrame(this.entities.length);
   },
 
   _drawGrid(ctx, w, h) {

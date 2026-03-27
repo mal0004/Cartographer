@@ -19,6 +19,7 @@ import { LODManager } from './lod.js';
 import { SpatialIndex } from './spatial-index.js';
 import { PathCache, cappedDPR } from './path-cache.js';
 import { WorkerBridge } from './worker-bridge.js';
+import { PerfMonitor } from './perf-monitor.js';
 import { RenderMixin } from './render.js';
 import { ToolsMixin } from './tools.js';
 import { EventsMixin } from './events.js';
@@ -82,6 +83,7 @@ class CanvasEngine {
     this.spatialIndex = new SpatialIndex();
     this.pathCache = new PathCache();
     this.workerBridge = new WorkerBridge();
+    this.perfMonitor = new PerfMonitor();
 
     // Resize observer
     this._resizeObserver = new ResizeObserver(() => this._resize());
