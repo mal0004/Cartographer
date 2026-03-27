@@ -61,7 +61,8 @@ export class CoherenceEngine {
   }
 
   _terrainOf(territory) {
-    return territory.data.terrainType || territory.data.terrain || '';
+    const raw = territory.data.terrainType || territory.data.terrain || '';
+    return raw === 'swamp' ? 'marsh' : raw;
   }
 
   _findContaining(px, py) {
@@ -120,8 +121,9 @@ export class CoherenceEngine {
   }
 
   _addIssue(severity, category, msgKey, params = {}) {
+    const entityKey = params.entityId || params.territoryId || String(++_uid);
     this.issues.push({
-      id: `issue_${++_uid}`,
+      id: `${msgKey}_${entityKey}`,
       severity,
       category,
       message: this._t(msgKey, params),
@@ -133,8 +135,9 @@ export class CoherenceEngine {
   }
 
   _addSuggestion(category, msgKey, params = {}) {
+    const entityKey = params.entityId || params.territoryId || String(++_uid);
     this.suggestions.push({
-      id: `sug_${++_uid}`,
+      id: `sug_${msgKey}_${entityKey}`,
       severity: 'SUGGESTION',
       category,
       message: this._t(msgKey, params),

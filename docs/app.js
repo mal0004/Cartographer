@@ -132,7 +132,7 @@ const App = {
     this._buildThemeDropdown();
 
     // Toolbar tools
-    document.querySelectorAll('.tool-btn').forEach(btn => {
+    document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
       btn.addEventListener('click', () => { if (this.canvasEngine) this.canvasEngine.setTool(btn.dataset.tool); });
     });
     document.getElementById('tool-color').addEventListener('input', (e) => {

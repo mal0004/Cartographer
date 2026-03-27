@@ -17,7 +17,7 @@ export class AnalysisPanel {
     this.app = app;
     this.result = null;
     this.filter = 'all';
-    this.ignored = this._loadIgnored();
+    this.ignored = {};
     this.el = null;
     this.open = false;
     this._build();
@@ -48,6 +48,7 @@ export class AnalysisPanel {
   show() {
     this.open = true;
     this.el.classList.add('open');
+    this.ignored = this._loadIgnored();
     if (!this.result) this.run();
   }
 
@@ -128,25 +129,50 @@ export class AnalysisPanel {
       card.className = 'analysis-card';
       card.style.animationDelay = (idx * 0.05) + 's';
       const sev = item.severity || 'SUGGESTION';
-      card.innerHTML = `
-        <span class="analysis-dot" style="background:${SEVERITY_COLORS[sev]}"></span>
-        <div class="analysis-card-body">
-          <p class="analysis-msg">${item.message}</p>
-          ${item.fix ? `<p class="analysis-fix">${item.fix}</p>` : ''}
-          <div class="analysis-card-actions">
-            ${(item.entityId || item.territoryId) ? `<button class="analysis-locate btn-sm">${t('analysis.panel.locate')}</button>` : ''}
-            <button class="analysis-ignore btn-sm">${t('analysis.panel.ignore')}</button>
-          </div>
-        </div>`;
-      const locateBtn = card.querySelector('.analysis-locate');
-      if (locateBtn) {
-        locateBtn.addEventListener('click', () => this._locate(item));
+
+      const dot = document.createElement('span');
+      dot.className = 'analysis-dot';
+      dot.style.background = SEVERITY_COLORS[sev];
+
+      const body = document.createElement('div');
+      body.className = 'analysis-card-body';
+
+      const msgP = document.createElement('p');
+      msgP.className = 'analysis-msg';
+      msgP.textContent = item.message;
+      body.appendChild(msgP);
+
+      if (item.fix) {
+        const fixP = document.createElement('p');
+        fixP.className = 'analysis-fix';
+        fixP.textContent = item.fix;
+        body.appendChild(fixP);
       }
-      card.querySelector('.analysis-ignore').addEventListener('click', () => {
+
+      const actions = document.createElement('div');
+      actions.className = 'analysis-card-actions';
+
+      if (item.entityId || item.territoryId) {
+        const locateBtn = document.createElement('button');
+        locateBtn.className = 'analysis-locate btn-sm';
+        locateBtn.textContent = t('analysis.panel.locate');
+        locateBtn.addEventListener('click', () => this._locate(item));
+        actions.appendChild(locateBtn);
+      }
+
+      const ignoreBtn = document.createElement('button');
+      ignoreBtn.className = 'analysis-ignore btn-sm';
+      ignoreBtn.textContent = t('analysis.panel.ignore');
+      ignoreBtn.addEventListener('click', () => {
         this.ignored[item.id] = true;
         this._saveIgnored();
         this._render();
       });
+      actions.appendChild(ignoreBtn);
+
+      body.appendChild(actions);
+      card.appendChild(dot);
+      card.appendChild(body);
       box.appendChild(card);
     });
   }

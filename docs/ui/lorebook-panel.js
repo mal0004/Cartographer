@@ -98,23 +98,45 @@ export class LorebookPanel {
       const card = document.createElement('div');
       card.className = 'lorebook-event-card';
       const color = CAT_COLORS[ev.category] || '#888';
-      card.innerHTML = `
-        <div class="lorebook-ev-header">
-          <span class="lorebook-ev-badge" style="background:${color}">${t('lorebook.categories.' + ev.category)}</span>
-          <span class="lorebook-ev-year">${t('lorebook.year')} ${ev.year}</span>
-        </div>
-        <h4>${ev.title}</h4>
-        <p>${ev.description}</p>
-        <button class="lorebook-add-timeline btn-sm">${t('lorebook.addToTimeline')}</button>`;
-      card.querySelector('.lorebook-add-timeline').addEventListener('click', async () => {
+
+      const header = document.createElement('div');
+      header.className = 'lorebook-ev-header';
+
+      const badge = document.createElement('span');
+      badge.className = 'lorebook-ev-badge';
+      badge.style.background = color;
+      badge.textContent = t('lorebook.categories.' + ev.category);
+
+      const year = document.createElement('span');
+      year.className = 'lorebook-ev-year';
+      year.textContent = `${t('lorebook.year')} ${ev.year}`;
+
+      header.appendChild(badge);
+      header.appendChild(year);
+
+      const titleEl = document.createElement('h4');
+      titleEl.textContent = ev.title;
+
+      const descEl = document.createElement('p');
+      descEl.textContent = ev.description;
+
+      const addBtn = document.createElement('button');
+      addBtn.className = 'lorebook-add-timeline btn-sm';
+      addBtn.textContent = t('lorebook.addToTimeline');
+      addBtn.addEventListener('click', async () => {
         if (!this.app.currentWorld) return;
         await api('POST', `/api/worlds/${this.app.currentWorld.id}/events`, {
           title: ev.title, date: ev.year, category: ev.category,
           description: ev.description, entity_ids: [],
         });
-        card.querySelector('.lorebook-add-timeline').textContent = '✓';
-        card.querySelector('.lorebook-add-timeline').disabled = true;
+        addBtn.textContent = '✓';
+        addBtn.disabled = true;
       });
+
+      card.appendChild(header);
+      card.appendChild(titleEl);
+      card.appendChild(descEl);
+      card.appendChild(addBtn);
       box.appendChild(card);
     }
   }
@@ -129,9 +151,16 @@ export class LorebookPanel {
     for (const tl of this.lore.territoryLore) {
       const card = document.createElement('div');
       card.className = 'lorebook-territory-card';
-      card.innerHTML = `
-        <h4>${tl.name}</h4>
-        <p class="lorebook-lore-text">${tl.lore}</p>`;
+
+      const titleEl = document.createElement('h4');
+      titleEl.textContent = tl.name;
+
+      const loreEl = document.createElement('p');
+      loreEl.className = 'lorebook-lore-text';
+      loreEl.textContent = tl.lore;
+
+      card.appendChild(titleEl);
+      card.appendChild(loreEl);
       box.appendChild(card);
     }
   }
@@ -146,25 +175,42 @@ export class LorebookPanel {
     for (const el of this.lore.entityLore) {
       const card = document.createElement('div');
       card.className = 'lorebook-entity-card';
-      card.innerHTML = `
-        <h4>${el.name}</h4>
-        <p class="lorebook-lore-text">${el.lore}</p>
-        <div class="lorebook-entity-actions">
-          <button class="lorebook-accept btn-sm">${t('lorebook.accept')}</button>
-          <button class="lorebook-regen btn-sm">${t('lorebook.regenerate')}</button>
-        </div>`;
-      card.querySelector('.lorebook-accept').addEventListener('click', async () => {
+
+      const titleEl = document.createElement('h4');
+      titleEl.textContent = el.name;
+
+      const loreEl = document.createElement('p');
+      loreEl.className = 'lorebook-lore-text';
+      loreEl.textContent = el.lore;
+
+      const actionsEl = document.createElement('div');
+      actionsEl.className = 'lorebook-entity-actions';
+
+      const acceptBtn = document.createElement('button');
+      acceptBtn.className = 'lorebook-accept btn-sm';
+      acceptBtn.textContent = t('lorebook.accept');
+      acceptBtn.addEventListener('click', async () => {
         const entity = this.app.entities.find(e => e.id === el.id);
         if (entity) {
           entity.data.description = el.lore;
           await api('PUT', `/api/entities/${entity.id}`, { name: entity.name, data: entity.data });
-          card.querySelector('.lorebook-accept').textContent = '✓';
-          card.querySelector('.lorebook-accept').disabled = true;
+          acceptBtn.textContent = '✓';
+          acceptBtn.disabled = true;
         }
       });
-      card.querySelector('.lorebook-regen').addEventListener('click', () => {
+
+      const regenBtn = document.createElement('button');
+      regenBtn.className = 'lorebook-regen btn-sm';
+      regenBtn.textContent = t('lorebook.regenerate');
+      regenBtn.addEventListener('click', () => {
         this._generate();
       });
+
+      actionsEl.appendChild(acceptBtn);
+      actionsEl.appendChild(regenBtn);
+      card.appendChild(titleEl);
+      card.appendChild(loreEl);
+      card.appendChild(actionsEl);
       box.appendChild(card);
     }
   }

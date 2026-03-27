@@ -149,7 +149,8 @@ export class LoreGenerator {
   }
 
   _territoryLore(ter, geo) {
-    const terrain = geo.terrainOf(ter);
+    const rawTerrain = geo.terrainOf(ter);
+    const terrain = rawTerrain === 'swamp' ? 'marsh' : rawTerrain;
     const name = ter.name || '?';
     const prefixes = {
       mountain: ['lorebook.prefix.impassable', 'lorebook.prefix.majestic', 'lorebook.prefix.ancient', 'lorebook.prefix.frozen'],
