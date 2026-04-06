@@ -14,13 +14,55 @@ const EVENT_CATEGORIES = new Set(['war', 'political', 'natural', 'cultural']);
 
 function parseInteger(value, fieldName) {
   if (value === undefined || value === null || value === '') return null;
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed === '') return null;
+
+    if (/^[+-]?\d+$/.test(trimmed)) {
+      const bigintValue = BigInt(trimmed);
+      const minSafe = BigInt(Number.MIN_SAFE_INTEGER);
+      const maxSafe = BigInt(Number.MAX_SAFE_INTEGER);
+      if (bigintValue < minSafe || bigintValue > maxSafe) {
+        const err = new Error(`${fieldName} must be a safe integer`);
+        err.status = 400;
+        throw err;
+      }
+      return Number(bigintValue);
+    }
+
+    const num = Number(trimmed);
+    if (!Number.isFinite(num)) {
+      const err = new Error(`${fieldName} must be a finite number`);
+      err.status = 400;
+      throw err;
+    }
+
+    const truncated = Math.trunc(num);
+    if (!Number.isSafeInteger(truncated)) {
+      const err = new Error(`${fieldName} must be a safe integer`);
+      err.status = 400;
+      throw err;
+    }
+
+    return truncated;
+  }
+
   const num = Number(value);
   if (!Number.isFinite(num)) {
     const err = new Error(`${fieldName} must be a finite number`);
     err.status = 400;
     throw err;
   }
-  return Math.trunc(num);
+
+  const truncated = Math.trunc(num);
+  if (!Number.isSafeInteger(truncated)) {
+    const err = new Error(`${fieldName} must be a safe integer`);
+    err.status = 400;
+    throw err;
+  }
+
+  return truncated;
 }
 
 function normalizeTimeRange(payload, { requireName = false } = {}) {
@@ -148,7 +190,9 @@ app.post('/api/worlds/:wid/events', (req, res) => {
 
 app.put('/api/events/:id', (req, res) => {
   if (req.body.date !== undefined) {
-    req.body.date = parseInteger(req.body.date, 'date');
+    const date = parseInteger(req.body.date, 'date');
+    if (date === null) return res.status(400).json({ error: 'Event date cannot be empty' });
+    req.body.date = date;
   }
   if (req.body.category !== undefined && !EVENT_CATEGORIES.has(req.body.category)) {
     return res.status(400).json({ error: `Invalid event category. Allowed: ${Array.from(EVENT_CATEGORIES).join(', ')}` });
