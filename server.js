@@ -9,6 +9,35 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+const ENTITY_TYPES = new Set(['territory', 'city', 'route', 'region', 'text', 'symbol']);
+const EVENT_CATEGORIES = new Set(['war', 'political', 'natural', 'cultural']);
+
+function parseInteger(value, fieldName) {
+  if (value === undefined || value === null || value === '') return null;
+  const num = Number(value);
+  if (!Number.isFinite(num)) {
+    const err = new Error(`${fieldName} must be a finite number`);
+    err.status = 400;
+    throw err;
+  }
+  return Math.trunc(num);
+}
+
+function normalizeTimeRange(payload, { requireName = false } = {}) {
+  const normalized = { ...payload };
+  if (requireName || normalized.name !== undefined) {
+    normalized.name = String(normalized.name || '').trim();
+    if (!normalized.name) {
+      const err = new Error(requireName ? 'World name is required' : 'World name cannot be empty');
+      err.status = 400;
+      throw err;
+    }
+  }
+  if (normalized.time_start !== undefined) normalized.time_start = parseInteger(normalized.time_start, 'time_start');
+  if (normalized.time_end !== undefined) normalized.time_end = parseInteger(normalized.time_end, 'time_end');
+  return normalized;
+}
+
 // ─── Worlds ──────────────────────────────────────────────────────
 
 app.get('/api/worlds', (_req, res) => {
@@ -22,23 +51,16 @@ app.get('/api/worlds/:id', (req, res) => {
 });
 
 app.post('/api/worlds', (req, res) => {
-  const name = String(req.body.name || '').trim();
-  if (!name) return res.status(400).json({ error: 'World name is required' });
-  const time_start = Number(req.body.time_start) || 0;
-  const time_end = Number(req.body.time_end) || 1000;
+  const normalized = normalizeTimeRange(req.body, { requireName: true });
+  const time_start = normalized.time_start ?? 0;
+  const time_end = normalized.time_end ?? 1000;
   if (time_end <= time_start) return res.status(400).json({ error: 'time_end must be greater than time_start' });
-  const world = Worlds.create({ ...req.body, name, time_start, time_end });
+  const world = Worlds.create({ ...normalized, time_start, time_end });
   res.status(201).json(world);
 });
 
 app.put('/api/worlds/:id', (req, res) => {
-  const update = { ...req.body };
-  if (update.name !== undefined) {
-    update.name = String(update.name).trim();
-    if (!update.name) return res.status(400).json({ error: 'World name cannot be empty' });
-  }
-  if (update.time_start !== undefined) update.time_start = Number(update.time_start);
-  if (update.time_end !== undefined) update.time_end = Number(update.time_end);
+  const update = normalizeTimeRange(req.body);
 
   // Enforce time_end > time_start using existing values as fallback
   const existing = Worlds.get(Number(req.params.id));
@@ -69,6 +91,12 @@ app.get('/api/entities/:id', (req, res) => {
 });
 
 app.post('/api/worlds/:wid/entities', (req, res) => {
+  if (!ENTITY_TYPES.has(req.body.type)) {
+    return res.status(400).json({ error: `Invalid entity type. Allowed: ${Array.from(ENTITY_TYPES).join(', ')}` });
+  }
+  if (!Worlds.get(Number(req.params.wid))) {
+    return res.status(404).json({ error: 'World not found' });
+  }
   const entity = Entities.create({ ...req.body, world_id: Number(req.params.wid) });
   res.status(201).json(entity);
 });
@@ -97,11 +125,38 @@ app.get('/api/events/:id', (req, res) => {
 });
 
 app.post('/api/worlds/:wid/events', (req, res) => {
-  const event = Events.create({ ...req.body, world_id: Number(req.params.wid) });
+  if (!Worlds.get(Number(req.params.wid))) {
+    return res.status(404).json({ error: 'World not found' });
+  }
+  const title = String(req.body.title || '').trim();
+  if (!title) return res.status(400).json({ error: 'Event title is required' });
+  const date = parseInteger(req.body.date, 'date');
+  if (date === null) return res.status(400).json({ error: 'Event date is required' });
+  const category = req.body.category || 'political';
+  if (!EVENT_CATEGORIES.has(category)) {
+    return res.status(400).json({ error: `Invalid event category. Allowed: ${Array.from(EVENT_CATEGORIES).join(', ')}` });
+  }
+  const event = Events.create({
+    ...req.body,
+    title,
+    date,
+    category,
+    world_id: Number(req.params.wid),
+  });
   res.status(201).json(event);
 });
 
 app.put('/api/events/:id', (req, res) => {
+  if (req.body.date !== undefined) {
+    req.body.date = parseInteger(req.body.date, 'date');
+  }
+  if (req.body.category !== undefined && !EVENT_CATEGORIES.has(req.body.category)) {
+    return res.status(400).json({ error: `Invalid event category. Allowed: ${Array.from(EVENT_CATEGORIES).join(', ')}` });
+  }
+  if (req.body.title !== undefined) {
+    req.body.title = String(req.body.title).trim();
+    if (!req.body.title) return res.status(400).json({ error: 'Event title cannot be empty' });
+  }
   const event = Events.update(Number(req.params.id), req.body);
   if (!event) return res.status(404).json({ error: 'Event not found' });
   res.json(event);
@@ -331,6 +386,9 @@ app.get('*', (_req, res) => {
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
+  if (err.status) {
+    return res.status(err.status).json({ error: err.message });
+  }
   console.error(`[${new Date().toISOString()}] Unhandled error: ${err.message}`);
   res.status(500).json({ error: 'Internal server error' });
 });
