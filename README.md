@@ -90,9 +90,15 @@ The demo uses `localStorage` instead of SQLite — same features, data stays in 
 
 ## Two Deployment Options
 
-| | Full Version (`public/`) | Static Demo (`docs/`) |
 | | Full version (`public/`) | Static demo (`docs/`) |
-## Installation 
+|---|---|---|
+| **Backend** | Express + SQLite | None (client-only) |
+| **Storage** | Server-side database | Browser localStorage |
+| **Persistence** | Survives browser changes | Local storage only |
+| **Share links** | Token-based server routes | Local/browser-based only |
+| **Setup** | `npm install && npm start` | Open `docs/index.html` |
+
+### Installation (full version)
 
 ```bash
 # Clone the repo
@@ -105,14 +111,6 @@ npm install
 # Start the server
 npm start
 ```
-
-| | Full version (`public/`) | Static demo (`demo/`) |
-|---|---|---|
-| **Backend** | Express + SQLite | None (client-only) |
-| **Storage** | Server-side database | Browser localStorage |
-| **Persistence** | Survives browser changes | Local storage only |
-| **Share Links** | Token-based server | Base64-encoded URL hash |
-| **Setup** | `npm install && npm start` | Open `index.html` |
 
 ### Key Differences in `docs/`
 

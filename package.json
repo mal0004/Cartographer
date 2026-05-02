@@ -5,7 +5,12 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "test": "node --test --test-concurrency=1 tests/*.test.js tests/*.test.mjs",
+    "lint": "node --check server.js && node --check db.js && node --check public/ui/editor.js && node --check docs/ui/editor.js",
+    "format": "node -e \"console.log('No automatic formatter configured yet.');\"",
+    "audit": "npm audit --audit-level=high",
+    "sync:docs": "node scripts/sync-docs.mjs"
   },
   "keywords": [
     "worldbuilding",

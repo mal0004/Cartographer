@@ -22,6 +22,30 @@ const SVG_EXPORT_DEFAULTS = {
   cartoucheDate: '',
 };
 
+
+
+function buildLegend(entities, x, y, esc) {
+  const counts = new Map();
+  for (const e of entities) counts.set(e.type, (counts.get(e.type) || 0) + 1);
+  const order = ['territory', 'region', 'river', 'route', 'city', 'symbol', 'text'];
+  const labels = {
+    territory: 'Territories', region: 'Regions', river: 'Rivers', route: 'Routes',
+    city: 'Cities', symbol: 'Symbols', text: 'Labels'
+  };
+  const rows = order.filter((k) => counts.has(k));
+  if (!rows.length) return '';
+  const h = 22 + rows.length * 16;
+  let out = `<g transform="translate(${x},${y})">`;
+  out += `<rect x="0" y="0" width="180" height="${h}" rx="6" fill="#F5F0E8" stroke="#2C1810" stroke-width="1.2" opacity="0.92"/>`;
+  out += `<text x="10" y="14" font-family="Cinzel,serif" font-size="11" fill="#2C1810">Legend</text>`;
+  rows.forEach((k, i) => {
+    const yy = 30 + i * 16;
+    out += `<text x="10" y="${yy}" font-family="Source Serif 4,serif" font-size="10" fill="#2C1810">${esc(labels[k])}: ${counts.get(k)}</text>`;
+  });
+  out += '</g>';
+  return out;
+}
+
 class SvgExportPanel {
   constructor() {
     this.options = { ...SVG_EXPORT_DEFAULTS };
@@ -202,6 +226,9 @@ class SvgExportPanel {
       content += `<line x1="${sx + barW}" y1="${sy - 5}" x2="${sx + barW}" y2="${sy + 5}" stroke="#2C1810" stroke-width="2"/>`;
       content += `<text x="${sx + barW/2}" y="${sy + 18}" text-anchor="middle" font-family="Cinzel,serif" font-size="11" fill="#2C1810">${esc(opts.scaleValue)} ${esc(opts.scaleUnit)}</text>`;
     }
+
+    // Auto legend
+    content += buildLegend(entities, minX + 20, minY + 20, esc);
 
     // Title cartouche
     if (opts.cartouche) {

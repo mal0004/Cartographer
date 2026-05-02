@@ -34,6 +34,7 @@ const App = {
   symbolLibrary: null,
   themeManager: null,
   minimap: null,
+  generationOptions: { landmassCount: 3, riverCount: 3, cityCount: 8, coastlineRoughness: 3 },
 
   // ─── Convenience wrappers used by child modules ────────
 

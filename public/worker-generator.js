@@ -82,12 +82,13 @@ const SUFFIXES = [
 // ─── World Generator (inlined for worker) ────────────────
 
 class WorldGenerator {
-  constructor(seed, w, h) {
+  constructor(seed, w, h, options = {}) {
     this.seed = seed ?? Math.floor(Math.random() * 100000);
     this.w = w || 100;
     this.h = h || 75;
     this.noise = new SimplexNoise(this.seed);
     this._rng = this.seed;
+    this.options = { landmassCount: Math.min(5, Math.max(1, Number(options.landmassCount) || 3)), riverCount: Math.min(12, Math.max(0, Number(options.riverCount) || 3)), cityCount: Math.min(24, Math.max(1, Number(options.cityCount) || 8)), coastlineRoughness: Math.min(6, Math.max(0, Number(options.coastlineRoughness) || 3)) };
   }
 
   _seededRandom() {
@@ -149,7 +150,7 @@ class WorldGenerator {
       }
     }
     masses.sort((a,b) => b.length - a.length);
-    return masses.slice(0,3).filter(m => m.length > 20).map(c => this._cellsToTerritory(c, heightmap));
+    return masses.slice(0, this.options.landmassCount).filter(m => m.length > 20).map(c => this._cellsToTerritory(c, heightmap));
   }
 
   _cellsToTerritory(cells, heightmap) {
@@ -166,7 +167,7 @@ class WorldGenerator {
     const points = this._orderEdge(edgeArr, w);
     const scaled = points.map(ci => ({ x: (ci%w)*scale+100, y: Math.floor(ci/w)*scale+100 }));
     const simplified = this._simplifyPoints(scaled, 8);
-    const smooth = this._chaikin(this._limitPoints(simplified, 800), 3);
+    const smooth = this._chaikin(this._limitPoints(simplified, 800), this.options.coastlineRoughness);
     let elevSum = 0;
     for (const ci of cells) elevSum += heightmap[ci];
     return {
@@ -229,10 +230,14 @@ class WorldGenerator {
   }
 
   assignBiomes(territories, heightmap) {
-    const { w, noise } = this;
+    const { w, h, noise } = this;
     for (const ter of territories) {
       const e = ter._avgElev;
       const cells = ter._cells;
+      const cyAvg = cells.reduce((acc, ci) => acc + Math.floor(ci / w), 0) / Math.max(1, cells.length);
+      const latitude01 = cyAvg / Math.max(1, h - 1);
+      const polarFactor = Math.abs(latitude01 - 0.5) * 2;
+      const tropicalFactor = 1 - polarFactor;
       const isCoastal = cells.some(ci => {
         const cx2 = ci%w, cy2 = Math.floor(ci/w);
         for (const [dx,dy] of [[-1,0],[1,0],[0,-1],[0,1]]) {
@@ -241,16 +246,14 @@ class WorldGenerator {
         }
         return false;
       });
-      if (e > 0.70) { ter.data.terrainType='mountain'; ter.data.color='#8B8682'; }
-      else if (e > 0.55) { ter.data.terrainType='hills'; ter.data.color='#A0926B'; }
-      else if (isCoastal && e<0.50 && this._seededRandom()<0.3) {
-        ter.data.terrainType='marsh'; ter.data.color='#5B7B5B';
-      } else if (noise.noise2D(e*10,this.seed*0.01) > 0.3) {
-        ter.data.terrainType='desert'; ter.data.color='#C4A35A';
-      } else {
-        ter.data.terrainType='plain';
-        ter.data.color=this._seededRandom()>0.5?'#8B9B6B':'#6B8B6B';
-      }
+      const moisture = noise.noise2D(cyAvg * 0.08, this.seed * 0.013) * 0.5 + 0.5;
+      const aridity = (1 - moisture) * (0.4 + tropicalFactor * 0.6);
+      if (e > 0.74 || (e > 0.68 && polarFactor > 0.7)) { ter.data.terrainType='mountain'; ter.data.color='#8B8682'; }
+      else if (e > 0.57) { ter.data.terrainType='hills'; ter.data.color='#A0926B'; }
+      else if (isCoastal && e < 0.50 && moisture > 0.58 && tropicalFactor > 0.35 && this._seededRandom() < 0.38) { ter.data.terrainType='marsh'; ter.data.color='#5B7B5B'; }
+      else if (aridity > 0.62 && !isCoastal && polarFactor < 0.75) { ter.data.terrainType='desert'; ter.data.color='#C4A35A'; }
+      else if (moisture > 0.68 && tropicalFactor > 0.25) { ter.data.terrainType='forest'; ter.data.color='#5C8A52'; }
+      else { ter.data.terrainType='plain'; ter.data.color=this._seededRandom()>0.5?'#8B9B6B':'#6B8B6B'; }
     }
   }
 
@@ -260,7 +263,7 @@ class WorldGenerator {
     for (let y=0; y<h; y++) for (let x=0; x<w; x++)
       if (heightmap[y*w+x] > 0.65) sources.push({x, y, elev: heightmap[y*w+x]});
     sources.sort((a,b) => b.elev-a.elev);
-    const picked = sources.slice(0, 3), scale = 5;
+    const picked = sources.slice(0, this.options.riverCount), scale = 5;
     for (const src of picked) {
       const path = [];
       let cx2 = src.x, cy2 = src.y;
@@ -308,7 +311,7 @@ class WorldGenerator {
           importance:'village',color:'#8B2635',labelOffsetX:12,labelOffsetY:-8,
           population:0,founded:'',description:''}});
     }
-    return entities.slice(0, 8);
+    return entities.slice(0, this.options.cityCount);
   }
 
   _centroid(pts) {
@@ -321,10 +324,10 @@ class WorldGenerator {
 // ─── Worker message handler ──────────────────────────────
 
 self.onmessage = function(ev) {
-  const { type, seed, w, h } = ev.data;
+  const { type, seed, w, h, options } = ev.data;
   if (type !== 'generate') return;
   try {
-    const gen = new WorldGenerator(seed, w, h);
+    const gen = new WorldGenerator(seed, w, h, options || {});
     self.postMessage({type:'progress', step:1, total:5, key:'heightmap'});
     const heightmap = gen.generateHeightmap();
     self.postMessage({type:'progress', step:2, total:5, key:'landmasses'});
