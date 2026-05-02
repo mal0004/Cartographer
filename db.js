@@ -22,7 +22,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS entities (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     world_id INTEGER NOT NULL,
-    type TEXT NOT NULL CHECK(type IN ('territory','city','route','region','text','symbol')),
+    type TEXT NOT NULL CHECK(type IN ('territory','city','route','region','text','symbol','river')),
     name TEXT DEFAULT '',
     data TEXT NOT NULL DEFAULT '{}',
     created_at TEXT DEFAULT (datetime('now')),
@@ -55,6 +55,35 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_events_world ON events(world_id);
   CREATE INDEX IF NOT EXISTS idx_shares_token ON shares(token);
 `);
+
+
+
+function migrateEntitiesTableForRiverType() {
+  const row = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='entities'").get();
+  const sql = (row && row.sql) ? row.sql : '';
+  if (sql.includes("'river'")) return;
+  db.exec(`
+    BEGIN;
+    CREATE TABLE entities_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      world_id INTEGER NOT NULL,
+      type TEXT NOT NULL CHECK(type IN ('territory','city','route','region','text','symbol','river')),
+      name TEXT DEFAULT '',
+      data TEXT NOT NULL DEFAULT '{}',
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (world_id) REFERENCES worlds(id) ON DELETE CASCADE
+    );
+    INSERT INTO entities_new (id, world_id, type, name, data, created_at, updated_at)
+    SELECT id, world_id, type, name, data, created_at, updated_at FROM entities;
+    DROP TABLE entities;
+    ALTER TABLE entities_new RENAME TO entities;
+    CREATE INDEX IF NOT EXISTS idx_entities_world ON entities(world_id);
+    COMMIT;
+  `);
+}
+
+migrateEntitiesTableForRiverType();
 
 // ─── Helpers ─────────────────────────────────────────────────────
 
