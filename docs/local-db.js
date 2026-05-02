@@ -5,6 +5,10 @@
  * in localStorage so the app works as a static site (GitHub Pages).
  */
 
+function isObject(v){ return v && typeof v==='object' && !Array.isArray(v); }
+function validateEntityPayload(data,{partial=false}={}){ const allowed=new Set(['territory','city','route','region','text','symbol','river']); if(!isObject(data)) throw new Error('Invalid JSON body'); if((!partial||data.type!==undefined)&&!allowed.has(data.type)) throw new Error('Invalid entity type'); if(data.name!==undefined && typeof data.name!=='string') throw new Error('Entity name must be a string'); if((!partial||data.data!==undefined)&&!isObject(data.data)) throw new Error('Entity data must be an object'); }
+function validateEventPayload(data,{partial=false}={}){ const cats=new Set(['war','political','natural','cultural']); if(!isObject(data)) throw new Error('Invalid JSON body'); if((!partial||data.title!==undefined)&&(typeof data.title!=='string'||!data.title.trim())) throw new Error('Event title is required'); if((!partial||data.date!==undefined)&&!Number.isFinite(Number(data.date))) throw new Error('Event date must be a number'); if(data.category!==undefined&&!cats.has(data.category)) throw new Error('Invalid event category'); if(data.entity_ids!==undefined && (!Array.isArray(data.entity_ids)||data.entity_ids.some(id=>!Number.isFinite(Number(id))))) throw new Error('entity_ids must be an array of numeric ids'); }
+
 const LocalDB = {
   _key(ns) { return `cartographer_${ns}`; },
 
@@ -76,6 +80,7 @@ const LocalDB = {
   },
 
   createEntity(worldId, data) {
+    validateEntityPayload(data);
     const entities = this._read('entities');
     const entity = {
       id: this._nextId('entities'),
@@ -92,6 +97,7 @@ const LocalDB = {
   },
 
   updateEntity(id, data) {
+    validateEntityPayload(data, { partial: true });
     const entities = this._read('entities');
     const idx = entities.findIndex(e => e.id === id);
     if (idx === -1) return null;
@@ -117,6 +123,7 @@ const LocalDB = {
   },
 
   createEvent(worldId, data) {
+    validateEventPayload(data);
     const events = this._read('events');
     const event = {
       id: this._nextId('events'),
@@ -134,6 +141,7 @@ const LocalDB = {
   },
 
   updateEvent(id, data) {
+    validateEventPayload(data, { partial: true });
     const events = this._read('events');
     const idx = events.findIndex(e => e.id === id);
     if (idx === -1) return null;

@@ -6,6 +6,25 @@ const { nanoid } = require('nanoid');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+function isObject(v){ return v && typeof v === 'object' && !Array.isArray(v); }
+function validateEntityPayload(body,{partial=false}={}){
+ if(!isObject(body)) return 'Invalid JSON body';
+ const allowed=new Set(['territory','city','route','region','text','symbol','river']);
+ if((!partial||body.type!==undefined)&&!allowed.has(body.type)) return 'Invalid entity type';
+ if(body.name!==undefined && typeof body.name!=='string') return 'Entity name must be a string';
+ if((!partial||body.data!==undefined) && !isObject(body.data)) return 'Entity data must be an object';
+ return null;
+}
+function validateEventPayload(body,{partial=false}={}){
+ if(!isObject(body)) return 'Invalid JSON body';
+ const cats=new Set(['war','political','natural','cultural']);
+ if((!partial||body.title!==undefined) && (typeof body.title!=='string' || !body.title.trim())) return 'Event title is required';
+ if((!partial||body.date!==undefined) && !Number.isFinite(Number(body.date))) return 'Event date must be a number';
+ if(body.category!==undefined && !cats.has(body.category)) return 'Invalid event category';
+ if(body.entity_ids!==undefined && (!Array.isArray(body.entity_ids) || body.entity_ids.some(id=>!Number.isFinite(Number(id))))) return 'entity_ids must be an array of numeric ids';
+ return null;
+}
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -69,11 +88,15 @@ app.get('/api/entities/:id', (req, res) => {
 });
 
 app.post('/api/worlds/:wid/entities', (req, res) => {
+  const err = validateEntityPayload(req.body);
+  if (err) return res.status(400).json({ error: err });
   const entity = Entities.create({ ...req.body, world_id: Number(req.params.wid) });
   res.status(201).json(entity);
 });
 
 app.put('/api/entities/:id', (req, res) => {
+  const err = validateEntityPayload(req.body, { partial: true });
+  if (err) return res.status(400).json({ error: err });
   const entity = Entities.update(Number(req.params.id), req.body);
   if (!entity) return res.status(404).json({ error: 'Entity not found' });
   res.json(entity);
@@ -97,11 +120,15 @@ app.get('/api/events/:id', (req, res) => {
 });
 
 app.post('/api/worlds/:wid/events', (req, res) => {
+  const err = validateEventPayload(req.body);
+  if (err) return res.status(400).json({ error: err });
   const event = Events.create({ ...req.body, world_id: Number(req.params.wid) });
   res.status(201).json(event);
 });
 
 app.put('/api/events/:id', (req, res) => {
+  const err = validateEventPayload(req.body, { partial: true });
+  if (err) return res.status(400).json({ error: err });
   const event = Events.update(Number(req.params.id), req.body);
   if (!event) return res.status(404).json({ error: 'Event not found' });
   res.json(event);

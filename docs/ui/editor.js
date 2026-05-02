@@ -116,6 +116,7 @@ export function showScreen(id) {
 // ─── World Generation ────────────────────────────────────
 
 async function generateWorld(app, seed) {
+  const previousEntities = app.entities ? app.entities.map(e => ({ ...e, data: { ...(e.data || {}) } })) : [];
   if (app.entities && app.entities.length > 0) {
     if (!confirm(t('editor.generate.confirmReplace'))) return;
     for (const e of [...app.entities]) {
@@ -127,7 +128,8 @@ async function generateWorld(app, seed) {
   const canvasW = app.canvasEngine ? app.canvasEngine.width : 1200;
   const hmW = canvasW < 1000 ? 75 : 100;
   const hmH = Math.round(hmW * 0.75);
-  worker.postMessage({ type: 'generate', seed: seed ?? undefined, w: hmW, h: hmH });
+  const generationOptions = app.generationOptions || {};
+  worker.postMessage({ type: 'generate', seed: seed ?? undefined, w: hmW, h: hmH, options: generationOptions });
   worker.onmessage = async (ev) => {
     const msg = ev.data;
     if (msg.type === 'progress') {
@@ -135,12 +137,19 @@ async function generateWorld(app, seed) {
     } else if (msg.type === 'done') {
       worker.terminate();
       const result = msg.world;
-      for (const territory of result.territories)
-        await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, territory);
-      for (const river of result.rivers)
-        await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, river);
-      for (const entity of result.entities)
-        await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, entity);
+      const createdIds = [];
+      try {
+        for (const territory of result.territories) { const created = await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, territory); createdIds.push(created.id); }
+        for (const river of result.rivers) { const created = await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, river); createdIds.push(created.id); }
+        for (const entity of result.entities) { const created = await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, entity); createdIds.push(created.id); }
+      } catch (insertErr) {
+        for (const id of createdIds) { try { await api('DELETE', `/api/entities/${id}`); } catch (_) {} }
+        for (const entity of previousEntities) { try { await api('POST', `/api/worlds/${app.currentWorld.id}/entities`, { type: entity.type, name: entity.name || '', data: entity.data || {} }); } catch (_) {} }
+        await loadEntities(app);
+        if (app._emptyState) app._emptyState.hideProgress();
+        showToast((insertErr && insertErr.message) ? insertErr.message : t('toasts.error'), 'error');
+        return;
+      }
       await loadEntities(app);
       if (app._emptyState) { app._emptyState.hideProgress(); app._emptyState.check(app.entities); }
       if (app.entities.length > 0) {

@@ -18,6 +18,7 @@ export class HintSystem {
     this._currentHint = null;
     this._el = null;
     this._boundDismiss = () => this._dismiss();
+    this._checklistEl = null;
     this.container.addEventListener('mousemove', this._boundDismiss);
   }
 
@@ -36,11 +37,27 @@ export class HintSystem {
     if (key && !this.shownHints.has(key)) {
       this._scheduleHint(key);
     }
+    this._renderChecklist({ territories, cities, rivers, entities });
   }
 
   _scheduleHint(key) {
     this._clearTimer();
     this._timer = setTimeout(() => this._showHint(key), HINT_DELAY);
+  }
+
+  _renderChecklist({ territories, cities, rivers, entities }) {
+    const routes = entities.filter(e => e.type === 'route');
+    const regions = entities.filter(e => e.type === 'region');
+    const steps = [
+      { label: '1. Relief & continents', done: territories.length > 0 },
+      { label: '2. Hydrography', done: rivers.length > 0 },
+      { label: '3. Settlements', done: cities.length > 0 },
+      { label: '4. Routes & trade', done: routes.length > 0 },
+      { label: '5. Biomes & regions', done: regions.length > 0 },
+    ];
+    if (!this._checklistEl) { this._checklistEl = document.createElement('aside'); this._checklistEl.className = 'hint-checklist'; this.container.appendChild(this._checklistEl); }
+    const completed = steps.filter(s => s.done).length;
+    this._checklistEl.innerHTML = `<div class="hint-checklist-title">Worldbuilding checklist (${completed}/${steps.length})</div><ul>${steps.map(s => `<li class="${s.done ? 'done' : ''}">${s.done ? '✓' : '○'} ${s.label}</li>`).join('')}</ul>`;
   }
 
   _showHint(key) {
@@ -77,6 +94,7 @@ export class HintSystem {
 
   destroy() {
     this._dismiss();
+    if (this._checklistEl) this._checklistEl.remove();
     this.container.removeEventListener('mousemove', this._boundDismiss);
   }
 }
